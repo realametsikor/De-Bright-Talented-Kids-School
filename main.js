@@ -17,6 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuBtn = document.getElementById('mobile-menu');
   const navLinks = document.getElementById('nav-menu');
   const menuIcon = menuBtn?.querySelector('i');
+
+  const closeMenu = () => {
+    if (navLinks) navLinks.classList.remove('active');
+    if (menuIcon) {
+      menuIcon.classList.add('fa-bars');
+      menuIcon.classList.remove('fa-times');
+    }
+  };
+
   if (menuBtn && navLinks) {
     menuBtn.addEventListener('click', () => {
       navLinks.classList.toggle('active');
@@ -24,6 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         menuIcon.classList.toggle('fa-bars');
         menuIcon.classList.toggle('fa-times');
       }
+    });
+
+    // Close menu when a nav link is clicked (mobile)
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', closeMenu);
     });
   }
 
@@ -76,8 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let counted = false;
     const counterSection = document.querySelector('.counter-section');
     const animateCounters = () => {
-      if (counted) return;
-      if (!counterSection) return;
+      if (counted || !counterSection) return;
       const top = counterSection.getBoundingClientRect().top;
       if (top < window.innerHeight - 80) {
         counted = true;
@@ -148,6 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
     modal.querySelector('.close-modal')?.addEventListener('click', close);
     modal.querySelector('.apply-btn-modal')?.addEventListener('click', close);
     modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    // Close on Escape key
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal.classList.contains('show')) close();
+    });
   }
 
   /* ---- APPLICATION FORM (Formspree) ---- */
@@ -159,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const msg = document.getElementById('form-message');
       // Honeypot check
       if (applyForm.querySelector('[name="website_url"]')?.value) return;
-      btn.textContent = 'Sending…';
+      btn.textContent = 'Sending\u2026';
       btn.disabled = true;
       try {
         const res = await fetch(applyForm.action, {
@@ -190,7 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
       e.preventDefault();
       const btn = contactForm.querySelector('.submit-btn');
       const msg = document.getElementById('contact-message');
-      btn.textContent = 'Sending…';
+      // Honeypot check
+      if (contactForm.querySelector('[name="website_url"]')?.value) return;
+      btn.textContent = 'Sending\u2026';
       btn.disabled = true;
       try {
         const res = await fetch(contactForm.action, {
@@ -209,20 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       btn.textContent = 'Send Message';
       btn.disabled = false;
-    });
-  }
-
-  /* ---- DASHBOARD TABS ---- */
-  const dockIcons = document.querySelectorAll('.dock [data-view]');
-  if (dockIcons.length) {
-    dockIcons.forEach(icon => {
-      icon.addEventListener('click', () => {
-        const target = icon.dataset.view;
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.dock [data-view]').forEach(i => i.classList.remove('active'));
-        document.getElementById(target)?.classList.add('active');
-        icon.classList.add('active');
-      });
     });
   }
 
