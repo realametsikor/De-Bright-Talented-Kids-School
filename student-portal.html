@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Portal | De-Bright Talented Kids School</title>
+  <meta name="description" content="De-Bright Student Portal — Log in to access your results, quizzes, and study materials.">
+  <link rel="icon" href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" type="image/jpeg">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+<div id="preloader"><div class="loader-content"><div class="spinner"></div><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="Loading…" class="loader-logo"></div></div>
+
+<nav class="navbar">
+  <div class="logo"><a href="index.html">De-Bright <span>Talented Kids School</span></a></div>
+  <ul class="nav-links" id="nav-menu">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="about.html">About</a></li>
+    <li><a href="articles.html">Articles</a></li>
+    <li><a href="gallery.html">Gallery</a></li>
+    <li><a href="student-portal.html">Student Portal</a></li>
+    <li><a href="contact.html">Contact</a></li>
+    <li><a href="index.html#apply" class="btn-apply">Apply Now</a></li>
+  </ul>
+  <button class="menu-toggle" id="mobile-menu" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+</nav>
+
+<a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+
+<div class="portal-section">
+  <div class="portal-card">
+    <div style="width:80px;height:80px;margin:0 auto 1.5rem;border-radius:50%;overflow:hidden;border:3px solid var(--accent);box-shadow:0 4px 15px rgba(0,0,0,.15);">
+      <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="School Logo" style="width:100%;height:100%;object-fit:cover;">
+    </div>
+    <h2>Student Portal</h2>
+    <p class="sub">Log in to access your results, quizzes & study materials</p>
+
+    <div id="portal-error" style="display:none;background:#f8d7da;color:#721c24;padding:12px;border-radius:8px;margin-bottom:1rem;font-size:.9rem;font-weight:600;"></div>
+
+    <form id="login-form">
+      <input type="text" id="username" placeholder="Student ID / Username" required autocomplete="username">
+      <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+      <button type="submit">
+        <span id="login-btn-text">Log In</span>
+        <i id="login-spinner" class="fas fa-spinner fa-spin" style="display:none;margin-left:8px;"></i>
+      </button>
+    </form>
+
+    <p style="margin-top:1.5rem;font-size:.85rem;color:#888;">
+      Forgot your login? <a href="contact.html" style="color:var(--primary);font-weight:700;">Contact the school office</a>
+    </p>
+
+    <hr style="margin:1.5rem 0;border:none;border-top:1px solid #eee;">
+    <p style="font-size:.8rem;color:#aaa;">
+      Are you a teacher? <a href="teacher-portal.html" style="color:var(--primary);font-weight:700;">Teacher Portal →</a>
+    </p>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-section"><h3>Contact Us</h3><p><i class="fas fa-map-marker-alt"></i> Sonitra Road, Amasaman, Accra</p><p><i class="fas fa-phone"></i> +233 53 699 8172</p><p><i class="fas fa-envelope"></i> admin@debrighttalentedkidsschool.online</p></div>
+      <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li><li><a href="articles.html">Articles</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-section"><h3>Follow Us</h3><div class="social-icons"><a href="https://www.facebook.com/debrightschool" target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a><a href="https://www.instagram.com/debrightschool" target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a><a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a></div></div>
+    </div>
+    <div class="copyright"><p>&copy; <span id="year"></span> De-Bright Talented Kids School. All Rights Reserved.</p></div>
+  </div>
+</footer>
+
+<script>
+document.getElementById('year').textContent = new Date().getFullYear();
+
+// Simple demo login — replace with your real auth backend
+document.getElementById('login-form').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('login-btn-text');
+  const spinner = document.getElementById('login-spinner');
+  const err = document.getElementById('portal-error');
+  btn.textContent = 'Logging in…';
+  spinner.style.display = 'inline-block';
+  err.style.display = 'none';
+
+  // Simulate auth delay — connect your backend here
+  setTimeout(() => {
+    btn.textContent = 'Log In';
+    spinner.style.display = 'none';
+    err.textContent = 'Invalid credentials. Please contact the school office for your login details.';
+    err.style.display = 'block';
+  }, 1500);
+});
+</script>
+<script src="main.js"></script>
+</body>
+</html>
