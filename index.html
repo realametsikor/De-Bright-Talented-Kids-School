@@ -21,16 +21,19 @@
 </head>
 <body>
 
+<!-- SKIP NAV (Accessibility) -->
+<a href="#main-content" class="skip-nav">Skip to main content</a>
+
 <!-- PRELOADER -->
 <div id="preloader">
   <div class="loader-content">
     <div class="spinner"></div>
-    <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="Loading…" class="loader-logo">
+    <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="De-Bright Talented Kids School" class="loader-logo">
   </div>
 </div>
 
 <!-- NAVBAR -->
-<nav class="navbar">
+<nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="logo">
     <a href="index.html">De-Bright <span>Talented Kids School</span></a>
   </div>
@@ -49,21 +52,21 @@
 </nav>
 
 <!-- WHATSAPP FAB -->
-<a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="WhatsApp">
+<a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">
   <i class="fab fa-whatsapp"></i>
 </a>
 
 <!-- TICKER -->
-<div class="ticker-wrap">
+<div class="ticker-wrap" role="marquee" aria-label="School announcements">
   <div class="ticker">
-    <div class="ticker__item">📢 Admissions Open for 2026/2027 Academic Year!</div>
-    <div class="ticker__item">🚌 School Bus Service Available for Major Routes.</div>
-    <div class="ticker__item">🏆 De-Bright: 100% Distinction in B.E.C.E.</div>
-    <div class="ticker__item">⭐ Limited Vacancies in Pre-School Department.</div>
-    <div class="ticker__item">📢 Admissions Open for 2026/2027 Academic Year!</div>
-    <div class="ticker__item">🚌 School Bus Service Available for Major Routes.</div>
-    <div class="ticker__item">🏆 De-Bright: 100% Distinction in B.E.C.E.</div>
-    <div class="ticker__item">⭐ Limited Vacancies in Pre-School Department.</div>
+    <div class="ticker__item">Admissions Open for 2026/2027 Academic Year!</div>
+    <div class="ticker__item">School Bus Service Available for Major Routes.</div>
+    <div class="ticker__item">De-Bright: 100% Distinction in B.E.C.E.</div>
+    <div class="ticker__item">Limited Vacancies in Pre-School Department.</div>
+    <div class="ticker__item">Admissions Open for 2026/2027 Academic Year!</div>
+    <div class="ticker__item">School Bus Service Available for Major Routes.</div>
+    <div class="ticker__item">De-Bright: 100% Distinction in B.E.C.E.</div>
+    <div class="ticker__item">Limited Vacancies in Pre-School Department.</div>
   </div>
 </div>
 
@@ -79,12 +82,12 @@
 </header>
 
 <!-- VACANCY MODAL -->
-<div id="vacancy-modal" class="vacancy-modal">
+<div id="vacancy-modal" class="vacancy-modal" role="dialog" aria-labelledby="vacancy-title" aria-modal="true">
   <div class="vacancy-content">
-    <button class="close-modal">&times;</button>
+    <button class="close-modal" aria-label="Close vacancy popup">&times;</button>
     <div class="vacancy-header">
       <span class="badge">Hiring</span>
-      <h2>Teachers Needed</h2>
+      <h2 id="vacancy-title">Teachers Needed</h2>
     </div>
     <div class="vacancy-body">
       <p>Are you passionate about shaping young minds? De-Bright Talented Kids School is looking for dedicated and experienced teachers to join our team.</p>
@@ -98,8 +101,11 @@
   </div>
 </div>
 
+<!-- MAIN CONTENT -->
+<main id="main-content">
+
 <!-- COUNTER STATS -->
-<section class="counter-section">
+<section class="counter-section" aria-label="School statistics">
   <div class="counter-grid">
     <div class="counter-item"><h2 class="count" data-target="15">0+</h2><p>Years of Excellence</p></div>
     <div class="counter-item"><h2 class="count" data-target="500">0+</h2><p>Happy Students</p></div>
@@ -109,7 +115,7 @@
 </section>
 
 <!-- PILLARS -->
-<section class="stats-strip">
+<section class="stats-strip" aria-label="Our strengths">
   <div class="stats-grid container">
     <div class="stat-box"><div class="icon-wrapper"><i class="fas fa-graduation-cap"></i></div><h3>Academic Excellence</h3><p>Consistent top performance in B.E.C.E exams.</p></div>
     <div class="stat-box"><div class="icon-wrapper"><i class="fas fa-chalkboard-teacher"></i></div><h3>Expert Teachers</h3><p>Qualified, passionate, and dedicated staff.</p></div>
@@ -119,7 +125,7 @@
 </section>
 
 <!-- CORE VALUES -->
-<section class="values-section section-padding">
+<section class="values-section section-padding" aria-label="Core values">
   <div class="container">
     <h2 class="section-title text-center">Our Core Values</h2>
     <div class="accent-bar"></div>
@@ -132,7 +138,7 @@
 </section>
 
 <!-- PROGRAMS -->
-<section class="programs-section section-padding">
+<section class="programs-section section-padding" aria-label="Academic programs">
   <div class="container">
     <h2 class="section-title text-center" style="color:white;">Our Academic Programs</h2>
     <div class="accent-bar"></div>
@@ -146,7 +152,7 @@
 </section>
 
 <!-- WHY PARENTS TRUST US -->
-<section class="parallax-section">
+<section class="parallax-section" aria-label="Why parents trust us">
   <div class="parallax-content">
     <h2>Why Parents Trust Us</h2>
     <div class="features-grid">
@@ -158,22 +164,22 @@
 </section>
 
 <!-- EXTRA-CURRICULAR -->
-<section class="extra-section section-padding">
+<section class="extra-section section-padding" aria-label="Extra-curricular activities">
   <div class="container">
     <h2 class="section-title text-center">Beyond The Classroom</h2>
     <div class="accent-bar"></div>
     <p class="text-center" style="color:#666;max-width:600px;margin:0 auto 3rem;">We believe in nurturing every talent. Our extra-curricular activities ensure every child finds their passion.</p>
     <div class="extra-grid">
-      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" alt="ICT & Coding"></div><h4>ICT & Coding</h4></div>
-      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" alt="Sports"></div><h4>Sports</h4></div>
-      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" alt="Creative Arts"></div><h4>Creative Arts</h4></div>
-      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" alt="Culture & Clubs"></div><h4>Culture & Clubs</h4></div>
+      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" alt="Students in ICT and Coding class" loading="lazy"></div><h4>ICT & Coding</h4></div>
+      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" alt="Students during sports activities" loading="lazy"></div><h4>Sports</h4></div>
+      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" alt="Students in creative arts class" loading="lazy"></div><h4>Creative Arts</h4></div>
+      <div class="extra-item"><div class="extra-img"><img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" alt="Students in culture and clubs activities" loading="lazy"></div><h4>Culture & Clubs</h4></div>
     </div>
   </div>
 </section>
 
 <!-- BECE COUNTDOWN -->
-<section id="countdown-section">
+<section id="countdown-section" aria-label="B.E.C.E exam countdown">
   <h2>B.E.C.E Countdown</h2>
   <div class="timer">
     <div class="time-box"><span id="days">00</span><small>Days</small></div>
@@ -184,7 +190,7 @@
 </section>
 
 <!-- EVENTS -->
-<section class="events-section section-padding">
+<section class="events-section section-padding" aria-label="Upcoming events">
   <div class="container" style="max-width:900px;">
     <h2 class="section-title text-center" style="margin-bottom:2.5rem;">Upcoming Events</h2>
     <div class="event-card"><div class="event-date"><span>15</span><small>FEB</small></div><div class="event-details"><h4>Entrance Exams (New Intake)</h4><p>Testing for Creche to JHS 1 applicants. 8:00 AM sharp.</p></div></div>
@@ -194,7 +200,7 @@
 </section>
 
 <!-- TESTIMONIALS -->
-<section class="testimonials-section section-padding">
+<section class="testimonials-section section-padding" aria-label="Parent testimonials">
   <div class="container">
     <h2 class="section-title text-center">What Parents Say</h2>
     <div class="accent-bar"></div>
@@ -207,7 +213,7 @@
 </section>
 
 <!-- FAQ -->
-<section class="faq-section section-padding">
+<section class="faq-section section-padding" aria-label="Frequently asked questions">
   <div class="container faq-container">
     <h2 class="section-title text-center" style="margin-bottom:2.5rem;">Frequently Asked Questions</h2>
     <div class="faq-item">
@@ -226,21 +232,22 @@
 </section>
 
 <!-- APPLY FORM -->
-<section id="apply" class="apply-section">
+<section id="apply" class="apply-section" aria-label="Admission application">
   <div class="container">
     <div class="form-container">
       <h2>Admission Application</h2>
       <div id="form-message" class="form-message"></div>
-      <!-- Replace YOUR_FORM_ID with your Formspree form ID -->
+      <!-- Replace YOUR_FORM_ID below with your actual Formspree form ID (e.g. https://formspree.io/f/xyzabcde) -->
       <form id="apply-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
-        <input type="text" name="website_url" class="honeypot" tabindex="-1" autocomplete="off">
+        <input type="text" name="website_url" class="honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">
         <div class="form-group">
           <label for="student_name">Student's Full Name</label>
           <input type="text" id="student_name" name="student_name" placeholder="Enter full name" required>
         </div>
         <div class="form-group">
           <label for="grade">Grade Applying For</label>
-          <select id="grade" name="grade">
+          <select id="grade" name="grade" required>
+            <option value="" disabled selected>Select a grade</option>
             <option value="Creche">Creche</option>
             <option value="Primary">Primary</option>
             <option value="JHS">J.H.S</option>
@@ -261,24 +268,26 @@
 </section>
 
 <!-- ACCREDITATION -->
-<section class="accreditation-section">
+<section class="accreditation-section" aria-label="Accreditation">
   <h2 class="accreditation-header">Accredited By</h2>
   <div class="logo-grid">
-    <div class="logo-item"><img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Ghana_Education_Service_Logo.png" alt="GES"></div>
-    <div class="logo-item"><img src="https://upload.wikimedia.org/wikipedia/en/e/e3/WAEC_logo.png" alt="WAEC"></div>
-    <div class="logo-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Coat_of_arms_of_Ghana.svg/800px-Coat_of_arms_of_Ghana.svg.png" alt="Republic of Ghana"></div>
+    <div class="logo-item"><img src="https://upload.wikimedia.org/wikipedia/commons/2/23/Ghana_Education_Service_Logo.png" alt="Ghana Education Service" loading="lazy"></div>
+    <div class="logo-item"><img src="https://upload.wikimedia.org/wikipedia/en/e/e3/WAEC_logo.png" alt="West African Examinations Council" loading="lazy"></div>
+    <div class="logo-item"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Coat_of_arms_of_Ghana.svg/800px-Coat_of_arms_of_Ghana.svg.png" alt="Republic of Ghana" loading="lazy"></div>
   </div>
 </section>
 
+</main>
+
 <!-- FOOTER -->
-<footer>
+<footer role="contentinfo">
   <div class="container">
     <div class="footer-content">
       <div class="footer-section">
         <h3>Contact Us</h3>
         <p><i class="fas fa-map-marker-alt"></i> Sonitra Road, Amasaman, Accra</p>
-        <p><i class="fas fa-phone"></i> +233 53 699 8172</p>
-        <p><i class="fas fa-envelope"></i> admin@debrighttalentedkidsschool.online</p>
+        <p><i class="fas fa-phone"></i> <a href="tel:+233536998172" style="color:inherit;text-decoration:none;">+233 53 699 8172</a></p>
+        <p><i class="fas fa-envelope"></i> <a href="mailto:admin@debrighttalentedkidsschool.online" style="color:inherit;text-decoration:none;">admin@debrighttalentedkidsschool.online</a></p>
       </div>
       <div class="footer-section">
         <h3>Quick Links</h3>
@@ -294,8 +303,8 @@
       <div class="footer-section">
         <h3>Follow Us</h3>
         <div class="social-icons">
-          <a href="https://www.facebook.com/debrightschool" target="_blank" rel="noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-          <a href="https://www.instagram.com/debrightschool" target="_blank" rel="noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          <a href="https://www.facebook.com/debrightschool" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://www.instagram.com/debrightschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
           <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
           <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
         </div>
