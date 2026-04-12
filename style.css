@@ -1,9 +1,9 @@
 /* ============================================
    DE-BRIGHT TALENTED KIDS SCHOOL — style.css
-   Converted from WordPress theme to static
    ============================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;700;800&family=Space+Grotesk:wght@400;600;700&display=swap');
+/* NOTE: Google Fonts is now loaded via <link> tags in HTML head
+   for faster render — do NOT add @import here */
 
 :root {
   --primary: #0a2540;
@@ -81,15 +81,21 @@ html, body {
 }
 .whatsapp-btn:hover { transform: scale(1.1); color: white; }
 
+/* ===================== NEWS TICKER ===================== */
+.ticker-wrap { background: var(--accent); padding: .6rem 0; overflow: hidden; }
+.ticker { display: flex; white-space: nowrap; animation: ticker 25s linear infinite; }
+.ticker__item { display: inline-block; padding: 0 3rem; font-weight: 700;
+  color: var(--primary); font-size: .9rem; }
+@keyframes ticker { from{transform:translateX(0);}to{transform:translateX(-50%);} }
+
 /* ===================== HERO ===================== */
 .hero {
-  height: 90vh; position: relative; background: var(--primary);
+  height: 92vh; position: relative; background: var(--primary);
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  /* Updated 'contain' to 'cover' below */
   background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover no-repeat;
   opacity: .4; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
@@ -120,13 +126,6 @@ html, body {
   70%{transform:scale(1.05);box-shadow:0 0 0 10px rgba(251,192,45,0);}
   100%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,192,45,0);}
 }
-
-/* ===================== NEWS TICKER ===================== */
-.ticker-wrap { background: var(--accent); padding: .6rem 0; overflow: hidden; }
-.ticker { display: flex; white-space: nowrap; animation: ticker 25s linear infinite; }
-.ticker__item { display: inline-block; padding: 0 3rem; font-weight: 700;
-  color: var(--primary); font-size: .9rem; }
-@keyframes ticker { from{transform:translateX(0);}to{transform:translateX(-50%);} }
 
 /* ===================== VACANCY MODAL ===================== */
 .vacancy-modal { position: fixed; inset: 0; background: rgba(10,37,64,.7);
@@ -205,6 +204,10 @@ html, body {
   background: linear-gradient(rgba(10,37,64,.88),rgba(10,37,64,.88)),
     url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover fixed;
   padding: 6rem 5%; text-align: center; color: white;
+}
+/* Fix: background-attachment:fixed breaks on iOS/Android — switch to scroll on mobile */
+@media (max-width: 768px) {
+  .parallax-section { background-attachment: scroll; }
 }
 .parallax-content h2 { font-size: clamp(1.8rem,4vw,2.8rem); font-family:'Poppins',sans-serif;
   margin-bottom: 3rem; font-weight: 800; }
@@ -482,6 +485,7 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 .skip-nav { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--primary); padding: 12px 24px; border-radius: 0 0 8px 8px; font-weight: 700; z-index: 100000; text-decoration: none; transition: top .3s; }
 .skip-nav:focus { top: 0; }
 
+/* ===================== RESPONSIVE ===================== */
 @media (max-width: 768px) {
   .section-padding { padding: 3rem 5%; }
   .contact-grid { gap: 1.2rem; }
