@@ -89,7 +89,8 @@ html, body {
 }
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/contain no-repeat;
+  /* Updated 'contain' to 'cover' below */
+  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover no-repeat;
   opacity: .4; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
 @keyframes logoBreathe { from{transform:scale(1);}to{transform:scale(1.05);} }
