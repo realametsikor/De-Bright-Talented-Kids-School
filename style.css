@@ -204,372 +204,163 @@ html, body {
 .apply-btn-modal:hover { background: var(--accent); color: var(--primary); transform: translateY(-3px); }
 
 /* ===================== COUNTER & STATS ===================== */
-.counter-section { 
-  background: var(--primary); 
-  padding: 4rem 5% 1rem; 
-}
-.counter-grid { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); 
-  gap: 2rem; 
-  text-align: center; 
-  max-width: 900px; 
-  margin: 0 auto; 
-}
-.counter-item h2 { 
-  font-size: 2.5rem; 
-  font-weight: 800; 
-  color: var(--accent); 
-  font-family: 'Poppins', sans-serif; 
-}
-.counter-item p { 
-  color: rgba(255,255,255,.8); 
-  font-size: .75rem; 
-  margin-top: 8px; 
-  text-transform: uppercase; 
-  letter-spacing: 1px; 
-}
+.counter-section { background: var(--primary); padding: 4rem 5% 1rem; }
+.counter-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 2rem; text-align: center; max-width: 900px; margin: 0 auto; }
+.counter-item h2 { font-size: 2.5rem; font-weight: 800; color: var(--accent); font-family: 'Poppins', sans-serif; }
+.counter-item p { color: rgba(255,255,255,.8); font-size: .75rem; margin-top: 8px; text-transform: uppercase; letter-spacing: 1px; }
 
-.stats-strip { 
-  background: var(--primary); 
-  padding: 1rem 5% 4rem; 
-}
-.stats-grid { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); 
-  gap: 2rem; 
-  max-width: 1100px; 
-  margin: 0 auto; 
-}
-.stat-box { 
-  background: white; 
-  padding: 2rem 1.5rem; 
-  border-radius: 16px; 
-  text-align: center;
-  box-shadow: 0 5px 20px rgba(0,0,0,.05); 
-  border-bottom: 4px solid var(--accent); 
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: center; 
-}
-.stat-box h3 { 
-  color: var(--primary); 
-  font-family: 'Poppins', sans-serif; 
-  font-size: 1.1rem; 
-  margin: 1rem 0 .5rem; 
-}
-.stat-box p { 
-  color: #666; 
-  font-size: .9rem; 
-  line-height: 1.4; 
-}
-.icon-wrapper { 
-  width: 55px; 
-  height: 55px; 
-  background: transparent; 
-  color: var(--primary); 
-  border-radius: 50%; 
-  display: flex; 
-  align-items: center; 
-  justify-content: center;
-  font-size: 2rem; 
-  margin: 0 auto; 
-}
-.stat-box:nth-child(1) .icon-wrapper { 
-  background: var(--accent); 
-  font-size: 1.5rem; 
-}
+.stats-strip { background: var(--primary); padding: 1rem 5% 4rem; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 2rem; max-width: 1100px; margin: 0 auto; }
+.stat-box { background: white; padding: 2rem 1.5rem; border-radius: 16px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,.05); border-bottom: 4px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.stat-box h3 { color: var(--primary); font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 1rem 0 .5rem; }
+.stat-box p { color: #666; font-size: .9rem; line-height: 1.4; }
+.icon-wrapper { width: 55px; height: 55px; background: transparent; color: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto; }
+.stat-box:nth-child(1) .icon-wrapper { background: var(--accent); font-size: 1.5rem; }
 
 /* ===================== VALUES ===================== */
 .values-section { padding: 5rem 5%; background: white; }
 .values-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 2rem; margin-top: 3rem; }
-.value-card { background: #f8f9fa; padding: 2.5rem; border-radius: 16px; text-align: center;
-  transition: transform .3s; border-top: 4px solid var(--accent); }
+.value-card { background: #f8f9fa; padding: 2.5rem; border-radius: 16px; text-align: center; transition: transform .3s; border-top: 4px solid var(--accent); }
 .value-card:hover { transform: translateY(-8px); }
-.value-icon { width: 70px; height: 70px; background: var(--primary); color: var(--accent);
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 1.6rem; margin: 0 auto 1.2rem; }
+.value-icon { width: 70px; height: 70px; background: var(--primary); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 1.2rem; }
 .value-card h3 { color: var(--primary); font-family:'Poppins',sans-serif; margin-bottom: .6rem; }
 .value-card p { color: #666; line-height: 1.6; font-size: .95rem; }
 
 /* ===================== NEW FUN PROGRAMS SECTION ===================== */
-.fun-programs {
-  background: #fdfbf7; 
-  padding: 6rem 5% 8rem;
-  position: relative;
-  overflow: hidden;
-  border-top: 8px dashed rgba(251, 192, 45, 0.4);
-}
-
-.floating-shapes i {
-  position: absolute;
-  color: var(--accent);
-  opacity: 0.15;
-  z-index: 1;
-  animation: floatUp 8s ease-in-out infinite alternate;
-}
+.fun-programs { background: #fdfbf7; padding: 6rem 5% 8rem; position: relative; overflow: hidden; border-top: 8px dashed rgba(251, 192, 45, 0.4); }
+.floating-shapes i { position: absolute; color: var(--accent); opacity: 0.15; z-index: 1; animation: floatUp 8s ease-in-out infinite alternate; }
 .shape-1 { top: 10%; left: 10%; font-size: 4rem; animation-delay: 0s; }
 .shape-2 { top: 40%; right: 8%; font-size: 6rem; color: #00bcd4; animation-delay: 1.5s; }
 .shape-3 { bottom: 15%; left: 15%; font-size: 5rem; color: #9c27b0; animation-delay: 3s; }
 .shape-4 { top: 70%; right: 20%; font-size: 3rem; color: #fbc02d; animation-delay: 0.5s; }
+@keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-40px) rotate(15deg); } }
 
-@keyframes floatUp {
-  0% { transform: translateY(0) rotate(0deg); }
-  100% { transform: translateY(-40px) rotate(15deg); }
-}
-
-.fun-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  color: var(--primary);
-  margin-bottom: 1rem;
-  position: relative;
-  z-index: 2;
-  font-weight: 800;
-}
-.section-subtitle {
-  color: #666;
-  font-size: 1.1rem;
-  margin-bottom: 4rem;
-  position: relative;
-  z-index: 2;
-}
-
-.fun-programs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 3.5rem 2.5rem; 
-  position: relative;
-  z-index: 2;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.fun-card {
-  background: #ffffff;
-  border: 5px solid var(--card-color);
-  border-radius: 35px; 
-  padding: 4.5rem 2rem 2.5rem; 
-  text-align: center;
-  position: relative;
-  box-shadow: 0 15px 0px rgba(0,0,0,0.06); 
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.fun-card:hover {
-  transform: translateY(-12px) rotate(1deg); 
-  box-shadow: 0 25px 0px rgba(0,0,0,0.08);
-}
-
+.fun-title { font-size: clamp(2rem, 5vw, 3.5rem); color: var(--primary); margin-bottom: 1rem; position: relative; z-index: 2; font-weight: 800; }
+.section-subtitle { color: #666; font-size: 1.1rem; margin-bottom: 4rem; position: relative; z-index: 2; }
+.fun-programs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 3.5rem 2.5rem; position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; }
+.fun-card { background: #ffffff; border: 5px solid var(--card-color); border-radius: 35px; padding: 4.5rem 2rem 2.5rem; text-align: center; position: relative; box-shadow: 0 15px 0px rgba(0,0,0,0.06); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.fun-card:hover { transform: translateY(-12px) rotate(1deg); box-shadow: 0 25px 0px rgba(0,0,0,0.08); }
 .theme-creche { --card-color: #fbc02d; } 
 .theme-primary { --card-color: #00bcd4; } 
 .theme-jhs { --card-color: #9c27b0; } 
+.card-icon-wrapper { position: absolute; top: -45px; left: 50%; transform: translateX(-50%); width: 90px; height: 90px; background: var(--card-color); border: 6px solid #ffffff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: white; box-shadow: 0 10px 15px rgba(0,0,0,0.1); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+.fun-card:hover .card-icon-wrapper { transform: translateX(-50%) scale(1.15) rotate(-10deg); }
+.fun-card h3 { font-size: 2rem; font-family: 'Poppins', sans-serif; color: var(--primary); margin-bottom: 0.8rem; font-weight: 800; }
+.fun-card p { color: #555; line-height: 1.6; margin-bottom: 2rem; font-size: 0.95rem; }
+.fun-list { list-style: none; text-align: left; margin: 0 auto 2.5rem; display: inline-block; }
+.fun-list li { padding: 0.5rem 0; font-weight: 700; color: var(--primary); display: flex; align-items: center; font-size: 0.95rem; }
+.fun-list li i { color: var(--card-color); font-size: 1.3rem; margin-right: 12px; width: 25px; text-align: center; }
+.fun-btn { display: inline-block; background: var(--card-color); color: white; padding: 16px 32px; border-radius: 50px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.15); transition: 0.3s; }
+.fun-btn:hover { background: var(--primary); color: white; transform: scale(1.05); }
 
-.card-icon-wrapper {
+/* ===================== NEW "TRUST PORTAL" SECTION ===================== */
+.trust-section { background: var(--primary); padding: 6rem 5% 8rem; position: relative; overflow: hidden; color: white; }
+.trust-title { color: white !important; font-size: clamp(2rem, 5vw, 3rem); text-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; z-index: 2; }
+.trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 4rem 2rem; max-width: 1100px; margin: 5rem auto 0; position: relative; z-index: 2; }
+.trust-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 4px solid var(--trust-color); border-radius: 40px; padding: 3.5rem 2rem 2rem; text-align: center; position: relative; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.trust-card.theme-gold { --trust-color: #fbc02d; }
+.trust-card.theme-teal { --trust-color: #00bcd4; }
+.trust-card.theme-purple { --trust-color: #9c27b0; }
+.trust-card:hover, .trust-card:focus-within { transform: translateY(-10px); background: rgba(255, 255, 255, 0.1); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+.trust-icon-ring { position: absolute; top: -45px; width: 90px; height: 90px; background: var(--primary); border: 4px solid var(--trust-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 2.2rem; color: var(--trust-color); box-shadow: 0 0 20px rgba(0,0,0,0.4); transition: all 0.4s ease; }
+.trust-card:hover .trust-icon-ring, .trust-card:focus-within .trust-icon-ring { transform: rotate(15deg) scale(1.1); background: var(--trust-color); color: var(--primary); }
+.trust-card h4 { font-size: 1.6rem; font-family: 'Poppins', sans-serif; color: white; margin-bottom: 0; font-weight: 700; transition: margin 0.4s ease; }
+.trust-reveal { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.trust-card:hover .trust-reveal, .trust-card:focus-within .trust-reveal { max-height: 200px; opacity: 1; margin-top: 1.5rem; }
+.trust-card:hover h4, .trust-card:focus-within h4 { margin-bottom: 0.5rem; }
+.trust-reveal p { font-size: 1rem; color: rgba(255,255,255,0.9); line-height: 1.6; margin: 0; }
+
+/* ===================== NEW "TALENT CANVAS" SECTION ===================== */
+.talent-section {
+  background: #fdfbf7; /* Matches the light, warm tone of the Programs section */
+  padding: 6rem 5% 8rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.talent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 3rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+/* Base style for the chunky canvases */
+.talent-card {
+  background: #ffffff;
+  border: 4px solid var(--talent-color);
+  border-radius: 25px; /* Softer, kid-friendly corners */
+  box-shadow: 8px 8px 0px var(--talent-color); /* Chunky 3D solid shadow */
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.talent-card:hover {
+  transform: translate(-4px, -4px); /* Moves up and left */
+  box-shadow: 14px 14px 0px var(--talent-color); /* Shadow gets bigger! */
+}
+
+/* Distinct Fun Theme Colors for each activity */
+.talent-card.theme-ict     { --talent-color: #00bcd4; } /* Teal */
+.talent-card.theme-sports  { --talent-color: #ff9800; } /* Orange */
+.talent-card.theme-arts    { --talent-color: #e91e63; } /* Pink */
+.talent-card.theme-culture { --talent-color: #4caf50; } /* Green */
+
+.talent-img-wrapper {
+  padding: 15px; /* Acts as a thick white "frame" around the image */
+  padding-bottom: 0; /* Lets the image touch the text area closely */
+  position: relative;
+}
+
+.talent-img-wrapper img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  border-radius: 15px; /* Rounds the image inside the frame */
+  display: block;
+}
+
+/* The floating, colorful overlapping badge */
+.talent-badge {
   position: absolute;
-  top: -45px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90px;
-  height: 90px;
-  background: var(--card-color);
-  border: 6px solid #ffffff;
+  right: 25px;
+  bottom: -25px; /* Pulls it halfway out of the image */
+  width: 55px;
+  height: 55px;
+  background: var(--talent-color);
+  color: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
-  color: white;
-  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
-  transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); 
-}
-.fun-card:hover .card-icon-wrapper {
-  transform: translateX(-50%) scale(1.15) rotate(-10deg);
+  font-size: 1.5rem;
+  border: 4px solid white; /* Adds a gap between badge and image */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  z-index: 2;
+  transition: transform 0.3s ease;
 }
 
-.fun-card h3 {
-  font-size: 2rem;
-  font-family: 'Poppins', sans-serif;
-  color: var(--primary);
-  margin-bottom: 0.8rem;
-  font-weight: 800;
-}
-.fun-card p {
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
+.talent-card:hover .talent-badge {
+  transform: rotate(15deg) scale(1.1); /* Badge twirls on hover */
 }
 
-.fun-list {
-  list-style: none;
+.talent-info {
+  padding: 1.8rem 1.5rem;
   text-align: left;
-  margin: 0 auto 2.5rem;
-  display: inline-block;
 }
-.fun-list li {
-  padding: 0.5rem 0;
-  font-weight: 700;
+
+.talent-info h4 {
   color: var(--primary);
-  display: flex;
-  align-items: center;
-  font-size: 0.95rem;
-}
-.fun-list li i {
-  color: var(--card-color);
+  font-family: 'Poppins', sans-serif;
   font-size: 1.3rem;
-  margin-right: 12px;
-  width: 25px;
-  text-align: center;
-}
-
-.fun-btn {
-  display: inline-block;
-  background: var(--card-color);
-  color: white;
-  padding: 16px 32px;
-  border-radius: 50px;
   font-weight: 800;
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  font-size: 0.9rem;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-  transition: 0.3s;
+  margin: 0;
 }
-.fun-btn:hover {
-  background: var(--primary);
-  color: white;
-  transform: scale(1.05);
-}
-
-/* ===================== NEW "TRUST PORTAL" SECTION ===================== */
-.trust-section {
-  background: var(--primary);
-  padding: 6rem 5% 8rem;
-  position: relative;
-  overflow: hidden;
-  color: white;
-}
-
-.trust-title {
-  color: white !important;
-  font-size: clamp(2rem, 5vw, 3rem);
-  text-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  position: relative;
-  z-index: 2;
-}
-
-.trust-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 4rem 2rem; /* Large top gap to accommodate the big bursting icons */
-  max-width: 1100px;
-  margin: 5rem auto 0;
-  position: relative;
-  z-index: 2;
-}
-
-/* The expanding trust card */
-.trust-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 4px solid var(--trust-color);
-  border-radius: 40px; /* Bubble cloud shape */
-  padding: 3.5rem 2rem 2rem;
-  text-align: center;
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Theme variables setup */
-.trust-card.theme-gold { --trust-color: #fbc02d; }
-.trust-card.theme-teal { --trust-color: #00bcd4; }
-.trust-card.theme-purple { --trust-color: #9c27b0; }
-
-/* The bouncing hover state */
-.trust-card:hover, .trust-card:focus-within {
-  transform: translateY(-10px);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 15px 30px rgba(0,0,0,0.3);
-}
-
-/* The floating icon ring */
-.trust-icon-ring {
-  position: absolute;
-  top: -45px;
-  width: 90px; 
-  height: 90px;
-  background: var(--primary);
-  border: 4px solid var(--trust-color);
-  border-radius: 50%;
-  display: flex; 
-  justify-content: center; 
-  align-items: center;
-  font-size: 2.2rem; 
-  color: var(--trust-color);
-  box-shadow: 0 0 20px rgba(0,0,0,0.4);
-  transition: all 0.4s ease;
-}
-
-/* Icon inverts colors and wiggles when the card is active */
-.trust-card:hover .trust-icon-ring, 
-.trust-card:focus-within .trust-icon-ring {
-  transform: rotate(15deg) scale(1.1);
-  background: var(--trust-color);
-  color: var(--primary);
-}
-
-.trust-card h4 { 
-  font-size: 1.6rem; 
-  font-family: 'Poppins', sans-serif; 
-  color: white; 
-  margin-bottom: 0; 
-  font-weight: 700;
-  transition: margin 0.4s ease;
-}
-
-/* THE MAGIC EXPANDING SECTION */
-.trust-reveal {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* When hovered or tapped, the text rolls out! */
-.trust-card:hover .trust-reveal, 
-.trust-card:focus-within .trust-reveal {
-  max-height: 200px;
-  opacity: 1;
-  margin-top: 1.5rem;
-}
-
-.trust-card:hover h4, 
-.trust-card:focus-within h4 {
-  margin-bottom: 0.5rem;
-}
-
-.trust-reveal p { 
-  font-size: 1rem; 
-  color: rgba(255,255,255,0.9); 
-  line-height: 1.6; 
-  margin: 0; 
-}
-
-
-/* ===================== EXTRA-CURRICULAR ===================== */
-.extra-section { padding: 5rem 5%; background: #f4f7f6; text-align: center; }
-.extra-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 1.5rem; margin-top: 3rem; }
-.extra-item { border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,.07); background: white; }
-.extra-img { height: 180px; overflow: hidden; }
-.extra-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
-.extra-item:hover .extra-img img { transform: scale(1.08); }
-.extra-item h4 { padding: 1rem; font-family:'Poppins',sans-serif; color: var(--primary); font-size: 1rem; }
 
 /* ===================== COUNTDOWN ===================== */
 #countdown-section { background: var(--primary); padding: 4rem 5%; text-align: center; color: white; }
@@ -845,25 +636,20 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-grid a { height: 150px; }
   
-  /* NEW MOBILE FIXES FOR COUNTERS AND FEATURE CARDS */
   .counter-section { padding: 3rem 5% 1rem; }
   .stats-strip { padding: 1rem 5% 3rem; }
   
-  /* Forces both into a strict 2x2 grid */
   .counter-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
   
-  /* Adjusts the white cards to be more compact */
   .stat-box { padding: 1.5rem 0.5rem; min-height: 130px; }
   .stat-box h3 { font-size: 0.85rem; margin: 0.8rem 0 0; line-height: 1.3; }
   
-  /* Hides the descriptive paragraph entirely on mobile! */
   .stat-box p { display: none; } 
   
-  /* Resizes the icons to fit the smaller cards */
   .icon-wrapper { font-size: 1.8rem; width: 45px; height: 45px; }
   .stat-box:nth-child(1) .icon-wrapper { font-size: 1.3rem; }
   
-  /* Trust Portals Mobile Adjustments */
-  .trust-grid { gap: 3.5rem 1rem; }
+  .trust-grid { gap: 3.5rem 1rem; margin-top: 4rem; }
+  .talent-grid { gap: 2rem; }
 }
