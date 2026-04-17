@@ -47,10 +47,25 @@ html, body {
   padding: 1rem 5%; background: var(--primary);
   box-shadow: 0 2px 15px rgba(0,0,0,.2);
 }
-.logo a { font-family:'Poppins',sans-serif; font-size:1.3rem; font-weight:700;
-  color: white; text-decoration: none; }
-.logo span { color: var(--accent); display: block; font-size: .75rem;
-  font-weight: 500; letter-spacing: 1px; }
+
+/* --- UPDATED LOGO CSS --- */
+.logo a { 
+  font-family: 'Poppins', sans-serif; 
+  font-size: clamp(1rem, 4vw, 1.4rem); 
+  font-weight: 700;
+  color: white; 
+  text-decoration: none; 
+  white-space: nowrap; 
+}
+.logo span { 
+  color: var(--accent); 
+  display: inline; 
+  font-size: inherit; 
+  font-weight: 500; 
+  letter-spacing: 0; 
+  margin-left: 4px; 
+}
+
 .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
 .nav-links a { color: rgba(255,255,255,.85); text-decoration: none;
   font-size: .9rem; font-weight: 600; transition: color .3s; }
@@ -58,7 +73,16 @@ html, body {
 .btn-apply { background: var(--accent); color: var(--primary) !important;
   padding: 8px 20px; border-radius: 50px; font-weight: 700 !important; }
 .btn-apply:hover { background: white; }
-.menu-toggle { display: none; cursor: pointer; color: white; font-size: 1.4rem; background: none; border: none; }
+
+/* --- UPDATED MENU TOGGLE --- */
+.menu-toggle { 
+  display: none; 
+  cursor: pointer; 
+  color: white; 
+  font-size: 1.8rem; 
+  background: none; 
+  border: none; 
+}
 
 @media (max-width: 768px) {
   .nav-links {
