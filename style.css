@@ -47,10 +47,24 @@ html, body {
   padding: 1rem 5%; background: var(--primary);
   box-shadow: 0 2px 15px rgba(0,0,0,.2);
 }
-.logo a { font-family:'Poppins',sans-serif; font-size:1.3rem; font-weight:700;
-  color: white; text-decoration: none; }
-.logo span { color: var(--accent); display: block; font-size: .75rem;
-  font-weight: 500; letter-spacing: 1px; }
+
+/* THE FIX: Keep text inline, color split properly */
+.logo a { 
+  font-family:'Poppins',sans-serif; 
+  font-size:1.3rem; 
+  font-weight:700;
+  color: white; 
+  text-decoration: none; 
+  white-space: nowrap;
+}
+.logo span { 
+  color: var(--accent); 
+  font-size: 1.1rem;
+  font-weight: 500; 
+  margin-left: 5px; 
+  font-family: 'Open Sans', sans-serif;
+}
+
 .nav-links { display: flex; list-style: none; gap: 1.5rem; align-items: center; }
 .nav-links a { color: rgba(255,255,255,.85); text-decoration: none;
   font-size: .9rem; font-weight: 600; transition: color .3s; }
@@ -61,6 +75,9 @@ html, body {
 .menu-toggle { display: none; cursor: pointer; color: white; font-size: 1.4rem; background: none; border: none; }
 
 @media (max-width: 768px) {
+  .logo a { font-size: 1.2rem; }
+  .logo span { font-size: 1rem; margin-left: 4px; }
+  
   .nav-links {
     display: none; flex-direction: column; position: absolute;
     top: 100%; left: 0; width: 100%; background: var(--primary);
@@ -90,30 +107,23 @@ html, body {
 
 /* ===================== HERO ===================== */
 .hero {
-  height: 92vh; position: relative; 
-  background-color: #ffffff; 
+  height: 92vh; position: relative; background: var(--primary);
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
 
-/* THE FIX: Increased background scale to 115% so the wreath pushes to the edges */
+/* Dark theme watermark correctly sized to 115% */
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  background: 
-    linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-    url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/115% auto no-repeat;
-  opacity: 1; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
+  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/115% auto no-repeat;
+  opacity: .25; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
 
 @media (min-width: 768px) {
-  .hero::before { 
-    background: 
-      linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-      url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/45% auto no-repeat; 
-  }
+  .hero::before { background-size: 45% auto; }
 }
 
-/* Wavy bottom shape kept above the news ticker */
+/* Wavy bottom shape */
 .hero::after {
   content: "";
   position: absolute;
@@ -241,7 +251,7 @@ html, body {
 }
 .parallax-content h2 { font-size: clamp(1.8rem,4vw,2.8rem); font-family:'Poppins',sans-serif;
   margin-bottom: 3rem; font-weight: 800; }
-.features-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 2rem; max-width: 900px; margin: 0 auto; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 2rem max-width: 900px; margin: 0 auto; }
 .feature-item i { font-size: 2.5rem; color: var(--accent); margin-bottom: 1rem; display: block; }
 .feature-item h4 { font-size: 1.1rem; font-family:'Poppins',sans-serif; margin-bottom: .5rem; }
 .feature-item p { opacity: .8; font-size: .9rem; }
