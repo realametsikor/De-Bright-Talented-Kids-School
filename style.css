@@ -90,20 +90,27 @@ html, body {
 
 /* ===================== HERO ===================== */
 .hero {
-  height: 92vh; position: relative; background: var(--primary);
+  height: 92vh; position: relative; 
+  background-color: #ffffff; /* THE FIX: Set to white so the JPEG logo blends perfectly */
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
 
-/* THE FIX: '85%' sizes the watermark perfectly on mobile so the edges are not cut off */
+/* THE FIX: Added the dark gradient overlay directly on top of the logo, sized exactly to 90% */
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/85% no-repeat;
-  opacity: .15; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
+  background: 
+    linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
+    url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/90% auto no-repeat;
+  opacity: 1; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
 
 @media (min-width: 768px) {
-  .hero::before { background-size: 40%; } /* Keep it from becoming massive on desktop */
+  .hero::before { 
+    background: 
+      linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
+      url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/40% auto no-repeat; 
+  }
 }
 
 /* Wavy bottom shape kept above the news ticker */
@@ -128,7 +135,6 @@ html, body {
 .hero h1 { font-size: clamp(1.8rem,6vw,4.5rem); margin-bottom: 1.5rem;
   font-weight: 800; line-height: 1.3; font-family:'Poppins',sans-serif; }
 
-/* Restored the yellow line under the text! */
 .hero-separator { width: 60px; height: 4px; background: var(--accent);
   margin: 0 auto 1.5rem; border-radius: 2px; }
   
