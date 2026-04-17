@@ -94,12 +94,20 @@ html, body {
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
+
+/* THE FIX IS HERE: Changed 'cover' to '110%' and lowered opacity slightly so it acts as a watermark */
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover no-repeat;
-  opacity: .4; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
+  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/110% no-repeat;
+  opacity: .25; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
-/* Wavy bottom shape kept above the news ticker */
+
+/* Prevent the background from being massive on desktop screens */
+@media (min-width: 768px) {
+  .hero::before { background-size: 50%; }
+}
+
+/* Wavy bottom shape */
 .hero::after {
   content: "";
   position: absolute;
