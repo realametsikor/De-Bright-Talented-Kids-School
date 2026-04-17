@@ -51,7 +51,8 @@ html, body {
 /* --- UPDATED LOGO CSS --- */
 .logo a { 
   font-family: 'Poppins', sans-serif; 
-  font-size: clamp(1rem, 4vw, 1.4rem); 
+  /* Increased from clamp(1rem, 4vw, 1.4rem) to make the text bigger! */
+  font-size: clamp(1.2rem, 5vw, 1.6rem); 
   font-weight: 700;
   color: white; 
   text-decoration: none; 
