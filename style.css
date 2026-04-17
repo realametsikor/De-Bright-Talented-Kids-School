@@ -95,19 +95,18 @@ html, body {
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
 
-/* THE FIX IS HERE: Changed 'cover' to '110%' and lowered opacity slightly so it acts as a watermark */
+/* THE FIX: '100% auto' makes the image perfectly touch the left and right edges without stretching vertically */
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/110% no-repeat;
+  background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/100% auto no-repeat;
   opacity: .25; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
 
-/* Prevent the background from being massive on desktop screens */
 @media (min-width: 768px) {
-  .hero::before { background-size: 50%; }
+  .hero::before { background-size: 50% auto; } /* Keep it from becoming massive on desktop */
 }
 
-/* Wavy bottom shape */
+/* Wavy bottom shape kept above the news ticker */
 .hero::after {
   content: "";
   position: absolute;
@@ -128,8 +127,11 @@ html, body {
   letter-spacing: 3px; color: var(--accent); margin-bottom: 1rem; font-weight: 700; opacity: .9; }
 .hero h1 { font-size: clamp(1.8rem,6vw,4.5rem); margin-bottom: 1.5rem;
   font-weight: 800; line-height: 1.3; font-family:'Poppins',sans-serif; }
+
+/* Restored the yellow line under the text! */
 .hero-separator { width: 60px; height: 4px; background: var(--accent);
   margin: 0 auto 1.5rem; border-radius: 2px; }
+  
 .hero p { font-size: 1.15rem; margin-bottom: 2.5rem; opacity: .9;
   max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
 .typewriter-text { color: var(--accent); border-right: 3px solid var(--accent);
