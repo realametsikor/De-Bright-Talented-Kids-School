@@ -9,7 +9,7 @@
   --primary: #0a2540;
   --accent:  #fbc02d;
   --text:    #333;
-  --light:   #f4f7f6;
+  --light:   #f4f7f6; /* Used as light background */
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -204,11 +204,9 @@ html, body {
 .apply-btn-modal:hover { background: var(--accent); color: var(--primary); transform: translateY(-3px); }
 
 /* ===================== COUNTER & STATS MERGED FIX ===================== */
-
-/* Top Section: The 4 counters */
 .counter-section { 
   background: var(--primary); 
-  padding: 4rem 5% 1rem; /* Reduced bottom padding to merge with section below */
+  padding: 4rem 5% 1rem; 
 }
 .counter-grid { 
   display: grid; 
@@ -232,10 +230,9 @@ html, body {
   letter-spacing: 1px; 
 }
 
-/* Bottom Section: The 4 feature cards */
 .stats-strip { 
-  background: var(--primary); /* Changed to primary to blend with counters */
-  padding: 1rem 5% 4rem; /* Reduced top padding */
+  background: var(--primary); 
+  padding: 1rem 5% 4rem; 
 }
 .stats-grid { 
   display: grid; 
@@ -268,12 +265,11 @@ html, body {
   line-height: 1.4; 
 }
 
-/* Icon Styles matching the image perfectly */
 .icon-wrapper { 
   width: 55px; 
   height: 55px; 
-  background: transparent; /* Transparent background for most icons */
-  color: var(--primary); /* Dark icon color */
+  background: transparent; 
+  color: var(--primary); 
   border-radius: 50%; 
   display: flex; 
   align-items: center; 
@@ -281,7 +277,6 @@ html, body {
   font-size: 2rem; 
   margin: 0 auto; 
 }
-/* Specifically targets the FIRST card to give it the yellow circle */
 .stat-box:nth-child(1) .icon-wrapper { 
   background: var(--accent); 
   font-size: 1.5rem; 
@@ -299,22 +294,106 @@ html, body {
 .value-card h3 { color: var(--primary); font-family:'Poppins',sans-serif; margin-bottom: .6rem; }
 .value-card p { color: #666; line-height: 1.6; font-size: .95rem; }
 
-/* ===================== PROGRAMS ===================== */
-.programs-section { background: var(--primary); padding: 5rem 5%; color: white; }
-.programs-section .section-title { color: white; }
-.programs-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); gap: 2rem; margin-top: 3rem; }
-.info-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1);
-  padding: 2.5rem; border-radius: 16px; transition: background .3s; }
-.info-card:hover { background: rgba(255,255,255,.1); }
-.info-card h3 { font-size: 1.4rem; font-family:'Poppins',sans-serif; color: var(--accent); margin-bottom: .8rem; }
-.info-card p { opacity: .8; font-size: .95rem; line-height: 1.6; margin-bottom: 1.5rem; }
-.info-list { list-style: none; margin-bottom: 2rem; }
-.info-list li { padding: .4rem 0; font-size: .9rem; opacity: .85; }
-.info-list li i { color: var(--accent); margin-right: 8px; }
-.enroll-btn { display: inline-block; background: var(--accent); color: var(--primary);
-  padding: 10px 24px; border-radius: 50px; font-weight: 700; text-decoration: none;
-  font-size: .9rem; transition: .3s; }
-.enroll-btn:hover { background: white; }
+/* ===================== PROGRAMS (UPDATED FOR FUN & EXCITEMENT) ===================== */
+.programs-section { 
+  background: var(--light); /* Now a light background! */
+  padding: 5rem 5%; 
+  color: var(--text); 
+}
+.programs-section .section-title { 
+  color: var(--primary); /* Title is dark */
+}
+.section-subtitle { 
+  color: #666; 
+  margin-bottom: 3rem; 
+  max-width: 600px; 
+  margin-left: auto; 
+  margin-right: auto; 
+}
+.programs-grid { 
+  display: grid; 
+  grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); 
+  gap: 2.5rem; 
+  margin-top: 3rem; 
+}
+
+.info-card { 
+  background: var(--primary); 
+  border: 4px solid var(--accent); /* Thick, fun border! */
+  padding: 3rem 2rem; 
+  border-radius: 24px; /* Bubbly rounded corners */
+  transition: all .4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy hover effect */
+  box-shadow: 0 10px 30px rgba(10, 37, 64, 0.15);
+  text-align: center; 
+  position: relative;
+}
+
+/* The card pops up slightly on hover! */
+.info-card:hover { 
+  transform: translateY(-12px); 
+  box-shadow: 0 20px 40px rgba(10, 37, 64, 0.25);
+}
+
+.info-card h3 { 
+  font-size: 1.8rem; 
+  font-family: 'Poppins', sans-serif; 
+  color: var(--accent); 
+  margin-bottom: 1rem; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.info-card h3 i {
+  font-size: 1.5rem;
+}
+
+.info-card p { 
+  color: rgba(255,255,255,.9); 
+  font-size: .95rem; 
+  line-height: 1.6; 
+  margin-bottom: 1.5rem; 
+}
+
+.info-list { 
+  list-style: none; 
+  margin-bottom: 2.5rem; 
+  text-align: left; 
+  display: inline-block; /* Keeps list left aligned, but centers block */
+}
+.info-list li { 
+  padding: .6rem 0; 
+  font-size: .95rem; 
+  color: white;
+  font-weight: 500;
+}
+.info-list li i { 
+  color: var(--accent); 
+  margin-right: 12px; 
+  font-size: 1.1rem;
+}
+
+.btn-wrapper { text-align: center; }
+
+.enroll-btn { 
+  display: inline-block; 
+  background: var(--accent); 
+  color: var(--primary);
+  padding: 14px 35px; 
+  border-radius: 50px; 
+  font-weight: 800; 
+  text-decoration: none;
+  font-size: .95rem; 
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all .3s; 
+  box-shadow: 0 4px 15px rgba(251, 192, 45, 0.4);
+}
+.enroll-btn:hover { 
+  background: white; 
+  color: var(--primary);
+  transform: scale(1.08); /* Button pops out slightly */
+}
 
 /* ===================== PARALLAX / WHY US ===================== */
 .parallax-section {
