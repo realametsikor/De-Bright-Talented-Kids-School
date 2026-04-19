@@ -13,26 +13,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ---- SCROLL REVEAL ANIMATIONS ---- */
-  const revealElements = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-scale');
-  const revealOptions = {
-    threshold: 0.1, // Element must be 10% visible to trigger
-    rootMargin: "0px 0px -50px 0px" // Triggers slightly before it enters the viewport
-  };
-  
-  const revealOnScroll = new IntersectionObserver((entries, observer) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('reveal-visible');
-        observer.unobserve(entry.target); // Stop observing once it has animated
-      }
-    });
-  }, revealOptions);
-  
-  revealElements.forEach(el => {
-    revealOnScroll.observe(el);
-  });
-
   /* ---- MOBILE MENU ---- */
   const menuBtn = document.getElementById('mobile-menu');
   const navLinks = document.getElementById('nav-menu');
