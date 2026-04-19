@@ -132,7 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- BECE COUNTDOWN ---- */
   const timerEl = document.querySelector('.timer');
   if (timerEl) {
-    const beceDate = new Date('Jul 06, 2026 08:00:00').getTime();
+    // Updated Target Date to May 4, 2026
+    const beceDate = new Date('May 4, 2026 08:00:00').getTime();
     const pad = n => String(n).padStart(2, '0');
     const tick = () => {
       const dist = beceDate - Date.now();
