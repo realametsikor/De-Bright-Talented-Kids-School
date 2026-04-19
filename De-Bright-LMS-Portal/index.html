@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -23,10 +24,7 @@
 <script>
   window.addEventListener('load', function() {
     const pre = document.getElementById('preloader');
-    if (pre) {
-      pre.classList.add('loaded');
-      setTimeout(() => pre.remove(), 600);
-    }
+    if (pre) { pre.classList.add('loaded'); setTimeout(() => pre.remove(), 600); }
   });
 </script>
 
@@ -49,6 +47,8 @@
 <a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
 <main id="main-content">
+
+<!-- ===== LOGIN ===== -->
 
 <div id="login-section">
   <div class="lms-login-section">
@@ -85,8 +85,11 @@
   <button class="btn-lms-primary" onclick="doLogin()"><span id="login-btn-text"><i class="fas fa-sign-in-alt"></i> Log In</span></button>
   <p class="lms-login-footer">Forgot your details? <a href="contact.html">Contact the school office</a></p>
 </div>
+
   </div>
 </div>
+
+<!-- ===== DASHBOARD ===== -->
 
 <div id="lms-dashboard">
   <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
@@ -116,10 +119,10 @@
         <div class="tb-icon" onclick="doLogout()" title="Log Out"><i class="fas fa-sign-out-alt"></i></div>
       </div>
     </div>
-
     <div id="pages-container" style="flex:1;"></div>
   </div>
 </div>
+
 </main>
 
 <footer role="contentinfo">
@@ -138,14 +141,23 @@
 
 <button id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 
+<!-- ===== MODALS ===== -->
+
+<!-- Notifications -->
+
 <div class="lms-modal" id="notif-modal">
   <div class="lms-modal-box">
     <div class="modal-h"><h3><i class="fas fa-bell" style="color:var(--accent);margin-right:6px;"></i>Notifications</h3><button onclick="closeModal('notif-modal')"><i class="fas fa-times"></i></button></div>
     <div class="modal-body">
-      <div class="activity-item"><div class="act-icon" style="background:#fffbeb;color:#b45309;"><i class="fas fa-tasks"></i></div><div class="act-info"><p><strong>Fractions Worksheet</strong> is due in 2 days</p></div></div>
+      <div class="activity-item">
+        <div class="act-icon" style="background:#fffbeb;color:#b45309;"><i class="fas fa-tasks"></i></div>
+        <div class="act-info"><p>Check your <strong>Assignments</strong> tab for pending work.</p><span>Today</span></div>
+      </div>
     </div>
   </div>
 </div>
+
+<!-- Quiz Modal -->
 
 <div class="lms-modal" id="quiz-modal">
   <div class="lms-modal-box">
@@ -154,35 +166,57 @@
   </div>
 </div>
 
+<!-- Grader Modal -->
+
 <div class="lms-modal" id="grader-modal">
   <div class="lms-modal-box">
-    <div class="modal-h"><h3>✏️ Mark Assignment</h3><button onclick="closeModal('grader-modal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-h"><h3>✏️ Grade Submission</h3><button onclick="closeModal('grader-modal')"><i class="fas fa-times"></i></button></div>
     <div class="modal-body">
       <div id="grader-list"></div>
-      <div style="margin-top:1rem;display:flex;gap:.7rem;">
-        <button class="btn-gold" onclick="saveGrades()"><i class="fas fa-save"></i> Save Grades</button>
+      <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+        <button class="btn-lms-primary" style="flex:1;" onclick="saveGrades()"><i class="fas fa-save"></i> Save Grade</button>
         <button class="btn-outline" onclick="closeModal('grader-modal')">Cancel</button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Submit Assignment Modal -->
+
+<div class="lms-modal" id="submit-modal">
+  <div class="lms-modal-box">
+    <div class="modal-h"><h3>📤 Submit Assignment</h3><button onclick="closeModal('submit-modal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" id="submit-modal-body">
+      <!-- Filled dynamically -->
+    </div>
+    <div style="padding:0 1.5rem 1.4rem;display:flex;gap:.7rem;">
+      <button class="btn-lms-primary" style="flex:1;" onclick="doSubmit()"><i class="fas fa-paper-plane"></i> Submit Work</button>
+      <button class="btn-outline" onclick="closeModal('submit-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Tutor Modal (fallback) -->
+
 <div class="lms-modal" id="ai-modal">
   <div class="lms-modal-box">
     <div class="modal-h"><h3>🤖 AI Study Tutor</h3><button onclick="closeModal('ai-modal')"><i class="fas fa-times"></i></button></div>
     <div class="modal-body">
-      <div class="ai-chat" id="ai-chat"></div>
+      <div class="ai-chat" id="ai-chat-modal"></div>
       <div class="ai-input-row">
-        <input class="ai-input" id="ai-input" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')sendAiMsg()">
+        <input class="ai-input" id="ai-input-modal" placeholder="Ask me anything..." onkeydown="if(event.key==='Enter')sendAiMsg()">
         <button class="btn-gold" onclick="sendAiMsg()"><i class="fas fa-paper-plane"></i></button>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Toast -->
+
 <div id="lms-toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="script.js"></script>
 
 </body>
