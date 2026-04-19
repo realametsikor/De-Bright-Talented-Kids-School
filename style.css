@@ -402,14 +402,97 @@ html, body {
 }
 
 /* ===================== COUNTDOWN ===================== */
-#countdown-section { background: var(--primary); padding: 4rem 5%; text-align: center; color: white; }
-#countdown-section h2 { font-family:'Poppins',sans-serif; font-size: 2rem; margin-bottom: 2rem; }
-.timer { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; }
-.time-box { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1);
-  padding: 1.5rem 2rem; border-radius: 16px; min-width: 90px; }
-.time-box span { display: block; font-size: 2.5rem; font-weight: 800; color: var(--accent);
-  font-family:'Poppins',sans-serif; line-height: 1; }
-.time-box small { font-size: .8rem; opacity: .7; text-transform: uppercase; letter-spacing: 1px; margin-top: 6px; display: block; }
+#countdown-section { 
+  background: linear-gradient(135deg, var(--primary) 0%, #1a4a75 100%);
+  padding: 6rem 5%; 
+  text-align: center; 
+  color: white; 
+  position: relative;
+  overflow: hidden;
+}
+
+/* Floating background glow effects */
+#countdown-section::before {
+  content: ''; position: absolute; top: -50px; left: -50px; width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(251,192,45,0.15) 0%, transparent 70%);
+}
+#countdown-section::after {
+  content: ''; position: absolute; bottom: -50px; right: -50px; width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0,188,212,0.1) 0%, transparent 70%);
+}
+
+#countdown-section h2 { 
+  font-family: 'Poppins', sans-serif; 
+  font-size: clamp(2rem, 5vw, 2.8rem); 
+  font-weight: 800;
+  margin-bottom: 0.5rem; 
+  position: relative;
+  z-index: 2;
+}
+
+.countdown-subtitle {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.timer { 
+  display: flex; 
+  justify-content: center; 
+  gap: 1.5rem; 
+  flex-wrap: wrap; 
+  position: relative;
+  z-index: 2;
+}
+
+/* Glassmorphism card effect */
+.time-box { 
+  background: rgba(255, 255, 255, 0.05); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1.8rem 2rem; 
+  border-radius: 20px; 
+  min-width: 120px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border-bottom: 5px solid var(--accent);
+  transition: transform 0.3s ease;
+}
+
+.time-box:hover {
+  transform: translateY(-5px);
+}
+
+/* Glowing Numbers */
+.time-box span { 
+  display: block; 
+  font-size: 3.5rem; 
+  font-weight: 800; 
+  color: var(--accent);
+  font-family: 'Poppins', sans-serif; 
+  line-height: 1; 
+  text-shadow: 0 0 20px rgba(251,192,45,0.5);
+}
+
+.time-box small { 
+  font-size: 0.9rem; 
+  opacity: 0.9; 
+  text-transform: uppercase; 
+  letter-spacing: 2px; 
+  margin-top: 12px; 
+  display: block; 
+  font-weight: 600;
+}
+
+/* Mobile Adjustments for Countdown */
+@media (max-width: 768px) {
+  #countdown-section { padding: 4rem 5%; }
+  .time-box { padding: 1.2rem 1.5rem; min-width: 90px; border-bottom: 4px solid var(--accent); }
+  .time-box span { font-size: 2.2rem; }
+  .timer { gap: 1rem; }
+}
 
 /* ===================== EVENTS ===================== */
 .events-section { padding: 5rem 5%; background: white; }
@@ -434,7 +517,6 @@ html, body {
 .review-card p { font-size: 1rem; line-height: 1.6; color: #555; font-style: italic; margin-bottom: 1.5rem; }
 .review-card h4 { color: var(--primary); font-weight: 800; margin-bottom: .2rem; }
 .review-card span { font-size: .85rem; color: #888; }
-
 
 /* ===================== CREATIVE RECENT MOMENTS ===================== */
 .recent-moments-section { 
