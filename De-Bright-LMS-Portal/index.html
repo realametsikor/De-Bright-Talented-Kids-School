@@ -48,8 +48,6 @@
 
 <main id="main-content">
 
-<!-- ===== LOGIN ===== -->
-
 <div id="login-section">
   <div class="lms-login-section">
     <div class="lms-login-card">
@@ -88,8 +86,6 @@
 
   </div>
 </div>
-
-<!-- ===== DASHBOARD ===== -->
 
 <div id="lms-dashboard">
   <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
@@ -141,10 +137,6 @@
 
 <button id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 
-<!-- ===== MODALS ===== -->
-
-<!-- Notifications -->
-
 <div class="lms-modal" id="notif-modal">
   <div class="lms-modal-box">
     <div class="modal-h"><h3><i class="fas fa-bell" style="color:var(--accent);margin-right:6px;"></i>Notifications</h3><button onclick="closeModal('notif-modal')"><i class="fas fa-times"></i></button></div>
@@ -157,16 +149,12 @@
   </div>
 </div>
 
-<!-- Quiz Modal -->
-
 <div class="lms-modal" id="quiz-modal">
   <div class="lms-modal-box">
     <div class="modal-h"><h3>📝 Quiz</h3><button onclick="closeModal('quiz-modal')"><i class="fas fa-times"></i></button></div>
     <div class="modal-body" id="quiz-body"></div>
   </div>
 </div>
-
-<!-- Grader Modal -->
 
 <div class="lms-modal" id="grader-modal">
   <div class="lms-modal-box">
@@ -181,22 +169,17 @@
   </div>
 </div>
 
-<!-- Submit Assignment Modal -->
-
 <div class="lms-modal" id="submit-modal">
   <div class="lms-modal-box">
     <div class="modal-h"><h3>📤 Submit Assignment</h3><button onclick="closeModal('submit-modal')"><i class="fas fa-times"></i></button></div>
     <div class="modal-body" id="submit-modal-body">
-      <!-- Filled dynamically -->
-    </div>
+      </div>
     <div style="padding:0 1.5rem 1.4rem;display:flex;gap:.7rem;">
       <button class="btn-lms-primary" style="flex:1;" onclick="doSubmit()"><i class="fas fa-paper-plane"></i> Submit Work</button>
       <button class="btn-outline" onclick="closeModal('submit-modal')">Cancel</button>
     </div>
   </div>
 </div>
-
-<!-- AI Tutor Modal (fallback) -->
 
 <div class="lms-modal" id="ai-modal">
   <div class="lms-modal-box">
@@ -211,13 +194,11 @@
   </div>
 </div>
 
-<!-- Toast -->
-
 <div id="lms-toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script src="script.js"></script>
+<script src="script.js?v=2.0"></script>
 
 </body>
 </html>
