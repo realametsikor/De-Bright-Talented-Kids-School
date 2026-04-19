@@ -1,3 +1,10 @@
+/* ====================== SUPABASE SETUP ====================== */
+const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+const supabaseKey = 'Sb_publishable_bBJ3GmOkhM-tAbLDapMWkQ_LtOBzvF5';
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+console.log("Supabase connected!", supabase);
+
 /* ====================== DATA ====================== */
 const USERS = {
   STU001:{role:'student',name:'Ama Korkor',initials:'AK',class:'6B',id:'STU001'},
@@ -169,7 +176,7 @@ function buildDashboard(){
 }
 
 function setDate(){
-  // Logic for setting date if needed
+  // Date formatting logic can go here if needed in the future
 }
 
 /* ====================== NAV ====================== */
