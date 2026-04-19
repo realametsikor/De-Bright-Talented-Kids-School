@@ -1,9 +1,15 @@
 /* ====================== SUPABASE SETUP ====================== */
-const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-const supabaseKey = 'Sb_publishable_bBJ3GmOkhM-tAbLDapMWkQ_LtOBzvF5';
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+let supabase = null;
 
-console.log("Supabase connected!", supabase);
+// Failsafe: Check if the library loaded from index.html successfully
+if (window.supabase) {
+  const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+  const supabaseKey = 'Sb_publishable_bBJ3GmOkhM-tAbLDapMWkQ_LtOBzvF5';
+  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  console.log("Supabase connected!");
+} else {
+  console.error("Supabase library not found! Check your index.html script tag.");
+}
 
 /* ====================== DATA ====================== */
 const USERS = {
@@ -54,22 +60,15 @@ const QUIZ_QS = [
 
 const AI_REPLIES = {
   default:[
-    "Great question! Let me explain that for you. In mathematics, the key is to break the problem into smaller steps.",
-    "That's a common topic in your curriculum. Make sure you understand the core concept first, then practice with examples.",
-    "Excellent curiosity! Your teacher Mr. Asare covers this in detail in Chapter 4 of your textbook.",
-    "I recommend revising your class notes first, then trying the practice questions at the end of the chapter.",
-    "This topic will likely appear in your end-of-term exam. Focus on understanding *why* the rule works, not just memorising it.",
-  ],
-  greetings:["Hello! I'm your AI Study Tutor. Ask me anything about your lessons — Maths, English, Science, and more! 📚","Hi there! Ready to learn? What subject can I help you with today?"],
+    "Great question! Let me explain that for you.",
+    "That's a common topic! I recommend reviewing your class notes first.",
+    "Focus on understanding why the rule works, not just memorising it.",
+  ]
 };
 
 const RESOURCES = [
   {name:'Mathematics Textbook – Term 2',type:'PDF',size:'4.2 MB',color:'#fee2e2',icon:'📕',iconColor:'#b91c1c'},
-  {name:'English Comprehension Practice',type:'PDF',size:'1.8 MB',color:'#dbeafe',icon:'📘',iconColor:'#1d4ed8'},
   {name:'Science Lab Manual',type:'PDF',size:'3.1 MB',color:'#dcfce7',icon:'📗',iconColor:'#15803d'},
-  {name:'Social Studies – Ghana Regions Map',type:'PNG',size:'980 KB',color:'#ede9fe',icon:'🗺️',iconColor:'#5b21b6'},
-  {name:'ICT Practical Notes – MS Office',type:'PDF',size:'2.5 MB',color:'#fffbeb',icon:'💻',iconColor:'#b45309'},
-  {name:'French Vocabulary List – Unité 3',type:'PDF',size:'640 KB',color:'#fce7f3',icon:'🇫🇷',iconColor:'#be185d'},
 ];
 
 /* ====================== STATE ====================== */
@@ -93,33 +92,31 @@ async function doLogin(){
   err.style.display='none';
   
   if(!id||!pw){showErr('Please enter your ID and password.');return;}
-  if(!USERS[id]||PASSWORDS[id]!==pw){showErr('Invalid ID or password. Contact the school office.');return;}
-  if(USERS[id].role!==currentRole){showErr(`This ID belongs to a ${USERS[id].role} account. Please select the correct role.`);return;}
+  if(!USERS[id]||PASSWORDS[id]!==pw){showErr('Invalid ID or password.');return;}
+  if(USERS[id].role!==currentRole){showErr(`Please select the correct role.`);return;}
   
   currentUser = USERS[id];
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching Data…';
 
-  // Fetch assignments live from Supabase (sorting newest first)
-  const { data, error } = await supabase.from('assignments').select('*').order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error("Database Error:", error);
-    showErr("Could not connect to the database.");
-    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
-    return;
+  // Fetch live assignments safely
+  if (supabase) {
+    const { data, error } = await supabase.from('assignments').select('*').order('created_at', { ascending: false });
+    if (!error && data) {
+      ASSIGNMENTS = data.map(item => ({
+        id: item.id,
+        title: item.title,
+        subject: item.subject,
+        desc: item.description, 
+        due: item.due,
+        status: item.status || 'open', // Safe fallback
+        color: item.color || 'blue',
+        type: item.assignment_type || 'standard',
+        content: item.content
+      }));
+    } else {
+      console.error("Database fetch failed", error);
+    }
   }
-
-  ASSIGNMENTS = data.map(item => ({
-    id: item.id,
-    title: item.title,
-    subject: item.subject,
-    desc: item.description, 
-    due: item.due,
-    status: item.status,
-    color: item.color,
-    type: item.assignment_type,
-    content: item.content
-  }));
 
   btn.innerHTML = '<i class="fas fa-check"></i> Success';
   setTimeout(()=>{
@@ -137,8 +134,6 @@ function doLogout(){
   document.getElementById('login-section').style.display='';
   document.getElementById('login-id').value='';
   document.getElementById('login-pass').value='';
-  document.getElementById('login-error').style.display='none';
-  document.getElementById('login-btn-text').innerHTML='<i class="fas fa-sign-in-alt"></i> Log In';
   currentUser=null;
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -192,7 +187,6 @@ function buildDashboard(){
   `).join('');
 
   renderPage(u.role==='student' ? 's-dashboard' : 't-dashboard');
-  window.scrollTo({top:0});
 }
 
 function showPage(page, el){
@@ -214,11 +208,9 @@ function showPage(page, el){
 
 function openSidebar(){document.getElementById('lms-sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('open');}
 function closeSidebar(){document.getElementById('lms-sidebar').classList.remove('open');document.getElementById('sb-overlay').classList.remove('open');}
-
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('lms-modal')) e.target.classList.remove('open');});
-
 function toast(msg){const t=document.getElementById('lms-toast');document.getElementById('toast-msg').textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 
 function renderPage(page){
@@ -240,7 +232,7 @@ const pages = {
     <div class="wb-text">
       <div class="wb-tag">📚 Term 2 — 2025/26</div>
       <h2>Good day, Ama! 👋</h2>
-      <p>You have ${ASSIGNMENTS.filter(a=>a.status==='pending').length} pending assignments and a quiz due today.</p>
+      <p>You have ${ASSIGNMENTS.filter(a=>a.status==='pending').length} pending assignments.</p>
     </div>
     <div class="wb-icon"><i class="fas fa-star"></i></div>
   </div>
@@ -248,43 +240,30 @@ const pages = {
     <div class="sc gold"><div class="sc-icon gold"><i class="fas fa-book"></i></div><div class="sc-info"><label>Subjects</label><div class="val">8</div><div class="sub">This term</div></div></div>
     <div class="sc green"><div class="sc-icon green"><i class="fas fa-tasks"></i></div><div class="sc-info"><label>Pending</label><div class="val">${ASSIGNMENTS.filter(a=>a.status==='pending').length}</div><div class="sub">Assignments</div></div></div>
     <div class="sc blue"><div class="sc-icon blue"><i class="fas fa-chart-bar"></i></div><div class="sc-info"><label>Avg Grade</label><div class="val">78%</div><div class="sub">All subjects</div></div></div>
-    <div class="sc purple"><div class="sc-icon purple"><i class="fas fa-user-check"></i></div><div class="sc-info"><label>Attendance</label><div class="val">94%</div><div class="sub">This term</div></div></div>
   </div>
-  <div class="two-col">
-    <div class="panel">
-      <div class="panel-head"><h3>Upcoming Assignments</h3><button class="ph-action" onclick="showPage('s-assignments',null)">See all →</button></div>
-      <table class="lms-tbl"><thead><tr><th>Subject</th><th>Task</th><th>Due</th><th>Status</th></tr></thead>
-      <tbody>
-        ${ASSIGNMENTS.slice(0,4).map(a => `
-        <tr><td>${a.subject}</td><td>${a.title}</td><td>${a.due}</td><td><span class="chip ${a.status==='pending'?'red':a.status==='draft'?'gold':'green'}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td></tr>
-        `).join('')}
-      </tbody></table>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><h3>Notice Board</h3><button class="ph-action" onclick="showPage('s-notices',null)">See all →</button></div>
-      <ul class="notice-list">
-        <li class="notice-item"><div class="nd" style="background:var(--lms-red);"></div><div><h4>End-of-Term Exams — May 5</h4><p>Study schedules shared by class teachers.</p><div class="notice-date">Apr 17, 2026 · Admin</div></div></li>
-        <li class="notice-item"><div class="nd" style="background:var(--accent);"></div><div><h4>Open Day — May 10</h4><p>Parents invited to visit and meet teachers.</p><div class="notice-date">Apr 15, 2026</div></div></li>
-      </ul>
-    </div>
+  <div class="panel">
+    <div class="panel-head"><h3>Upcoming Assignments</h3><button class="ph-action" onclick="showPage('s-assignments',null)">See all →</button></div>
+    <table class="lms-tbl"><thead><tr><th>Subject</th><th>Task</th><th>Due</th><th>Status</th></tr></thead>
+    <tbody>
+      ${ASSIGNMENTS.slice(0,4).map(a => {
+        const stat = a.status || 'open';
+        const badgeColor = stat==='pending' ? 'red' : stat==='draft' ? 'gold' : 'green';
+        return `<tr><td>${a.subject}</td><td>${a.title}</td><td>${a.due}</td><td><span class="chip ${badgeColor}">${stat.charAt(0).toUpperCase() + stat.slice(1)}</span></td></tr>`;
+      }).join('')}
+    </tbody></table>
   </div>`,
 
 /* ---- STUDENT SUBJECTS ---- */
 's-subjects':()=>`
-  <h2 style="font-family:'Poppins',sans-serif;font-size:1.05rem;color:var(--primary);margin-bottom:1.2rem;">My Subjects — Class 6B</h2>
+  <h2 style="font-family:'Poppins',sans-serif;font-size:1.05rem;color:var(--primary);margin-bottom:1.2rem;">My Subjects</h2>
   <div class="cards-grid">
     ${SUBJECTS.map(s=>`
       <div class="asgn-card" style="border-top-color:${s.color==='gold'?'var(--accent)':s.color==='blue'?'#3b82f6':s.color==='green'?'#22c55e':'#8b5cf6'};">
         <div style="font-size:1.5rem;margin-bottom:.5rem;">${s.emoji}</div>
-        <h4>${s.name}</h4>
-        <p>👤 ${s.teacher}</p>
+        <h4>${s.name}</h4><p>👤 ${s.teacher}</p>
         <div style="margin-bottom:.8rem;">
           <div style="display:flex;justify-content:space-between;font-size:.75rem;color:var(--lms-muted);margin-bottom:.3rem;"><span>Progress</span><span>${s.progress}%</span></div>
           <div class="prog-bar"><div class="fill" style="width:${s.progress}%;"></div></div>
-        </div>
-        <div class="asgn-meta">
-          <span class="chip ${s.progress>=80?'green':s.progress>=60?'gold':'red'}">${s.progress>=80?'On Track':s.progress>=60?'Good':'Needs Work'}</span>
-          <button class="btn-gold" onclick="toast('Opening ${s.name} lessons…')">View Lessons</button>
         </div>
       </div>`).join('')}
   </div>`,
@@ -294,31 +273,53 @@ const pages = {
   <h2 style="font-family:'Poppins',sans-serif;font-size:1.05rem;color:var(--primary);margin-bottom:1.2rem;">Assignments</h2>
   <div class="cards-grid">
     ${ASSIGNMENTS.map(a=>{
-      const chips={pending:'<span class="chip red">Pending</span>',draft:'<span class="chip gold">Draft</span>',submitted:'<span class="chip green">Submitted</span>', open:'<span class="chip blue">Open</span>'};
-      const currentStatus = chips[a.status] || `<span class="chip grey">${a.status}</span>`;
-      return `<div class="asgn-card" style="border-top-color:${a.color==='gold'?'var(--accent)':a.color==='blue'?'#3b82f6':a.color==='green'?'#22c55e':'#8b5cf6'};">
+      const stat = a.status || 'open';
+      const chips = {pending:'<span class="chip red">Pending</span>',draft:'<span class="chip gold">Draft</span>',submitted:'<span class="chip green">Submitted</span>', open:'<span class="chip blue">Open</span>'};
+      const currentStatus = chips[stat] || `<span class="chip grey">${stat}</span>`;
+      return `<div class="asgn-card">
         <h4>${a.title}</h4>
         <p><strong>${a.subject}</strong> — ${a.desc}</p>
         <div class="asgn-meta">
           <span class="asgn-due"><i class="fas fa-calendar-day"></i> ${a.due}</span>
           <div style="display:flex;gap:.4rem;align-items:center;">
              ${currentStatus}
-             ${(a.status==='pending' || a.status==='open') && a.type==='mcq' ? `<button class="btn-gold" onclick="toast('Starting Quiz!')">Start Quiz</button>` : ''}
-             ${(a.status==='pending' || a.status==='open') && a.type!=='mcq' ? `<button class="btn-gold" onclick="toast('Submitted!')">Submit</button>` : ''}
+             ${(stat==='pending' || stat==='open') && a.type==='mcq' ? `<button class="btn-gold" onclick="toast('Starting Quiz!')">Start Quiz</button>` : ''}
+             ${(stat==='pending' || stat==='open') && a.type!=='mcq' ? `<button class="btn-gold" onclick="toast('Submitted!')">Submit</button>` : ''}
           </div>
         </div>
       </div>`;
     }).join('')}
   </div>`,
 
-/* ---- STUDENT GRADES, TIMETABLE, QUIZ, ATTENDANCE, RESOURCES, AI, NOTICES (Unchanged for brevity) ---- */
-'s-grades':()=>`<p>Grades module loaded.</p>`,
-'s-timetable':()=>`<p>Timetable module loaded.</p>`,
-'s-quiz':()=>`<p>Quiz module loaded.</p>`,
-'s-attendance':()=>`<p>Attendance module loaded.</p>`,
-'s-resources':()=>`<p>Resources module loaded.</p>`,
-'s-ai':()=>`<p>AI module loaded.</p>`,
-'s-notices':()=>`<p>Notices module loaded.</p>`,
+/* ---- STUDENT GRADES ---- */
+'s-grades':()=>`
+  <div class="panel">
+    <div class="panel-head"><h3>Term 2 Results</h3></div>
+    <table class="lms-tbl"><thead><tr><th>Subject</th><th>Class Score</th><th>Exam Score</th><th>Total</th><th>Grade</th><th>Remark</th></tr></thead>
+    <tbody>${GRADES.map(g=>`
+      <tr><td><strong>${g.subject}</strong></td><td>${g.classScore}</td><td>${g.examScore}</td><td><strong>${g.total}/100</strong></td>
+      <td><span class="grade-${g.grade}">${g.grade}</span></td>
+      <td><span class="chip ${g.remark==='Excellent'?'green':g.remark==='Good'?'blue':'gold'}">${g.remark}</span></td></tr>`).join('')}
+    </tbody></table>
+  </div>`,
+
+/* ---- STUDENT TIMETABLE ---- */
+'s-timetable':()=>`
+  <div class="panel">
+    <div class="panel-head"><h3>Weekly Timetable</h3></div>
+    <div class="tt-wrap"><div class="tt-grid">
+        <div class="tt-head">Time</div><div class="tt-head">Mon</div><div class="tt-head">Tue</div><div class="tt-head">Wed</div><div class="tt-head">Thu</div><div class="tt-head">Fri</div>
+        <div class="tt-cell" style="font-size:.62rem;color:var(--lms-muted);">7:30–8:20</div>
+        <div class="tt-cell filled-gold">Maths</div><div class="tt-cell filled-blue">English</div><div class="tt-cell filled-green">Science</div><div class="tt-cell filled-gold">Maths</div><div class="tt-cell filled-purple">French</div>
+    </div></div>
+  </div>`,
+
+/* ---- STUDENT EXTRAS ---- */
+'s-quiz':()=>`<div class="panel"><div class="panel-head"><h3>Quizzes</h3></div><div style="padding:1rem;">Your upcoming quizzes will appear here.</div></div>`,
+'s-attendance':()=>`<div class="panel"><div class="panel-head"><h3>Attendance</h3></div><div id="att-calendar" style="padding:1rem;"></div></div>`,
+'s-resources':()=>`<div class="panel"><div class="panel-head"><h3>Study Resources</h3></div><div style="padding:1rem;">Resources shared by your teachers will appear here.</div></div>`,
+'s-ai':()=>`<div class="panel"><div class="panel-head"><h3>AI Tutor</h3></div><div style="padding:1rem;">Click the bot icon above to chat with your AI Tutor!</div></div>`,
+'s-notices':()=>`<div class="panel"><div class="panel-head"><h3>School Notices</h3></div><div style="padding:1rem;">No new notices today.</div></div>`,
 
 /* ---- TEACHER DASHBOARD ---- */
 't-dashboard':()=>`
@@ -333,29 +334,35 @@ const pages = {
   <div class="stats-row">
     <div class="sc gold"><div class="sc-icon gold"><i class="fas fa-users"></i></div><div class="sc-info"><label>Students</label><div class="val">34</div><div class="sub">In Class 6B</div></div></div>
     <div class="sc red"><div class="sc-icon red"><i class="fas fa-file-alt"></i></div><div class="sc-info"><label>Total Tasks</label><div class="val">${ASSIGNMENTS.length}</div><div class="sub">Assignments</div></div></div>
-    <div class="sc green"><div class="sc-icon green"><i class="fas fa-user-check"></i></div><div class="sc-info"><label>Present Today</label><div class="val">31</div><div class="sub">of 34 students</div></div></div>
-    <div class="sc blue"><div class="sc-icon blue"><i class="fas fa-chart-line"></i></div><div class="sc-info"><label>Class Average</label><div class="val">74%</div><div class="sub">This term</div></div></div>
   </div>
   <div class="two-col">
     <div class="panel">
-      <div class="panel-head"><h3>Assignments to Mark</h3><button class="ph-action" onclick="showPage('t-assignments',null)">View all →</button></div>
+      <div class="panel-head"><h3>Recent Assignments</h3><button class="ph-action" onclick="showPage('t-assignments',null)">Manage →</button></div>
       <table class="lms-tbl"><thead><tr><th>Task</th><th>Subject</th><th>Action</th></tr></thead>
       <tbody>
-        ${ASSIGNMENTS.slice(0,3).map(a => `
+        ${ASSIGNMENTS.slice(0,4).map(a => `
         <tr><td>${a.title}</td><td>${a.subject}</td><td><button class="btn-gold" style="font-size:.75rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
         `).join('')}
       </tbody></table>
     </div>
     <div class="panel">
-      <div class="panel-head"><h3>Today's Quick Attendance</h3><button class="ph-action" onclick="showPage('t-attendance',null)">Full View →</button></div>
+      <div class="panel-head"><h3>Quick Attendance</h3><button class="ph-action" onclick="showPage('t-attendance',null)">Full View →</button></div>
       <div id="t-quick-att"></div>
     </div>
   </div>`,
 
 /* ---- TEACHER CLASS ---- */
-'t-class':()=>`<p>Class list loaded.</p>`,
+'t-class':()=>`
+  <div class="panel">
+    <div class="panel-head"><h3>34 Students Enrolled</h3></div>
+    ${STUDENTS.map((s,i)=>`
+      <div class="std-row">
+        <div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+        <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div>
+      </div>`).join('')}
+  </div>`,
 
-/* ---- TEACHER ASSIGNMENTS (NEW DYNAMIC BUILDER) ---- */
+/* ---- TEACHER ASSIGNMENTS (DYNAMIC BUILDER) ---- */
 't-assignments':()=>`
   <h2 style="font-family:'Poppins',sans-serif;font-size:1.05rem;color:var(--primary);margin-bottom:1.2rem;">Manage Assignments</h2>
   
@@ -364,21 +371,21 @@ const pages = {
     <div style="padding:1.2rem;display:grid;grid-template-columns:1fr 1fr;gap:.9rem;">
       <div class="lms-form-group"><label>Title</label><input type="text" id="asgn-title" placeholder="e.g. Science Revision"></div>
       <div class="lms-form-group"><label>Subject</label>
-        <select id="asgn-subj" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--lms-border);border-radius:10px;font-family:var(--font-lms);font-size:.9rem;background:var(--light);outline:none;">
+        <select id="asgn-subj">
           <option>Mathematics</option><option>English Language</option><option>Science</option><option>Social Studies</option><option>Creative Arts</option><option>ICT</option>
         </select>
       </div>
       <div class="lms-form-group"><label>Due Date</label><input type="date" id="asgn-due"></div>
       <div class="lms-form-group"><label>Format</label>
-        <select id="asgn-type" onchange="toggleFormat()" style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--lms-border);border-radius:10px;font-family:var(--font-lms);font-size:.9rem;background:var(--light);outline:none;">
-          <option value="standard">Standard (Objectives / Tasks)</option>
+        <select id="asgn-type" onchange="toggleFormat()">
+          <option value="standard">Standard Task</option>
           <option value="mcq">Multiple Choice Quiz</option>
         </select>
       </div>
       
       <div class="lms-form-group" id="fmt-standard" style="grid-column:span 2;">
-        <label>Instructions & Objectives</label>
-        <textarea id="asgn-desc" rows="4" placeholder="Type the learning objectives or instructions here..." style="width:100%;padding:.75rem 1rem;border:1.5px solid var(--lms-border);border-radius:10px;font-family:var(--font-lms);font-size:.9rem;background:var(--light);outline:none;resize:vertical;"></textarea>
+        <label>Instructions</label>
+        <textarea id="asgn-desc" rows="3" placeholder="Type instructions..."></textarea>
       </div>
 
       <div class="lms-form-group" id="fmt-mcq" style="grid-column:span 2; display:none;">
@@ -386,83 +393,99 @@ const pages = {
         <div id="mcq-list" style="display:flex;flex-direction:column;gap:.8rem;"></div>
         <button class="btn-outline" style="margin-top:.8rem;" onclick="addMcq()"><i class="fas fa-plus"></i> Add Question</button>
       </div>
-
     </div>
     <div style="padding:0 1.2rem 1.2rem;">
-      <button class="btn-lms-primary" style="width:auto;padding:.65rem 1.6rem;" onclick="publishAssignment()" id="btn-publish"><i class="fas fa-paper-plane"></i> Publish to Class 6B</button>
+      <button class="btn-lms-primary" style="width:auto;padding:.65rem 1.6rem;" onclick="publishAssignment()" id="btn-publish"><i class="fas fa-paper-plane"></i> Publish to Class</button>
     </div>
   </div>
 
   <div class="panel">
     <div class="panel-head"><h3>Active Assignments</h3></div>
-    <table class="lms-tbl"><thead><tr><th>Title</th><th>Subject</th><th>Due</th><th>Type</th><th>Status</th><th>Action</th></tr></thead>
+    <table class="lms-tbl"><thead><tr><th>Title</th><th>Subject</th><th>Due</th><th>Type</th><th>Status</th></tr></thead>
     <tbody>
-      ${ASSIGNMENTS.map(a => `
-      <tr>
-        <td><strong>${a.title}</strong></td>
-        <td>${a.subject}</td>
-        <td>${a.due}</td>
-        <td><span class="chip grey">${a.type === 'mcq' ? 'Quiz' : 'Task'}</span></td>
-        <td><span class="chip ${a.status==='pending'?'red':a.status==='draft'?'gold':'green'}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td>
-        <td><button class="btn-outline" style="font-size:.73rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td>
-      </tr>
-      `).join('')}
+      ${ASSIGNMENTS.map(a => {
+        const stat = a.status || 'open';
+        const badgeColor = stat==='pending' ? 'red' : stat==='draft' ? 'gold' : 'green';
+        return `<tr>
+          <td><strong>${a.title}</strong></td><td>${a.subject}</td><td>${a.due}</td>
+          <td><span class="chip grey">${a.type === 'mcq' ? 'Quiz' : 'Task'}</span></td>
+          <td><span class="chip ${badgeColor}">${stat.charAt(0).toUpperCase() + stat.slice(1)}</span></td>
+        </tr>`;
+      }).join('')}
     </tbody></table>
   </div>`,
 
-/* ---- TEACHER GRADES, ATTENDANCE, NOTICES, TIMETABLE, RESOURCES (Unchanged for brevity) ---- */
-'t-grades':()=>`<p>Grades loaded.</p>`,
-'t-attendance':()=>`<p>Attendance loaded.</p>`,
-'t-notices':()=>`<p>Notices loaded.</p>`,
-'t-timetable':()=>`<p>Timetable loaded.</p>`,
-'t-resources':()=>`<p>Resources loaded.</p>`
+/* ---- TEACHER GRADES ---- */
+'t-grades':()=>`
+  <div class="panel">
+    <div class="panel-head"><h3>Term 2 Results</h3><button class="ph-action" onclick="toast('Grades exported as CSV!')"><i class="fas fa-download"></i> Export CSV</button></div>
+    <table class="lms-tbl"><thead><tr><th>Student</th><th>Maths</th><th>English</th><th>Science</th><th>Average</th><th>Grade</th></tr></thead>
+    <tbody>${STUDENTS.slice(0,10).map((s,i)=>{
+      const scores=[75+i%15,68+i%18,80+i%12];
+      const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+      const g=avg>=80?'A':avg>=70?'B':avg>=60?'C':'D';
+      return `<tr><td>${s}</td>${scores.map(sc=>`<td>${sc}%</td>`).join('')}<td><strong>${avg}%</strong></td><td><span class="grade-${g}">${g}</span></td></tr>`;
+    }).join('')}</tbody></table>
+  </div>`,
+
+/* ---- TEACHER ATTENDANCE ---- */
+'t-attendance':()=>`
+  <div class="panel">
+    <div class="panel-head"><h3>${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</h3><button class="ph-action" onclick="markAllPresent()">✅ Mark All Present</button></div>
+    <div id="att-mark-list"></div>
+    <div style="padding:1rem 1.3rem;border-top:1px solid var(--lms-border);">
+      <button class="btn-lms-primary" style="width:auto;padding:.65rem 1.6rem;" onclick="toast('Attendance saved successfully!')"><i class="fas fa-save"></i> Save Attendance</button>
+    </div>
+  </div>`,
+
+/* ---- TEACHER NOTICES ---- */
+'t-notices':()=>`
+  <div class="panel" style="max-width:600px;">
+    <div class="panel-head"><h3>New Notice</h3></div>
+    <div style="padding:1.2rem;display:flex;flex-direction:column;gap:.9rem;">
+      <div class="lms-form-group"><label>Title</label><input type="text" placeholder="e.g. End-of-Term Reminder"></div>
+      <div class="lms-form-group"><label>Message</label><textarea rows="5" placeholder="Type notice..."></textarea></div>
+      <button class="btn-lms-primary" style="width:auto;padding:.65rem 1.6rem;" onclick="toast('Notice published successfully!')"><i class="fas fa-bullhorn"></i> Publish Notice</button>
+    </div>
+  </div>`,
+
+/* ---- TEACHER EXTRAS ---- */
+'t-timetable':()=>`<div class="panel"><div class="panel-head"><h3>Timetable</h3></div><div style="padding:1rem;">Your teaching schedule.</div></div>`,
+'t-resources':()=>`<div class="panel"><div class="panel-head"><h3>Upload Resources</h3></div><div style="padding:1rem;"><button class="btn-gold" onclick="toast('Resource uploaded!')">Upload PDF</button></div></div>`
 };
 
 /* ====================== DYNAMIC ASSIGNMENT BUILDER LOGIC ====================== */
-
-// Switches between Standard Task and Quiz view
 window.toggleFormat = function() {
   const type = document.getElementById('asgn-type').value;
   document.getElementById('fmt-standard').style.display = type === 'standard' ? 'block' : 'none';
   document.getElementById('fmt-mcq').style.display = type === 'mcq' ? 'block' : 'none';
-  
-  // If they choose MCQ and it's empty, automatically add the first question block
-  if(type === 'mcq' && document.getElementById('mcq-list').children.length === 0) {
-    addMcq();
-  }
+  if(type === 'mcq' && document.getElementById('mcq-list').children.length === 0) { addMcq(); }
 };
 
 let mcqCount = 0;
-// Adds a new multiple choice question block to the form
 window.addMcq = function() {
   mcqCount++;
   const list = document.getElementById('mcq-list');
   const div = document.createElement('div');
-  div.className = 'mcq-item-block';
   div.style.cssText = 'background:var(--lms-surface);padding:1.2rem;border-radius:10px;border:1px solid var(--lms-border);';
   div.innerHTML = `
     <strong style="display:block;font-size:.8rem;color:var(--primary);margin-bottom:.5rem;">Question ${mcqCount}</strong>
-    <input type="text" class="mcq-q" placeholder="Type the question here..." style="width:100%;padding:.65rem;border:1px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.85rem;margin-bottom:.6rem;outline:none;">
-    
+    <input type="text" class="mcq-q" placeholder="Question here..." style="width:100%;padding:.65rem;border:1px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.85rem;margin-bottom:.6rem;outline:none;">
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.8rem;">
       <input type="text" class="mcq-o1" placeholder="Option A" style="padding:.6rem;border:1px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.8rem;outline:none;">
       <input type="text" class="mcq-o2" placeholder="Option B" style="padding:.6rem;border:1px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.8rem;outline:none;">
       <input type="text" class="mcq-o3" placeholder="Option C" style="padding:.6rem;border:1px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.8rem;outline:none;">
     </div>
-    
     <div style="display:flex;align-items:center;gap:.6rem;font-size:.8rem;font-weight:600;color:var(--primary);">
       <label>Correct Answer:</label>
       <select class="mcq-ans" style="padding:.4rem .6rem;border:1.5px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);outline:none;">
-        <option value="0">Option A</option>
-        <option value="1">Option B</option>
-        <option value="2">Option C</option>
+        <option value="0">Option A</option><option value="1">Option B</option><option value="2">Option C</option>
       </select>
     </div>
   `;
   list.appendChild(div);
 };
 
-// Publishes the Assignment/Quiz securely to Supabase
 window.publishAssignment = async function() {
   const title = document.getElementById('asgn-title').value.trim();
   const subject = document.getElementById('asgn-subj').value;
@@ -470,116 +493,102 @@ window.publishAssignment = async function() {
   const type = document.getElementById('asgn-type').value;
   const btn = document.getElementById('btn-publish');
   
-  if(!title || !dueRaw) { 
-    toast('Please fill in the Title and Due Date!'); 
-    return; 
-  }
+  if(!title || !dueRaw) { toast('Please fill in the Title and Due Date!'); return; }
   
-  // Format Date (e.g. 2026-05-10 -> May 10)
-  const dateObj = new Date(dueRaw);
-  const dueFormated = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  let dueFormated = dueRaw;
+  try {
+    const d = new Date(dueRaw);
+    if(!isNaN(d)) dueFormated = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch(e){}
 
   let description = '';
   let contentPayload = null;
 
-  // Gather Standard or MCQ Data
   if(type === 'standard') {
     description = document.getElementById('asgn-desc').value.trim();
   } else {
     description = 'Multiple Choice Quiz Assessment';
-    const blocks = document.querySelectorAll('.mcq-item-block');
+    const blocks = document.getElementById('mcq-list').children;
     const questions = [];
-    
-    blocks.forEach(block => {
+    Array.from(blocks).forEach(block => {
       const qText = block.querySelector('.mcq-q').value.trim();
       const o1 = block.querySelector('.mcq-o1').value.trim();
       const o2 = block.querySelector('.mcq-o2').value.trim();
       const o3 = block.querySelector('.mcq-o3').value.trim();
       const ans = parseInt(block.querySelector('.mcq-ans').value);
-      
-      if(qText && o1 && o2) {
-        questions.push({ question: qText, options: [o1, o2, o3], answerIndex: ans });
-      }
+      if(qText && o1 && o2) questions.push({ question: qText, options: [o1, o2, o3], answerIndex: ans });
     });
-    
     if(questions.length === 0) { toast('Please add at least one complete question.'); return; }
-    contentPayload = questions; // This will go into the magic JSONB column!
+    contentPayload = questions;
   }
 
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving to Cloud...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
   const newAssignmentData = {
-    title: title,
-    subject: subject,
-    description: description,
-    due: dueFormated,
-    status: 'open',
-    color: 'blue', 
-    assignment_type: type,
-    content: contentPayload // JSON data
+    title: title, subject: subject, description: description,
+    due: dueFormated, status: 'open', color: 'blue', 
+    assignment_type: type, content: contentPayload
   };
 
-  // Push to Supabase!
-  const { data, error } = await supabase.from('assignments').insert([newAssignmentData]).select();
-
-  if(error) {
-    console.error("Insert Error:", error);
-    toast('Failed to save assignment.');
-    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish to Class 6B';
-    return;
+  if(supabase) {
+    const { data, error } = await supabase.from('assignments').insert([newAssignmentData]).select();
+    if(error) {
+      console.error(error); toast('Failed to save.');
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Publish to Class'; return;
+    }
+    ASSIGNMENTS.unshift({
+      id: data[0].id, title: data[0].title, subject: data[0].subject,
+      desc: data[0].description, due: data[0].due, status: data[0].status,
+      color: data[0].color, type: data[0].assignment_type, content: data[0].content
+    });
   }
 
-  toast('Assignment successfully published to the cloud!');
-  
-  // Add the newly created database row to our local array so it shows up instantly
-  ASSIGNMENTS.unshift({
-    id: data[0].id,
-    title: data[0].title,
-    subject: data[0].subject,
-    desc: data[0].description,
-    due: data[0].due,
-    status: data[0].status,
-    color: data[0].color,
-    type: data[0].assignment_type,
-    content: data[0].content
-  });
-
-  // Re-render the page to clear the form and show the updated list
+  toast('Assignment successfully published!');
   renderPage('t-assignments');
 };
 
 /* ====================== AFTER RENDER HOOKS ====================== */
 function afterRender(page){
+  if(page==='s-attendance'){
+    const dots=document.getElementById('att-calendar');
+    if(dots){const types=['p','p','p','p','h','p','p','a','p','p','p','p','p','a','p','p','p','p','p'];dots.innerHTML=types.map(t=>`<div class="att-dot ${t}"></div>`).join('');}
+  }
   if(page==='t-dashboard'){
     const el=document.getElementById('t-quick-att');
-    if(el){el.innerHTML=STUDENTS.slice(0,5).map((s,i)=>` <div class="std-row"><div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto"><span class="chip ${i===2?'red':'green'}">${i===2?'Absent':'Present'}</span></div></div>`).join('')+`<div style="padding:.7rem 1.3rem;border-top:1px solid var(--lms-border);"><button class="ph-action" onclick="showPage('t-attendance',null)" style="color:var(--lms-blue);background:none;border:none;cursor:pointer;font-size:.8rem;font-weight:600;">View all 34 students →</button></div>`;}
+    if(el){el.innerHTML=STUDENTS.slice(0,5).map((s,i)=>` <div class="std-row"><div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto"><span class="chip ${i===2?'red':'green'}">${i===2?'Absent':'Present'}</span></div></div>`).join('');}
+  }
+  if(page==='t-attendance'){
+    STUDENTS.forEach((_,i)=>{ if(attState[i]===undefined) attState[i]='present'; });
+    renderAttList();
   }
 }
 
-// Global modal handlers
 window.openGrader = function(){
   const gl=document.getElementById('grader-list');
-  gl.innerHTML=`<div>${STUDENTS.slice(0,8).map((s,i)=>`
-  <div class="grader-row">
-  <label>${s}</label>
-  <input type="number" min="0" max="100" value="${60+i*4}" placeholder="/100">
-  <select><option>Present</option><option>Absent</option></select>
-  </div>`).join('')}</div>`;
+  gl.innerHTML=`<div>${STUDENTS.slice(0,8).map((s,i)=>`<div class="grader-row"><label>${s}</label><input type="number" min="0" max="100" value="${60+i*4}"><select><option>Present</option><option>Absent</option></select></div>`).join('')}</div>`;
   openModal('grader-modal');
 };
-window.saveGrades = function(){closeModal('grader-modal');toast('Grades saved successfully!');};
+window.saveGrades = function(){closeModal('grader-modal');toast('Grades saved!');};
 
-// Keyboard listener
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&document.getElementById('login-section').style.display!=='none'&&!document.getElementById('lms-dashboard').classList.contains('active')) doLogin();
-});
+function renderAttList(){
+  const el=document.getElementById('att-mark-list');
+  if(!el) return;
+  el.innerHTML=STUDENTS.map((s,i)=>` <div class="std-row"> <div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto" style="display:flex;gap:.4rem;"> <button onclick="setAtt(${i},'present')" style="padding:4px 12px;border-radius:999px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">P</button> <button onclick="setAtt(${i},'absent')" style="padding:4px 12px;border-radius:999px;font-size:.7rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">A</button> </div> </div>`).join('');
+}
+window.setAtt = function(i,v){attState[i]=v;renderAttList();};
+window.markAllPresent = function(){STUDENTS.forEach((_,i)=>{attState[i]='present';});renderAttList();toast('All marked present!');};
+
+// AI Modal logic
+function sendAiMsg(){
+  const inp=document.getElementById('ai-input'); const chat=document.getElementById('ai-chat');
+  if(!inp||!chat||!inp.value.trim()) return;
+  chat.innerHTML+=`<div class="ai-msg user"><div class="ai-bubble">${inp.value.trim()}</div></div>`;
+  inp.value='';
+  setTimeout(()=>{ chat.innerHTML+=`<div class="ai-msg ai"><div class="ai-bubble">That's a great question! I am reviewing your notes to help you.</div></div>`; chat.scrollTop=chat.scrollHeight; }, 1000);
+}
 
 // App init
 document.addEventListener('DOMContentLoaded',()=>{
   const y=document.getElementById('year');
   if(y) y.textContent=new Date().getFullYear();
-  window.addEventListener('load',()=>{
-    const pre=document.getElementById('preloader');
-    if(pre){pre.classList.add('loaded');setTimeout(()=>pre.remove(),600);}
-  });
 });
