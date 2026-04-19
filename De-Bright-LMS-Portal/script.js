@@ -23,13 +23,8 @@ const SUBJECTS = [
   {name:'ICT',teacher:'Ms. Mensah',progress:94,emoji:'💻',color:'green'},
 ];
 
-const ASSIGNMENTS = [
-  {title:'Fractions Worksheet',subject:'Mathematics',desc:'Complete questions 1–20 on fractions and decimals.',due:'Apr 21',status:'pending',color:'gold'},
-  {title:'English Comprehension',subject:'English Language',desc:'Read passage and answer all 10 questions.',due:'Apr 22',status:'pending',color:'blue'},
-  {title:'Science Lab Report',subject:'Science',desc:'Write up findings from the germination experiment.',due:'Apr 24',status:'draft',color:'green'},
-  {title:'Map Work',subject:'Social Studies',desc:'Label Ghana\'s regions on the blank map.',due:'Apr 18',status:'submitted',color:'purple'},
-  {title:'Creative Portfolio',subject:'Creative Arts',desc:'Submit sketchbook with 5 completed drawings.',due:'Apr 28',status:'pending',color:'gold'},
-];
+// This is now empty because we fetch it live from Supabase!
+let ASSIGNMENTS = [];
 
 const GRADES = [
   {subject:'Mathematics',classScore:'38/40',examScore:'52/60',total:90,grade:'A',remark:'Excellent'},
@@ -90,24 +85,50 @@ function setRole(r){
   document.getElementById('id-label').textContent = r==='student' ? 'Student ID' : 'Teacher ID';
 }
 
-function doLogin(){
+async function doLogin(){
   const id = document.getElementById('login-id').value.trim().toUpperCase();
   const pw = document.getElementById('login-pass').value;
   const err = document.getElementById('login-error');
   const btn = document.getElementById('login-btn-text');
   err.style.display='none';
+  
   if(!id||!pw){showErr('Please enter your ID and password.');return;}
   if(!USERS[id]||PASSWORDS[id]!==pw){showErr('Invalid ID or password. Contact the school office.');return;}
   if(USERS[id].role!==currentRole){showErr(`This ID belongs to a ${USERS[id].role} account. Please select the correct role.`);return;}
+  
   currentUser = USERS[id];
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in…';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching Data…';
+
+  // --- Fetch assignments live from Supabase ---
+  const { data, error } = await supabase.from('assignments').select('*');
+  
+  if (error) {
+    console.error("Database Error:", error);
+    showErr("Could not connect to the database.");
+    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+    return;
+  }
+
+  // Save the real data to our ASSIGNMENTS array
+  ASSIGNMENTS = data.map(item => ({
+    title: item.title,
+    subject: item.subject,
+    desc: item.description, 
+    due: item.due,
+    status: item.status,
+    color: item.color
+  }));
+
+  // Go to Dashboard
+  btn.innerHTML = '<i class="fas fa-check"></i> Success';
   setTimeout(()=>{
     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
     document.getElementById('login-section').style.display='none';
     document.getElementById('lms-dashboard').classList.add('active');
     buildDashboard();
-  },900);
+  }, 500);
 }
+
 function showErr(msg){const e=document.getElementById('login-error');e.textContent=msg;e.style.display='block';}
 
 function doLogout(){
@@ -229,13 +250,13 @@ const pages = {
     <div class="wb-text">
       <div class="wb-tag">📚 Term 2 — 2025/26</div>
       <h2>Good day, Ama! 👋</h2>
-      <p>You have 3 pending assignments and a quiz due today.</p>
+      <p>You have ${ASSIGNMENTS.filter(a=>a.status==='pending').length} pending assignments and a quiz due today.</p>
     </div>
     <div class="wb-icon"><i class="fas fa-star"></i></div>
   </div>
   <div class="stats-row">
     <div class="sc gold"><div class="sc-icon gold"><i class="fas fa-book"></i></div><div class="sc-info"><label>Subjects</label><div class="val">8</div><div class="sub">This term</div></div></div>
-    <div class="sc green"><div class="sc-icon green"><i class="fas fa-tasks"></i></div><div class="sc-info"><label>Pending</label><div class="val">3</div><div class="sub">Assignments</div></div></div>
+    <div class="sc green"><div class="sc-icon green"><i class="fas fa-tasks"></i></div><div class="sc-info"><label>Pending</label><div class="val">${ASSIGNMENTS.filter(a=>a.status==='pending').length}</div><div class="sub">Assignments</div></div></div>
     <div class="sc blue"><div class="sc-icon blue"><i class="fas fa-chart-bar"></i></div><div class="sc-info"><label>Avg Grade</label><div class="val">78%</div><div class="sub">All subjects</div></div></div>
     <div class="sc purple"><div class="sc-icon purple"><i class="fas fa-user-check"></i></div><div class="sc-info"><label>Attendance</label><div class="val">94%</div><div class="sub">This term</div></div></div>
   </div>
@@ -244,10 +265,9 @@ const pages = {
       <div class="panel-head"><h3>Upcoming Assignments</h3><button class="ph-action" onclick="showPage('s-assignments',null)">See all →</button></div>
       <table class="lms-tbl"><thead><tr><th>Subject</th><th>Task</th><th>Due</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Mathematics</td><td>Fractions WS</td><td>Apr 21</td><td><span class="chip red">Pending</span></td></tr>
-        <tr><td>English</td><td>Comprehension</td><td>Apr 22</td><td><span class="chip red">Pending</span></td></tr>
-        <tr><td>Science</td><td>Lab Report</td><td>Apr 24</td><td><span class="chip gold">Draft</span></td></tr>
-        <tr><td>Soc. Studies</td><td>Map Work</td><td>Apr 18</td><td><span class="chip green">Submitted</span></td></tr>
+        ${ASSIGNMENTS.slice(0,4).map(a => `
+        <tr><td>${a.subject}</td><td>${a.title}</td><td>${a.due}</td><td><span class="chip ${a.status==='pending'?'red':a.status==='draft'?'gold':'green'}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td></tr>
+        `).join('')}
       </tbody></table>
     </div>
     <div class="panel">
@@ -488,24 +508,24 @@ const pages = {
     <div class="wb-text">
       <div class="wb-tag">📋 Class Teacher — 6B</div>
       <h2>Good day, Ms. Boateng! 👩‍🏫</h2>
-      <p>18 assignments to mark · Attendance not yet logged today</p>
+      <p>${ASSIGNMENTS.length} assignments created · Attendance not yet logged today</p>
     </div>
     <div class="wb-icon"><i class="fas fa-chalkboard-teacher"></i></div>
   </div>
   <div class="stats-row">
     <div class="sc gold"><div class="sc-icon gold"><i class="fas fa-users"></i></div><div class="sc-info"><label>Students</label><div class="val">34</div><div class="sub">In Class 6B</div></div></div>
-    <div class="sc red"><div class="sc-icon red"><i class="fas fa-file-alt"></i></div><div class="sc-info"><label>To Mark</label><div class="val">18</div><div class="sub">Assignments</div></div></div>
+    <div class="sc red"><div class="sc-icon red"><i class="fas fa-file-alt"></i></div><div class="sc-info"><label>Total Tasks</label><div class="val">${ASSIGNMENTS.length}</div><div class="sub">Assignments</div></div></div>
     <div class="sc green"><div class="sc-icon green"><i class="fas fa-user-check"></i></div><div class="sc-info"><label>Present Today</label><div class="val">31</div><div class="sub">of 34 students</div></div></div>
     <div class="sc blue"><div class="sc-icon blue"><i class="fas fa-chart-line"></i></div><div class="sc-info"><label>Class Average</label><div class="val">74%</div><div class="sub">This term</div></div></div>
   </div>
   <div class="two-col">
     <div class="panel">
       <div class="panel-head"><h3>Assignments to Mark</h3><button class="ph-action" onclick="showPage('t-assignments',null)">View all →</button></div>
-      <table class="lms-tbl"><thead><tr><th>Task</th><th>Submitted</th><th>Action</th></tr></thead>
+      <table class="lms-tbl"><thead><tr><th>Task</th><th>Subject</th><th>Action</th></tr></thead>
       <tbody>
-        <tr><td>Fractions Worksheet</td><td>22/34</td><td><button class="btn-gold" style="font-size:.75rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
-        <tr><td>Comprehension</td><td>30/34</td><td><button class="btn-gold" style="font-size:.75rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
-        <tr><td>Lab Report</td><td>18/34</td><td><button class="btn-gold" style="font-size:.75rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
+        ${ASSIGNMENTS.slice(0,3).map(a => `
+        <tr><td>${a.title}</td><td>${a.subject}</td><td><button class="btn-gold" style="font-size:.75rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
+        `).join('')}
       </tbody></table>
     </div>
     <div class="panel">
@@ -555,12 +575,11 @@ const pages = {
   </div>
   <div class="panel">
     <div class="panel-head"><h3>Active Assignments</h3></div>
-    <table class="lms-tbl"><thead><tr><th>Title</th><th>Subject</th><th>Due</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead>
+    <table class="lms-tbl"><thead><tr><th>Title</th><th>Subject</th><th>Due</th><th>Status</th><th>Action</th></tr></thead>
     <tbody>
-      <tr><td>Fractions Worksheet</td><td>Maths</td><td>Apr 21</td><td>22/34</td><td><span class="chip gold">In Progress</span></td><td><button class="btn-outline" style="font-size:.73rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
-      <tr><td>Comprehension Task</td><td>English</td><td>Apr 22</td><td>30/34</td><td><span class="chip gold">In Progress</span></td><td><button class="btn-outline" style="font-size:.73rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
-      <tr><td>Lab Report</td><td>Science</td><td>Apr 24</td><td>18/34</td><td><span class="chip blue">Open</span></td><td><button class="btn-outline" style="font-size:.73rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
-      <tr><td>Map Work</td><td>Soc. Studies</td><td>Apr 18</td><td>34/34</td><td><span class="chip green">Closed</span></td><td><button class="btn-outline" style="font-size:.73rem;padding:.4rem .8rem;" onclick="toast('Results loaded!')">Results</button></td></tr>
+      ${ASSIGNMENTS.map(a => `
+      <tr><td>${a.title}</td><td>${a.subject}</td><td>${a.due}</td><td><span class="chip ${a.status==='pending'?'red':a.status==='draft'?'gold':'green'}">${a.status.charAt(0).toUpperCase() + a.status.slice(1)}</span></td><td><button class="btn-outline" style="font-size:.73rem;padding:.4rem .8rem;" onclick="openGrader()">Mark</button></td></tr>
+      `).join('')}
     </tbody></table>
   </div>`,
 
