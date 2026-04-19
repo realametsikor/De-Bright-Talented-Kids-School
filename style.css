@@ -143,21 +143,19 @@ html, body {
 .hero-content { max-width: 900px; z-index: 2; position: relative;
   text-shadow: 0 5px 15px rgba(0,0,0,.5); width: 100%; margin-bottom: 50px; }
 
-/* THE BULLETPROOF HERO EYEBROW FIX */
+/* THE BIGGER, PLAYFUL, PERFECTLY POSITIONED TEXT */
 .hero-eyebrow { 
   position: absolute; 
-  bottom: 100%; /* This forces it to ALWAYS sit above the H1, it can never overlap */
-  margin-bottom: 20px; /* Base spacing for desktop */
+  top: -160px; /* High up for desktop screens */
   left: 0;
   width: 100%; 
-  font-size: clamp(1.2rem, 4vw, 1.8rem); 
+  font-size: clamp(1.5rem, 6vw, 2.4rem); /* MUCH BIGGER SO IT POPS! */
   text-transform: uppercase;
   letter-spacing: 4px; 
   color: var(--accent); 
   font-weight: 800; 
-  text-shadow: 0 4px 15px rgba(0,0,0,0.6); 
+  text-shadow: 0 5px 20px rgba(0,0,0,0.7); /* Thicker shadow for readability */
   
-  /* Restored Playful Bounce Animation */
   opacity: 0; 
   transform-origin: center center; 
   animation: playfulBounce 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
@@ -180,6 +178,7 @@ html, body {
   
 .hero p.hero-desc { font-size: 1.15rem; margin-bottom: 2.5rem; opacity: .9;
   max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
 .typewriter-text { color: var(--accent); border-right: 3px solid var(--accent);
   padding-right: 5px; animation: blinkCursor .7s steps(1) infinite; display: inline-block; }
 @keyframes blinkCursor { 50%{border-color:transparent;} }
@@ -348,8 +347,8 @@ html, body {
 .moment-item:hover { box-shadow: 0 15px 35px rgba(251, 192, 45, 0.4); z-index: 5; }
 .moment-item:hover img { transform: scale(1.05); filter: brightness(1.05); }
 
-.btn-gallery { display: inline-block; background: var(--accent); color: var(--primary); padding: 14px 35px; font-size: 0.95rem; border-radius: 50px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 5px 15px rgba(251,192,45,.4); text-decoration: none; position: relative; }
-.btn-gallery:hover { transform: translateY(-5px) scale(1.05); background: var(--primary); color: white; box-shadow: 0 10px 25px rgba(10,37,64,.3); }
+.btn-gallery { display: inline-block; background: var(--accent); color: var(--primary); padding: 14px 35px; font-size: 0.95rem; border-radius: 50px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.4s; box-shadow: 0 5px 15px rgba(251,192,45,.4); text-decoration: none; position: relative; }
+.btn-gallery:hover { transform: translateY(-5px); background: var(--primary); color: white; box-shadow: 0 10px 25px rgba(10,37,64,.3); }
 @media (min-width: 768px) { .moment-item.featured { aspect-ratio: 21/9; } .moment-item { aspect-ratio: 1/1; } }
 
 /* ===================== FAQ ===================== */
@@ -424,7 +423,7 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 /* ===================== RESPONSIVE ===================== */
 @media (max-width: 768px) {
   /* THIS SPECIFICALLY PUSHES IT HIGHER ON MOBILE TO HIT YOUR RED LINE */
-  .hero-eyebrow { margin-bottom: 55px; }
+  .hero-eyebrow { top: -140px; }
 
   .section-padding { padding: 3rem 5%; }
   .contact-grid { gap: 1.2rem; }
