@@ -2,9 +2,6 @@
    DE-BRIGHT TALENTED KIDS SCHOOL — style.css
    ============================================ */
 
-/* NOTE: Google Fonts is now loaded via <link> tags in HTML head
-   for faster render — do NOT add @import here */
-
 :root {
   --primary: #0a2540;
   --accent:  #fbc02d;
@@ -163,7 +160,6 @@ html, body {
   font-weight: 800; 
   text-shadow: 0 4px 15px rgba(0,0,0,0.6); 
   
-  /* Animation settings */
   opacity: 0; 
   transform-origin: center center; 
   animation: playfulBounce 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
@@ -171,24 +167,11 @@ html, body {
 }
 
 @keyframes playfulBounce {
-  0% { 
-    transform: translateY(-100px) scale(0.2) rotate(-20deg); 
-    opacity: 0; 
-  }
-  40% { 
-    transform: translateY(20px) scale(1.2) rotate(10deg); 
-    opacity: 1; 
-  }
-  60% { 
-    transform: translateY(-15px) scale(0.9) rotate(-5deg); 
-  }
-  80% { 
-    transform: translateY(5px) scale(1.05) rotate(2deg); 
-  }
-  100% { 
-    transform: translateY(0) scale(1) rotate(0deg); 
-    opacity: 1; 
-  }
+  0% { transform: translateY(-100px) scale(0.2) rotate(-20deg); opacity: 0; }
+  40% { transform: translateY(20px) scale(1.2) rotate(10deg); opacity: 1; }
+  60% { transform: translateY(-15px) scale(0.9) rotate(-5deg); }
+  80% { transform: translateY(5px) scale(1.05) rotate(2deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
 }
 
 .hero h1 { font-size: clamp(1.8rem,6vw,4.5rem); margin-bottom: 1.5rem;
@@ -265,7 +248,7 @@ html, body {
 .value-card h3 { color: var(--primary); font-family:'Poppins',sans-serif; margin-bottom: .6rem; }
 .value-card p { color: #666; line-height: 1.6; font-size: .95rem; }
 
-/* ===================== NEW FUN PROGRAMS SECTION ===================== */
+/* ===================== FUN PROGRAMS ===================== */
 .fun-programs { background: #fdfbf7; padding: 6rem 5% 8rem; position: relative; overflow: hidden; border-top: 8px dashed rgba(251, 192, 45, 0.4); }
 .floating-shapes i { position: absolute; color: var(--accent); opacity: 0.15; z-index: 1; animation: floatUp 8s ease-in-out infinite alternate; }
 .shape-1 { top: 10%; left: 10%; font-size: 4rem; animation-delay: 0s; }
@@ -292,7 +275,7 @@ html, body {
 .fun-btn { display: inline-block; background: var(--card-color); color: white; padding: 16px 32px; border-radius: 50px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1.5px; font-size: 0.9rem; box-shadow: 0 5px 15px rgba(0,0,0,0.15); transition: 0.3s; }
 .fun-btn:hover { background: var(--primary); color: white; transform: scale(1.05); }
 
-/* ===================== NEW "TRUST PORTAL" SECTION ===================== */
+/* ===================== TRUST PORTAL ===================== */
 .trust-section { background: var(--primary); padding: 6rem 5% 8rem; position: relative; overflow: hidden; color: white; }
 .trust-title { color: white !important; font-size: clamp(2rem, 5vw, 3rem); text-shadow: 0 4px 15px rgba(0,0,0,0.3); position: relative; z-index: 2; }
 .trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 4rem 2rem; max-width: 1100px; margin: 5rem auto 0; position: relative; z-index: 2; }
@@ -309,199 +292,39 @@ html, body {
 .trust-card:hover h4, .trust-card:focus-within h4 { margin-bottom: 0.5rem; }
 .trust-reveal p { font-size: 1rem; color: rgba(255,255,255,0.9); line-height: 1.6; margin: 0; }
 
-/* ===================== NEW "TALENT CANVAS" SECTION ===================== */
-.talent-section {
-  background: #fdfbf7; 
-  padding: 6rem 5% 8rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.talent-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 3rem 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
-
-/* Base style for the chunky canvases */
-.talent-card {
-  background: #ffffff;
-  border: 4px solid var(--talent-color);
-  border-radius: 25px; 
-  box-shadow: 8px 8px 0px var(--talent-color); 
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.talent-card:hover {
-  transform: translate(-4px, -4px); 
-  box-shadow: 14px 14px 0px var(--talent-color); 
-}
-
-/* Distinct Fun Theme Colors for each activity */
+/* ===================== TALENT CANVAS ===================== */
+.talent-section { background: #fdfbf7; padding: 6rem 5% 8rem; position: relative; overflow: hidden; }
+.talent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 3rem 2rem; max-width: 1200px; margin: 0 auto; position: relative; z-index: 2; }
+.talent-card { background: #ffffff; border: 4px solid var(--talent-color); border-radius: 25px; box-shadow: 8px 8px 0px var(--talent-color); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; display: flex; flex-direction: column; }
+.talent-card:hover { transform: translate(-4px, -4px); box-shadow: 14px 14px 0px var(--talent-color); }
 .talent-card.theme-ict     { --talent-color: #00bcd4; } 
 .talent-card.theme-sports  { --talent-color: #ff9800; } 
 .talent-card.theme-arts    { --talent-color: #e91e63; } 
 .talent-card.theme-culture { --talent-color: #4caf50; } 
-
-.talent-img-wrapper {
-  padding: 15px; 
-  padding-bottom: 0; 
-  position: relative;
-}
-
-.talent-img-wrapper img {
-  width: 100%;
-  height: 220px;
-  object-fit: cover;
-  border-radius: 15px; 
-  display: block;
-}
-
-/* The floating, colorful overlapping badge */
-.talent-badge {
-  position: absolute;
-  right: 25px;
-  bottom: -25px; 
-  width: 55px;
-  height: 55px;
-  background: var(--talent-color);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-  border: 4px solid white; 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  z-index: 2;
-  transition: transform 0.3s ease;
-}
-
-.talent-card:hover .talent-badge {
-  transform: rotate(15deg) scale(1.1); 
-}
-
-.talent-info {
-  padding: 1.8rem 1.5rem;
-  text-align: left;
-}
-
-.talent-info h4 {
-  color: var(--primary);
-  font-family: 'Poppins', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 800;
-  margin: 0;
-}
+.talent-img-wrapper { padding: 15px; padding-bottom: 0; position: relative; }
+.talent-img-wrapper img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; display: block; }
+.talent-badge { position: absolute; right: 25px; bottom: -25px; width: 55px; height: 55px; background: var(--talent-color); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 2; transition: transform 0.3s ease; }
+.talent-card:hover .talent-badge { transform: rotate(15deg) scale(1.1); }
+.talent-info { padding: 1.8rem 1.5rem; text-align: left; }
+.talent-info h4 { color: var(--primary); font-family: 'Poppins', sans-serif; font-size: 1.3rem; font-weight: 800; margin: 0; }
 
 /* ===================== COUNTDOWN ===================== */
-#countdown-section { 
-  background: linear-gradient(135deg, var(--primary) 0%, #1a4a75 100%);
-  padding: 6rem 5%; 
-  text-align: center; 
-  color: white; 
-  position: relative;
-  overflow: hidden;
-}
-
-/* Floating background glow effects */
-#countdown-section::before {
-  content: ''; position: absolute; top: -50px; left: -50px; width: 250px; height: 250px;
-  background: radial-gradient(circle, rgba(251,192,45,0.15) 0%, transparent 70%);
-}
-#countdown-section::after {
-  content: ''; position: absolute; bottom: -50px; right: -50px; width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(0,188,212,0.1) 0%, transparent 70%);
-}
-
-#countdown-section h2 { 
-  font-family: 'Poppins', sans-serif; 
-  font-size: clamp(2rem, 5vw, 2.8rem); 
-  font-weight: 800;
-  margin-bottom: 0.5rem; 
-  position: relative;
-  z-index: 2;
-}
-
-.countdown-subtitle {
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 3rem;
-  position: relative;
-  z-index: 2;
-}
-
-.timer { 
-  display: flex; 
-  justify-content: center; 
-  gap: 1.5rem; 
-  flex-wrap: wrap; 
-  position: relative;
-  z-index: 2;
-}
-
-/* Glassmorphism card effect */
-.time-box { 
-  background: rgba(255, 255, 255, 0.05); 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 1.8rem 2rem; 
-  border-radius: 20px; 
-  min-width: 120px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  border-bottom: 5px solid var(--accent);
-  transition: transform 0.3s ease;
-}
-
-.time-box:hover {
-  transform: translateY(-5px);
-}
-
-/* Glowing Numbers */
-.time-box span { 
-  display: block; 
-  font-size: 3.5rem; 
-  font-weight: 800; 
-  color: var(--accent);
-  font-family: 'Poppins', sans-serif; 
-  line-height: 1; 
-  text-shadow: 0 0 20px rgba(251,192,45,0.5);
-}
-
-.time-box small { 
-  font-size: 0.9rem; 
-  opacity: 0.9; 
-  text-transform: uppercase; 
-  letter-spacing: 2px; 
-  margin-top: 12px; 
-  display: block; 
-  font-weight: 600;
-}
-
-/* Mobile Adjustments for Countdown */
-@media (max-width: 768px) {
-  #countdown-section { padding: 4rem 5%; }
-  .time-box { padding: 1.2rem 1.5rem; min-width: 90px; border-bottom: 4px solid var(--accent); }
-  .time-box span { font-size: 2.2rem; }
-  .timer { gap: 1rem; }
-}
+#countdown-section { background: linear-gradient(135deg, var(--primary) 0%, #1a4a75 100%); padding: 6rem 5%; text-align: center; color: white; position: relative; overflow: hidden; }
+#countdown-section::before { content: ''; position: absolute; top: -50px; left: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(251,192,45,0.15) 0%, transparent 70%); }
+#countdown-section::after { content: ''; position: absolute; bottom: -50px; right: -50px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(0,188,212,0.1) 0%, transparent 70%); }
+#countdown-section h2 { font-family: 'Poppins', sans-serif; font-size: clamp(2rem, 5vw, 2.8rem); font-weight: 800; margin-bottom: 0.5rem; position: relative; z-index: 2; }
+.countdown-subtitle { font-size: 1.1rem; color: rgba(255,255,255,0.8); margin-bottom: 3rem; position: relative; z-index: 2; }
+.timer { display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; position: relative; z-index: 2; }
+.time-box { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15); padding: 1.8rem 2rem; border-radius: 20px; min-width: 120px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-bottom: 5px solid var(--accent); transition: transform 0.3s ease; }
+.time-box:hover { transform: translateY(-5px); }
+.time-box span { display: block; font-size: 3.5rem; font-weight: 800; color: var(--accent); font-family: 'Poppins', sans-serif; line-height: 1; text-shadow: 0 0 20px rgba(251,192,45,0.5); }
+.time-box small { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 2px; margin-top: 12px; display: block; font-weight: 600; }
 
 /* ===================== EVENTS ===================== */
 .events-section { padding: 5rem 5%; background: white; }
-.event-card { display: flex; align-items: center; gap: 2rem; padding: 1.5rem;
-  border-radius: 12px; margin-bottom: 1rem; background: #f8f9fa;
-  border-left: 5px solid var(--accent); transition: transform .3s; }
+.event-card { display: flex; align-items: center; gap: 2rem; padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem; background: #f8f9fa; border-left: 5px solid var(--accent); transition: transform .3s; }
 .event-card:hover { transform: translateX(8px); }
-.event-date { background: var(--primary); color: white; min-width: 70px;
-  padding: 1rem; border-radius: 10px; text-align: center; }
+.event-date { background: var(--primary); color: white; min-width: 70px; padding: 1rem; border-radius: 10px; text-align: center; }
 .event-date span { display: block; font-size: 1.8rem; font-weight: 800; font-family:'Poppins',sans-serif; line-height: 1; }
 .event-date small { font-size: .75rem; opacity: .8; text-transform: uppercase; letter-spacing: 1px; }
 .event-details h4 { color: var(--primary); font-family:'Poppins',sans-serif; margin-bottom: .3rem; }
@@ -510,8 +333,7 @@ html, body {
 /* ===================== TESTIMONIALS ===================== */
 .testimonials-section { padding: 5rem 5%; background: white; text-align: center; }
 .testimonials-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 2rem; margin-top: 3rem; }
-.review-card { background: #f9f9f9; padding: 2.5rem; border-radius: 15px;
-  border-bottom: 5px solid var(--accent); transition: transform .3s; text-align: left; }
+.review-card { background: #f9f9f9; padding: 2.5rem; border-radius: 15px; border-bottom: 5px solid var(--accent); transition: transform .3s; text-align: left; }
 .review-card:hover { transform: translateY(-6px); }
 .review-card .quote-icon { font-size: 2rem; color: #ddd; margin-bottom: 1rem; display: block; }
 .review-card p { font-size: 1rem; line-height: 1.6; color: #555; font-style: italic; margin-bottom: 1.5rem; }
@@ -519,116 +341,27 @@ html, body {
 .review-card span { font-size: .85rem; color: #888; }
 
 /* ===================== CREATIVE RECENT MOMENTS ===================== */
-.recent-moments-section { 
-  background: #fdfbf7; 
-  position: relative;
-  overflow: hidden;
-}
-
-.moments-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  max-width: 800px; 
-  margin: 0 auto;
-}
-
-/* Base styles for the image cards */
-.moment-item {
-  border-radius: 12px;
-  overflow: hidden;
-  aspect-ratio: 4/5; 
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-  position: relative;
-  border: 4px solid #fff; /* Gives a cool "polaroid" or framed photo look */
-  
-  /* Initial state for the pop-in animation */
-  transform: translateY(50px);
-  opacity: 0;
-  animation: popInMoment 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-/* Staggered entrance animations so they appear one-by-one */
-.moment-item:nth-child(1) { animation-delay: 0.1s; transform-origin: bottom center; }
-.moment-item:nth-child(2) { animation-delay: 0.3s; }
-.moment-item:nth-child(3) { animation-delay: 0.5s; }
-.moment-item:nth-child(4) { animation-delay: 0.7s; }
-.moment-item:nth-child(5) { animation-delay: 0.9s; }
-
-@keyframes popInMoment {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Makes the top image stretch fully across */
-.moment-item.featured {
-  grid-column: span 2; 
-  aspect-ratio: 16/9; 
-}
-
-/* The actual image inside the card */
-.moment-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; 
-  display: block;
-  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-/* Give odd and even items slight alternating default tilts for a fun scrapbook look */
+.recent-moments-section { background: #fdfbf7; position: relative; overflow: hidden; }
+.moments-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 800px; margin: 0 auto; }
+.moment-item { border-radius: 12px; overflow: hidden; aspect-ratio: 4/5; box-shadow: 0 10px 30px rgba(0,0,0,0.08); position: relative; border: 4px solid #fff; }
+.moment-item.featured { grid-column: span 2; aspect-ratio: 16/9; }
+.moment-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1); }
 .moment-item:nth-child(even) img { transform: scale(1.02) rotate(-1.5deg); }
 .moment-item:nth-child(odd) img { transform: scale(1.02) rotate(1.5deg); }
-
-/* The "Cool & Exciting" Interactive Hover Effect */
-.moment-item:hover {
-  box-shadow: 0 15px 35px rgba(251, 192, 45, 0.4); /* Golden glowing shadow */
-  z-index: 5;
-}
-
-.moment-item:hover img {
-  transform: scale(1.1) rotate(0deg); /* Zooms in and straightens out the photo perfectly */
-  filter: brightness(1.05); /* Adds a subtle pop of light */
-}
+.moment-item:hover { box-shadow: 0 15px 35px rgba(251, 192, 45, 0.4); z-index: 5; }
+.moment-item:hover img { transform: scale(1.1) rotate(0deg); filter: brightness(1.05); }
 
 /* Bouncy Animated Gallery Button */
-.btn-gallery {
-  display: inline-block; 
-  background: var(--accent); 
-  color: var(--primary);
-  padding: 14px 35px; 
-  font-size: 0.95rem; 
-  border-radius: 50px; 
-  font-weight: 800;
-  text-transform: uppercase; 
-  letter-spacing: 1px; 
-  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  box-shadow: 0 5px 15px rgba(251,192,45,.4); 
-  text-decoration: none;
-  position: relative;
-}
-
-.btn-gallery:hover { 
-  transform: translateY(-5px) scale(1.05); 
-  background: var(--primary); 
-  color: white; 
-  box-shadow: 0 10px 25px rgba(10,37,64,.3); 
-}
-
-/* Desktop sizing adjustments */
-@media (min-width: 768px) {
-  .moment-item.featured { aspect-ratio: 21/9; } 
-  .moment-item { aspect-ratio: 1/1; } 
-}
-
+.btn-gallery { display: inline-block; background: var(--accent); color: var(--primary); padding: 14px 35px; font-size: 0.95rem; border-radius: 50px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); box-shadow: 0 5px 15px rgba(251,192,45,.4); text-decoration: none; position: relative; }
+.btn-gallery:hover { transform: translateY(-5px) scale(1.05); background: var(--primary); color: white; box-shadow: 0 10px 25px rgba(10,37,64,.3); }
+@media (min-width: 768px) { .moment-item.featured { aspect-ratio: 21/9; } .moment-item { aspect-ratio: 1/1; } }
 
 /* ===================== FAQ ===================== */
 .faq-section { background: #f4f7f6; padding: 5rem 5%; }
 .faq-container { max-width: 800px; margin: 0 auto; }
-.faq-item { background: white; margin-bottom: 1rem; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,.05); border-left: 5px solid transparent; transition: .3s; }
+.faq-item { background: white; margin-bottom: 1rem; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,.05); border-left: 5px solid transparent; transition: .3s; }
 .faq-item.active { border-left-color: var(--accent); box-shadow: 0 10px 25px rgba(0,0,0,.1); }
-.faq-question { padding: 1.5rem 2rem; width: 100%; text-align: left; background: none;
-  border: none; font-size: 1.05rem; font-weight: 700; color: var(--primary);
-  cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.faq-question { padding: 1.5rem 2rem; width: 100%; text-align: left; background: none; border: none; font-size: 1.05rem; font-weight: 700; color: var(--primary); cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
 .faq-answer { max-height: 0; overflow: hidden; transition: max-height .3s ease-out; }
 .faq-answer p { padding: 0 2rem 2rem; color: #555; line-height: 1.7; font-size: 1rem; }
 
@@ -638,14 +371,9 @@ html, body {
 .form-container h2 { font-family:'Poppins',sans-serif; color: var(--primary); margin-bottom: 2rem; text-align: center; }
 .form-group { margin-bottom: 1.2rem; }
 .form-group label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--primary); font-size: .9rem; }
-.form-group input, .form-group select {
-  width: 100%; padding: 14px 16px; border: 2px solid #ddd; border-radius: 10px;
-  font-size: .95rem; font-family: inherit; transition: border-color .3s; background: white;
-}
+.form-group input, .form-group select { width: 100%; padding: 14px 16px; border: 2px solid #ddd; border-radius: 10px; font-size: .95rem; font-family: inherit; transition: border-color .3s; background: white; }
 .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
-.submit-btn { width: 100%; padding: 16px; background: var(--primary); color: white;
-  border: none; border-radius: 50px; font-size: 1rem; font-weight: 700;
-  cursor: pointer; transition: background .3s; font-family: inherit; margin-top: .5rem; }
+.submit-btn { width: 100%; padding: 16px; background: var(--primary); color: white; border: none; border-radius: 50px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background .3s; font-family: inherit; margin-top: .5rem; }
 .submit-btn:hover { background: var(--accent); color: var(--primary); }
 .form-message { padding: 14px; border-radius: 8px; text-align: center; font-weight: 600; margin-bottom: 1rem; display: none; }
 .form-message.success { background: #d4edda; color: #155724; display: block; }
@@ -660,11 +388,7 @@ html, body {
 .logo-item img:hover { filter: grayscale(0%); opacity: 1; }
 
 /* ===================== BACK TO TOP ===================== */
-#backToTop { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px;
-  background: var(--accent); color: var(--primary); border-radius: 50%; border: none;
-  cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,.3); z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; visibility: hidden; transition: .4s; font-size: 1.2rem; }
+#backToTop { position: fixed; bottom: 30px; right: 30px; width: 50px; height: 50px; background: var(--accent); color: var(--primary); border-radius: 50%; border: none; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,.3); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: .4s; font-size: 1.2rem; }
 #backToTop.show { opacity: 1; visibility: visible; }
 #backToTop:hover { background: white; transform: translateY(-5px); }
 
@@ -674,177 +398,6 @@ html, body {
 .section-title { font-family:'Poppins',sans-serif; font-size: clamp(1.8rem,4vw,2.5rem); font-weight: 800; color: var(--primary); }
 .text-center { text-align: center; }
 .accent-bar { width: 60px; height: 5px; background: var(--accent); border-radius: 3px; margin: 1rem auto; }
-
-/* ===================== CONTACT PAGE ===================== */
-.contact-hero {
-  position: relative;
-  background: linear-gradient(rgba(10,37,64,.9),rgba(10,37,64,.8)),
-    url('https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?q=80&w=1600') center/cover fixed;
-  padding: 8rem 5% 10rem; text-align: center; color: white; overflow: hidden;
-}
-.contact-hero h1 { font-size: clamp(2.5rem,5vw,4rem); color: white; margin-bottom: 1rem; font-weight: 800; font-family:'Poppins',sans-serif; }
-.contact-hero p { font-size: 1.2rem; opacity: .9; max-width: 700px; margin: 0 auto; line-height: 1.6; }
-.contact-grid-section { margin-top: -6rem; padding-bottom: 6rem; position: relative; z-index: 10; }
-.contact-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(240px,1fr)); gap: 2rem; max-width: 1100px; margin: 0 auto; padding: 0 5%; }
-.contact-widget { background: white; padding: 2.5rem 2rem; border-radius: 20px; text-align: center;
-  box-shadow: 0 20px 50px rgba(0,0,0,.1); transition: all .4s; border-top: 6px solid var(--accent); }
-.contact-widget:hover { transform: translateY(-15px); box-shadow: 0 30px 60px rgba(0,0,0,.15); }
-.widget-icon { width: 80px; height: 80px; background: #f8f9fa; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
-  color: var(--primary); font-size: 2rem; transition: .4s; }
-.contact-widget:hover .widget-icon { background: var(--primary); color: var(--accent); transform: scale(1.1) rotate(5deg); }
-.contact-widget h3 { color: var(--primary); font-size: 1.4rem; font-weight: 700; margin-bottom: .5rem; font-family:'Poppins',sans-serif; }
-.contact-widget p { color: #666; margin-bottom: 1.5rem; line-height: 1.5; }
-.widget-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--primary);
-  color: white; padding: 12px 28px; border-radius: 50px; font-weight: 600;
-  font-size: .95rem; text-decoration: none; transition: .3s; }
-.widget-btn:hover { background: var(--accent); color: var(--primary); }
-.map-wrapper { max-width: 1200px; margin: 0 auto 5rem; padding: 0 5%; }
-.modern-map-container { background: white; padding: 1.5rem; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,.08); position: relative; }
-.modern-map-container iframe { border-radius: 15px; width: 100%; height: 450px; display: block; border: 0; }
-
-/* ===================== PORTAL (Login) ===================== */
-.portal-section {
-  min-height: 85vh;
-  background: linear-gradient(rgba(10,37,64,.85),rgba(10,37,64,.9)),
-    url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover;
-  display: flex; align-items: center; justify-content: center; padding: 2rem;
-}
-.portal-card { background: white; padding: 3.5rem 3rem; border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0,0,0,.5); max-width: 480px; width: 100%;
-  text-align: center; border-top: 6px solid var(--accent);
-  animation: slideUp .8s ease-out; }
-@keyframes slideUp { from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);} }
-.portal-card h2 { color: var(--primary); font-family:'Poppins',sans-serif; font-size: 1.8rem; font-weight: 800; margin-bottom: .5rem; }
-.portal-card .sub { color: #888; margin-bottom: 2rem; font-size: .95rem; }
-.portal-card input { width: 100%; padding: 14px 18px; border: 2px solid #eee; border-radius: 10px;
-  font-size: .95rem; margin-bottom: 1rem; font-family: inherit; box-sizing: border-box; transition: border-color .3s; }
-.portal-card input:focus { outline: none; border-color: var(--primary); }
-.portal-card button[type="submit"] { width: 100%; padding: 16px; background: var(--primary); color: white;
-  border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
-  cursor: pointer; font-family: inherit; transition: background .3s; }
-.portal-card button[type="submit"]:hover { background: var(--accent); color: var(--primary); }
-
-/* ===================== DASHBOARD ===================== */
-body.dashboard-page { background: #F3F4F6; font-family: 'Space Grotesk', sans-serif; }
-.ai-header { background: #111827; padding: 30px 20px 80px; border-radius: 0 0 40px 40px; color: white; position: relative; overflow: hidden; }
-.ai-header::after { content:''; position:absolute; top:0; right:0; width:200px; height:200px;
-  background:radial-gradient(circle,#7C3AED 0%,transparent 70%); opacity:.4; }
-.ai-header h2 { font-size: 1.4rem; font-weight: 700; position: relative; z-index: 2; }
-.ai-header p { opacity: .7; font-size: .9rem; margin-top: 4px; position: relative; z-index: 2; }
-.view-container { padding: 0 20px; margin-top: -60px; position: relative; z-index: 10; padding-bottom: 120px; }
-.tech-card { background: white; border-radius: 20px; padding: 25px;
-  box-shadow: 0 10px 40px -10px rgba(0,0,0,.1); margin-bottom: 20px; border: 1px solid #E5E7EB; }
-.stat-row { display: grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 20px; }
-.mini-stat { background: white; border-radius: 16px; padding: 18px; text-align: center; border: 1px solid #E5E7EB; box-shadow: 0 4px 12px rgba(0,0,0,.05); }
-.mini-stat .val { font-size: 1.6rem; font-weight: 800; color: #7C3AED; }
-.mini-stat .lbl { font-size: .75rem; color: #9CA3AF; margin-top: 4px; }
-.dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: #1F2937; padding: 15px 30px; border-radius: 40px;
-  display: flex; gap: 30px; box-shadow: 0 20px 50px rgba(0,0,0,.3); z-index: 999; }
-.dock i { font-size: 1.4rem; color: #9CA3AF; cursor: pointer; transition: .2s; background: none; border: none; }
-.dock i.active { color: #A78BFA; transform: scale(1.2); }
-.view { display: none; animation: popIn .3s cubic-bezier(.175,.885,.32,1.275); }
-.view.active { display: block; }
-@keyframes popIn { from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);} }
-.quiz-item { display: flex; justify-content: space-between; align-items: center;
-  padding: 15px; background: #F9FAFB; border-radius: 12px; margin-bottom: 10px; border: 1px solid #E5E7EB; }
-.btn-start { background: #7C3AED; color: white; padding: 8px 20px; border-radius: 30px;
-  text-decoration: none; font-weight: 700; font-size: .8rem; border: none; cursor: pointer; }
-
-/* ===================== TEACHER PORTAL ===================== */
-body.teacher-page { background: #111827; color: #E5E7EB; font-family: 'Space Grotesk', sans-serif; }
-.teacher-wrap { max-width: 900px; margin: 40px auto; padding: 20px; }
-.teacher-card { background: #1F2937; border-radius: 20px; padding: 30px; margin-bottom: 30px; border: 1px solid #374151; }
-.teacher-card h2 { color: white; border-bottom: 1px solid #374151; padding-bottom: 15px; margin-bottom: 20px; font-family:'Poppins',sans-serif; }
-.teacher-card input, .teacher-card select, .teacher-card textarea {
-  width: 100%; padding: 15px; background: #111827; border: 1px solid #374151;
-  border-radius: 10px; color: white; margin-bottom: 15px; font-family: inherit; font-size: .95rem;
-}
-.teacher-card input:focus, .teacher-card select:focus, .teacher-card textarea:focus { outline: none; border-color: #7C3AED; }
-.teacher-btn { width: 100%; padding: 15px; background: #7C3AED; color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 1rem; transition: background .3s; }
-.teacher-btn:hover { background: #6D28D9; }
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.success-msg { padding: 15px; background: #059669; color: white; border-radius: 10px; margin-bottom: 20px; font-weight: 600; }
-
-/* ===================== 404 ===================== */
-.not-found-wrap { height: 70vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: var(--light); padding: 2rem; }
-.big-404 { font-size: 8rem; font-weight: 800; color: var(--primary); line-height: 1; font-family:'Poppins',sans-serif; }
-
-/* ===================== ARTICLE ===================== */
-.article-header-section { padding: 7rem 5% 9rem; color: white; text-align: center; position: relative; }
-.article-card { max-width: 850px; background: white; padding: 4rem; border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0,0,0,.08); margin: -6rem auto 5rem; position: relative; z-index: 10; }
-.entry-content { font-size: 1.15rem; line-height: 1.8; color: #2c3e50; }
-.entry-content p { margin-bottom: 1.5rem; }
-.entry-content h2 { font-size: 1.8rem; color: var(--primary); margin: 2.5rem 0 1rem; border-bottom: 2px solid #f4f7f6; padding-bottom: 10px; }
-.entry-content blockquote { background: #f8f9fa; border-left: 5px solid var(--accent); padding: 1.5rem; margin: 2rem 0; font-style: italic; color: #555; }
-@media (max-width: 768px) {
-  .article-header-section { padding: 6rem 5% 8rem; }
-  .article-card { padding: 2rem 1.25rem; margin-top: -4rem; }
-}
-
-/* ===================== FOOTER ===================== */
-footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
-.footer-content { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 2.5rem; margin-bottom: 3rem; }
-.footer-section h3 { font-size: 1rem; font-weight: 700; color: var(--accent); margin-bottom: 1.2rem; text-transform: uppercase; letter-spacing: 1px; }
-.footer-section p, .footer-section li { font-size: .9rem; opacity: .8; margin-bottom: .6rem; line-height: 1.6; }
-.footer-section ul { list-style: none; }
-.footer-section a { color: rgba(255,255,255,.8); text-decoration: none; transition: color .3s; }
-.footer-section a:hover { color: var(--accent); }
-.social-icons { display: flex; gap: 12px; }
-.social-icons a { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.1);
-  display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; transition: background .3s; }
-.social-icons a:hover { background: var(--accent); color: var(--primary); }
-.copyright { text-align: center; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,.1); font-size: .85rem; opacity: .6; }
-
-/* ===================== ABOUT PAGE ===================== */
-#progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 5px; background: transparent; z-index: 9999; }
-#progress-bar { height: 100%; background: var(--accent); width: 0%; transition: width .1s ease-out; box-shadow: 0 0 10px var(--accent); }
-.page-header-wrapper { position: relative; height: 50vh; min-height: 350px; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; background: var(--primary); }
-.page-header-bg { position: absolute; inset: 0; background-size: cover; background-position: center; opacity: .4; animation: kenBurns 20s infinite alternate; }
-@keyframes kenBurns { from { transform: scale(1); } to { transform: scale(1.15); } }
-.page-header-content { position: relative; z-index: 2; width: 100%; padding: 0 1rem; }
-.page-header-content h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 800; color: white; text-shadow: 0 5px 15px rgba(0,0,0,.5); font-family: 'Poppins', sans-serif; }
-.about-card { max-width: 1000px; background: white; padding: 4rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.08); margin: -6rem auto 5rem; position: relative; z-index: 10; }
-.about-card h2 { color: var(--primary); font-family: 'Poppins', sans-serif; margin-top: 2rem; margin-bottom: 1rem; }
-.about-card p { color: #444; line-height: 1.8; margin-bottom: 1rem; }
-.mission-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
-.mission-item { background: #f4f7f6; padding: 2rem; border-radius: 12px; border-left: 5px solid var(--accent); }
-.mission-item h4 { color: var(--primary); font-family: 'Poppins', sans-serif; margin-bottom: .5rem; }
-.mission-item p { color: #666; font-size: .95rem; line-height: 1.6; margin: 0; }
-
-/* ===================== PAGE HERO (shared) ===================== */
-.page-hero { background: linear-gradient(rgba(10,37,64,.6), rgba(10,37,64,.7)), url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover; padding: 7rem 5% 9rem; text-align: center; color: white; position: relative; }
-.page-hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 800; font-family: 'Poppins', sans-serif; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
-.page-hero .accent-line { width: 80px; height: 5px; background: var(--accent); margin: 1rem auto 0; border-radius: 2px; }
-.page-hero .back-link { display: inline-block; color: white; text-decoration: none; font-weight: 600; background: rgba(0,0,0,.3); padding: 8px 15px; border-radius: 50px; font-size: .85rem; backdrop-filter: blur(5px); }
-
-/* ===================== ARTICLES PAGE ===================== */
-.page-card { max-width: 1100px; background: white; padding: 4rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.08); margin: -6rem auto 5rem; position: relative; z-index: 10; }
-.news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
-.news-card { background: white; border: 1px solid #eee; border-radius: 8px; overflow: hidden; transition: transform .3s; box-shadow: 0 4px 12px rgba(0,0,0,.04); }
-.news-card:hover { transform: translateY(-6px); box-shadow: 0 12px 30px rgba(0,0,0,.1); }
-.news-img { height: 200px; overflow: hidden; }
-.news-img img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
-.news-card:hover .news-img img { transform: scale(1.05); }
-.news-content { padding: 1.5rem; }
-.news-label { font-size: .75rem; font-weight: 800; text-transform: uppercase; color: var(--accent); margin-bottom: .5rem; display: block; letter-spacing: 1px; }
-.news-content h3 { font-size: 1.1rem; color: var(--primary); margin-bottom: .5rem; line-height: 1.4; font-family: 'Poppins', sans-serif; }
-.news-content p { font-size: .9rem; color: #666; margin-bottom: 1rem; line-height: 1.5; }
-.news-content a.read-more { color: var(--primary); font-weight: 700; font-size: .9rem; text-decoration: none; }
-.news-content a.read-more:hover { color: var(--accent); }
-
-/* ===================== GALLERY PAGE ===================== */
-.gallery-wrap { max-width: 1200px; margin: -6rem auto 5rem; position: relative; z-index: 10; padding: 0 5%; }
-.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,.08); }
-.gallery-grid a { display: block; height: 220px; overflow: hidden; border-radius: 10px; }
-.gallery-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }
-.gallery-grid a:hover img { transform: scale(1.1); }
-
-/* ===================== SKIP NAV (accessibility) ===================== */
-.skip-nav { position: absolute; top: -100px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--primary); padding: 12px 24px; border-radius: 0 0 8px 8px; font-weight: 700; z-index: 100000; text-decoration: none; transition: top .3s; }
-.skip-nav:focus { top: 0; }
 
 /* ===================== RESPONSIVE (INCLUDES OUR NEW GRID FIXES) ===================== */
 @media (max-width: 768px) {
@@ -859,21 +412,34 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
   .news-grid { grid-template-columns: 1fr; }
   .gallery-grid { grid-template-columns: repeat(2, 1fr); }
   .gallery-grid a { height: 150px; }
-  
   .counter-section { padding: 3rem 5% 1rem; }
   .stats-strip { padding: 1rem 5% 3rem; }
-  
   .counter-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-  
   .stat-box { padding: 1.5rem 0.5rem; min-height: 130px; }
   .stat-box h3 { font-size: 0.85rem; margin: 0.8rem 0 0; line-height: 1.3; }
-  
   .stat-box p { display: none; } 
-  
   .icon-wrapper { font-size: 1.8rem; width: 45px; height: 45px; }
   .stat-box:nth-child(1) .icon-wrapper { font-size: 1.3rem; }
-  
   .trust-grid { gap: 3.5rem 1rem; margin-top: 4rem; }
   .talent-grid { gap: 2rem; }
+  #countdown-section { padding: 4rem 5%; }
+  .time-box { padding: 1.2rem 1.5rem; min-width: 90px; border-bottom: 4px solid var(--accent); }
+  .time-box span { font-size: 2.2rem; }
+  .timer { gap: 1rem; }
 }
+
+/* ===================== SCROLL REVEAL ANIMATIONS ===================== */
+.reveal-up { opacity: 0; transform: translateY(60px); transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.reveal-left { opacity: 0; transform: translateX(-60px); transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.reveal-right { opacity: 0; transform: translateX(60px); transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.reveal-scale { opacity: 0; transform: scale(0.8); transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1); }
+
+/* This class gets added by JS when the element is visible */
+.reveal-visible { opacity: 1; transform: translate(0) scale(1); }
+
+/* Delay Utility Classes for cascading grid animations */
+.delay-100 { transition-delay: 100ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-300 { transition-delay: 300ms; }
+.delay-400 { transition-delay: 400ms; }
