@@ -36,6 +36,18 @@
   --font-lms:'Outfit',sans-serif;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Open Sans', sans-serif;
+  color: var(--text);
+  background: var(--light);
+}
+
 /* ===== PRELOADER ===== */
 #preloader {
   position: fixed;
@@ -429,7 +441,7 @@ display:flex;align-items:center;gap:.6rem;font-family:var(--font-lms);
   </div>
 </div>
 
-<a href="#main-content" class="skip-nav" style="display:none;">Skip to main content</a>
+<a href="#main-content" class="skip-nav">Skip to main content</a>
 
 <nav class="navbar" role="navigation" aria-label="Main navigation">
   <div class="logo"><a href="index.html">De-Bright <span>Talented Kids School</span></a></div>
@@ -559,7 +571,7 @@ display:flex;align-items:center;gap:.6rem;font-family:var(--font-lms);
   </div>
 </footer>
 
-<button id="backToTop" aria-label="Back to top" style="display:none;"><i class="fas fa-arrow-up"></i></button>
+<button id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
 
 <div class="lms-modal" id="notif-modal">
   <div class="lms-modal-box">
@@ -1212,11 +1224,9 @@ const pages = {
       </div>
       <div class="lms-form-group"><label>Message</label>
         <textarea rows="5" placeholder="Type the notice content here…" style="width:100%;padding:.7rem .9rem;border:1.5px solid var(--lms-border);border-radius:9px;font-family:var(--font-lms);font-size:.88rem;resize:vertical;background:var(--light);outline:none;"></textarea>
-
-  </div>
-  <button class="btn-lms-primary" style="width:auto;padding:.65rem 1.6rem;" onclick="toast('Notice published successfully!')"><i class="fas fa-bullhorn"></i> Publish Notice</button>
-</div>
-
+      </div>
+      <button class="btn-lms-primary" style="width:auto;padding:.65rem 1.6rem;" onclick="toast('Notice published successfully!')"><i class="fas fa-bullhorn"></i> Publish Notice</button>
+    </div>
   </div>`,
 
 /* ---- TEACHER TIMETABLE ---- */
