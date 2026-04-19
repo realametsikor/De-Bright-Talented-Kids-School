@@ -13,6 +13,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  /* ---- SCROLL REVEAL ANIMATIONS ---- */
+  const revealElements = document.querySelectorAll('.reveal-up, .reveal-left, .reveal-right, .reveal-scale');
+  const revealOptions = {
+    threshold: 0.1, // Element must be 10% visible to trigger
+    rootMargin: "0px 0px -50px 0px" // Triggers slightly before it enters the viewport
+  };
+  
+  const revealOnScroll = new IntersectionObserver((entries, observer) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('reveal-visible');
+        observer.unobserve(entry.target); // Stop observing once it has animated
+      }
+    });
+  }, revealOptions);
+  
+  revealElements.forEach(el => {
+    revealOnScroll.observe(el);
+  });
+
   /* ---- MOBILE MENU ---- */
   const menuBtn = document.getElementById('mobile-menu');
   const navLinks = document.getElementById('nav-menu');
@@ -132,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- BECE COUNTDOWN ---- */
   const timerEl = document.querySelector('.timer');
   if (timerEl) {
-    // Updated Target Date to May 4, 2026
+    // Target Date to May 4, 2026
     const beceDate = new Date('May 4, 2026 08:00:00').getTime();
     const pad = n => String(n).padStart(2, '0');
     const tick = () => {
