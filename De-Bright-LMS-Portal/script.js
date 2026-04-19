@@ -226,7 +226,7 @@ function renderPage(page){
   c.innerHTML='';
   const div = document.createElement('div');
   div.className='lms-page active';
-  div.innerHTML = pages[page] ? pages[page]() : `<div class="empty-state"><i class="fas fa-tools"></i><h3>Coming Soon</h3><p>This section is being built.</p></div>`;
+  div.innerHTML = pages[page] ? pages[page]() : renderEmptyState('tools', 'Coming Soon', 'This section is being built.');
   c.appendChild(div);
   afterRender(page);
 }
@@ -243,6 +243,24 @@ function gradeColor(g){return g==='A'?'green':g==='B'?'blue':g==='C'?'gold':'red
 function getStudentSubmission(aId){return SUBMISSIONS.find(s=>s.assignment_id===aId&&s.student_id===currentUser.id);}
 function getUngraded(){return SUBMISSIONS.filter(s=>!s.graded);}
 function fmtDate(d){if(!d)return'—';try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
+
+function getInitials(name) {
+  if (!name) return '';
+  return name.split(' ').map(n => n[0]).join('').slice(0, 2);
+}
+
+function renderEmptyState(icon, title, desc) {
+  return `<div class="empty-state"><i class="fas fa-${icon}"></i><h3>${title}</h3><p>${desc}</p></div>`;
+}
+
+function renderEmptyStateSm(icon, text) {
+  return `<div class="empty-state-sm"><i class="fas fa-${icon}"></i><span>${text}</span></div>`;
+}
+
+function renderProgressBar(percentage, color = '') {
+  const bgStyle = color ? `background:${color};` : '';
+  return `<div class="prog-bar"><div class="fill" style="width:${percentage}%;${bgStyle}"></div></div>`;
+}
 
 /* ====================== PAGE DEFINITIONS ====================== */
 const pages = {
@@ -289,7 +307,7 @@ const pages = {
       <div>
         <div class="panel">
           <div class="panel-head"><h3>📋 Upcoming Assignments</h3><button class="ph-action" onclick="showPage('s-assignments',null)">View all →</button></div>
-          ${ASSIGNMENTS.length===0?`<div class="empty-state-sm"><i class="fas fa-check-double"></i><span>No assignments yet</span></div>`:`
+          ${ASSIGNMENTS.length===0? renderEmptyStateSm('check-double', 'No assignments yet') :`
           <table class="lms-tbl"><thead><tr><th>Subject</th><th>Task</th><th>Due</th><th>Status</th></tr></thead>
           <tbody>${ASSIGNMENTS.slice(0,5).map(a=>{
             const sub = getStudentSubmission(a.id);
@@ -300,7 +318,7 @@ const pages = {
 
     <div class="panel">
       <div class="panel-head"><h3>📢 Latest Notices</h3><button class="ph-action" onclick="showPage('s-notices',null)">See all →</button></div>
-      ${NOTICES.length===0?`<div class="empty-state-sm"><i class="fas fa-bell-slash"></i><span>No notices posted yet</span></div>`:`
+      ${NOTICES.length===0? renderEmptyStateSm('bell-slash', 'No notices posted yet') :`
       <ul class="notice-list">${NOTICES.slice(0,3).map(n=>`
         <li class="notice-item">
           <div class="nd" style="background:var(--accent);"></div>
@@ -325,7 +343,7 @@ const pages = {
               <div style="display:flex;justify-content:space-between;font-size:.76rem;font-weight:600;color:var(--primary);margin-bottom:.3rem;">
                 <span>${g.subject}</span><span class="grade-${g.grade}">${g.total}%</span>
               </div>
-              <div class="prog-bar"><div class="fill" style="width:${g.total}%;"></div></div>
+              ${renderProgressBar(g.total)}
             </div>`).join('')}
         </div>
       </div>
@@ -333,7 +351,7 @@ const pages = {
 
     <div class="panel">
       <div class="panel-head"><h3>✅ Recent Results</h3></div>
-      ${recent.length===0?`<div class="empty-state-sm"><i class="fas fa-inbox"></i><span>No graded work yet</span></div>`:`
+      ${recent.length===0? renderEmptyStateSm('inbox', 'No graded work yet') :`
       ${recent.map(s=>`
         <div class="activity-item">
           <div class="act-icon" style="background:#f0fdf4;color:#15803d;"><i class="fas fa-check-double"></i></div>
@@ -361,7 +379,7 @@ const pages = {
           <div style="display:flex;justify-content:space-between;font-size:.74rem;color:var(--lms-muted);margin-bottom:.3rem;">
             <span>Progress</span><span style="font-weight:700;color:var(--primary);">${s.progress}%</span>
           </div>
-          <div class="prog-bar"><div class="fill" style="width:${s.progress}%;"></div></div>
+          ${renderProgressBar(s.progress)}
         </div>
       </div>`).join('')}
   </div>`,
@@ -369,7 +387,7 @@ const pages = {
 /* ─────── STUDENT ASSIGNMENTS ─────── */
 's-assignments':()=>`
   <div class="page-header"><h2>Assignments</h2><span>${ASSIGNMENTS.length} total · ${ASSIGNMENTS.filter(a=>!getStudentSubmission(a.id)&&a.status==='open').length} pending</span></div>
-  ${ASSIGNMENTS.length===0?`<div class="empty-state"><i class="fas fa-tasks"></i><h3>No Assignments Yet</h3><p>Your teacher hasn't posted any assignments yet.</p></div>`:`
+  ${ASSIGNMENTS.length===0? renderEmptyState('tasks', 'No Assignments Yet', 'Your teacher hasn\'t posted any assignments yet.') :`
   <div class="cards-grid">
     ${ASSIGNMENTS.map(a=>{
       const sub = getStudentSubmission(a.id);
@@ -422,7 +440,7 @@ const pages = {
             <div style="display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;margin-bottom:.25rem;">
               <span class="grade-${g}">Grade ${g}</span><span>${cnt} subject${cnt!==1?'s':''} (${pct}%)</span>
             </div>
-            <div class="prog-bar"><div class="fill" style="width:${pct}%;background:${g==='A'?'#22c55e':g==='B'?'#3b82f6':g==='C'?'#f59e0b':'#ef4444'};"></div></div>
+            ${renderProgressBar(pct, g==='A'?'#22c55e':g==='B'?'#3b82f6':g==='C'?'#f59e0b':'#ef4444')}
           </div>`;
         }).join('')}
       </div>
@@ -502,7 +520,7 @@ const pages = {
   </div>
   <div class="panel">
     <div class="panel-head"><h3>Attendance Record</h3></div>
-    ${myRecords.length===0?`<div class="empty-state-sm"><i class="fas fa-calendar-check"></i><span>No attendance records yet</span></div>`:`
+    ${myRecords.length===0? renderEmptyStateSm('calendar-check', 'No attendance records yet') :`
     <table class="lms-tbl">
       <thead><tr><th>Date</th><th>Status</th><th>Notes</th></tr></thead>
       <tbody>${myRecords.map(r=>`
@@ -521,7 +539,7 @@ const pages = {
   const quizzes = ASSIGNMENTS.filter(a=>a.type==='mcq');
   return `
   <div class="page-header"><h2>Quizzes</h2><span>${quizzes.length} available</span></div>
-  ${quizzes.length===0?`<div class="empty-state"><i class="fas fa-question-circle"></i><h3>No Quizzes Yet</h3><p>Your teacher hasn't posted any quizzes. Check back soon!</p></div>`:`
+  ${quizzes.length===0? renderEmptyState('question-circle', 'No Quizzes Yet', 'Your teacher hasn\'t posted any quizzes. Check back soon!') :`
   <div class="cards-grid">
     ${quizzes.map(q=>{
       const sub = getStudentSubmission(q.id);
@@ -543,7 +561,7 @@ const pages = {
 /* ─────── STUDENT RESOURCES ─────── */
 's-resources':()=>`
   <div class="page-header"><h2>Study Resources</h2><span>${RESOURCES.length} files shared</span></div>
-  ${RESOURCES.length===0?`<div class="empty-state"><i class="fas fa-book-open"></i><h3>No Resources Yet</h3><p>Your teacher hasn't uploaded any resources yet.</p></div>`:`
+  ${RESOURCES.length===0? renderEmptyState('book-open', 'No Resources Yet', 'Your teacher hasn\'t uploaded any resources yet.') :`
   <div style="display:flex;flex-direction:column;gap:.9rem;">
     ${RESOURCES.map(r=>`
       <div class="resource-card">
@@ -587,7 +605,7 @@ const pages = {
 /* ─────── STUDENT NOTICES ─────── */
 's-notices':()=>`
   <div class="page-header"><h2>School Notices</h2><span>${NOTICES.length} published</span></div>
-  ${NOTICES.length===0?`<div class="empty-state"><i class="fas fa-bell-slash"></i><h3>No Notices</h3><p>No notices have been posted yet.</p></div>`:`
+  ${NOTICES.length===0? renderEmptyState('bell-slash', 'No Notices', 'No notices have been posted yet.') :`
   <div style="display:flex;flex-direction:column;gap:1rem;max-width:720px;">
     ${NOTICES.map(n=>`
       <div class="panel" style="margin-bottom:0;">
@@ -634,7 +652,7 @@ const pages = {
   <div class="two-col">
     <div class="panel">
       <div class="panel-head"><h3>Recent Assignments</h3><button class="ph-action" onclick="showPage('t-assignments',null)">Manage →</button></div>
-      ${ASSIGNMENTS.length===0?`<div class="empty-state-sm"><i class="fas fa-plus-circle"></i><span>No assignments yet. Create one!</span></div>`:`
+      ${ASSIGNMENTS.length===0? renderEmptyStateSm('plus-circle', 'No assignments yet. Create one!') :`
       <table class="lms-tbl">
         <thead><tr><th>Task</th><th>Subject</th><th>Due</th><th>Subs</th></tr></thead>
         <tbody>${ASSIGNMENTS.slice(0,5).map(a=>{
@@ -647,7 +665,7 @@ const pages = {
 
 <div class="panel">
   <div class="panel-head"><h3>Ungraded Submissions</h3><button class="ph-action" onclick="showPage('t-submissions',null)">View all →</button></div>
-  ${getUngraded().length===0?`<div class="empty-state-sm"><i class="fas fa-check-double"></i><span>All submissions graded!</span></div>`:`
+  ${getUngraded().length===0? renderEmptyStateSm('check-double', 'All submissions graded!') :`
   ${getUngraded().slice(0,5).map(s=>`
     <div class="activity-item">
       <div class="act-icon" style="background:#fef3c7;color:#b45309;"><i class="fas fa-file-alt"></i></div>
@@ -668,7 +686,7 @@ const pages = {
     </div>
     <div class="panel">
       <div class="panel-head"><h3>Latest Notices</h3><button class="ph-action" onclick="showPage('t-notices',null)">Post Notice →</button></div>
-      ${NOTICES.length===0?`<div class="empty-state-sm"><i class="fas fa-bell-slash"></i><span>No notices yet</span></div>`:`
+      ${NOTICES.length===0? renderEmptyStateSm('bell-slash', 'No notices yet') :`
       <ul class="notice-list">${NOTICES.slice(0,3).map(n=>`
         <li class="notice-item">
           <div class="nd" style="background:var(--accent);"></div>
@@ -689,7 +707,7 @@ const pages = {
     <div id="student-list">
       ${STUDENTS.map((s,i)=>`
         <div class="std-row" data-name="${s.toLowerCase()}">
-          <div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>
+          <div class="std-av">${getInitials(s)}</div>
           <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div>
           <div class="ml-auto" style="display:flex;gap:.5rem;">
             <span class="chip ${i%7===2?'red':i%5===0?'gold':'green'}">${i%7===2?'Absent Today':i%5===0?'Needs Support':'On Track'}</span>
@@ -732,7 +750,7 @@ const pages = {
   </div>
   <div class="panel">
     <div class="panel-head"><h3>Active Assignments</h3></div>
-    ${ASSIGNMENTS.length===0?`<div class="empty-state-sm"><i class="fas fa-inbox"></i><span>No assignments published yet</span></div>`:`
+    ${ASSIGNMENTS.length===0? renderEmptyStateSm('inbox', 'No assignments published yet') :`
     <table class="lms-tbl">
       <thead><tr><th>Title</th><th>Subject</th><th>Due</th><th>Type</th><th>Submissions</th><th>Action</th></tr></thead>
       <tbody>${ASSIGNMENTS.map(a=>{
@@ -750,7 +768,7 @@ const pages = {
 /* ─────── TEACHER SUBMISSIONS ─────── */
 't-submissions':()=>`
   <div class="page-header"><h2>Submissions Inbox</h2><span>${SUBMISSIONS.length} total · ${getUngraded().length} to grade</span></div>
-  ${SUBMISSIONS.length===0?`<div class="empty-state"><i class="fas fa-inbox"></i><h3>No Submissions Yet</h3><p>Students haven't submitted any work yet.</p></div>`:`
+  ${SUBMISSIONS.length===0? renderEmptyState('inbox', 'No Submissions Yet', 'Students haven\'t submitted any work yet.') :`
   <div class="panel">
     <div class="panel-head">
       <h3>All Submissions</h3>
@@ -780,7 +798,7 @@ const pages = {
         const sc=[75+i%15,68+i%18,80+i%12,72+i%10];
         const avg=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
         const g=avg>=80?'A':avg>=70?'B':avg>=60?'C':'D';
-        return `<tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="std-av" style="width:26px;height:26px;font-size:.68rem;">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div><span>${s}</span></div></td>
+        return `<tr><td><div style="display:flex;align-items:center;gap:.6rem;"><div class="std-av" style="width:26px;height:26px;font-size:.68rem;">${getInitials(s)}</div><span>${s}</span></div></td>
         ${sc.map(v=>`<td>${v}%</td>`).join('')}<td><strong>${avg}%</strong></td><td><span class="grade-${g}">${g}</span></td></tr>`;
       }).join('')}
       </tbody>
@@ -816,7 +834,7 @@ const pages = {
     <div>
       <div class="panel">
         <div class="panel-head"><h3>Published Notices</h3></div>
-        ${NOTICES.length===0?`<div class="empty-state-sm"><i class="fas fa-bell-slash"></i><span>No notices posted yet</span></div>`:`
+        ${NOTICES.length===0? renderEmptyStateSm('bell-slash', 'No notices posted yet') :`
         ${NOTICES.map(n=>`
           <div class="activity-item">
             <div class="act-icon" style="background:#fffbeb;color:#b45309;"><i class="fas fa-bullhorn"></i></div>
@@ -825,7 +843,7 @@ const pages = {
               <span>${n.body.length>80?n.body.slice(0,80)+'…':n.body}</span>
               <span style="display:block;margin-top:.2rem;">${fmtDate(n.created_at)}</span>
             </div>
-            <button onclick="deleteNotice('${n.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.9rem;" title="Delete"><i class="fas fa-trash"></i></button>
+            <button onclick="deleteItem('notice', '${n.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;font-size:.9rem;" title="Delete"><i class="fas fa-trash"></i></button>
           </div>`).join('')}`}
       </div>
     </div>
@@ -852,7 +870,7 @@ const pages = {
     </div>
     <div class="panel">
       <div class="panel-head"><h3>Shared Resources</h3></div>
-      ${RESOURCES.length===0?`<div class="empty-state-sm"><i class="fas fa-folder-open"></i><span>No resources shared yet</span></div>`:`
+      ${RESOURCES.length===0? renderEmptyStateSm('folder-open', 'No resources shared yet') :`
       <div style="display:flex;flex-direction:column;">
         ${RESOURCES.map(r=>`
           <div class="resource-card" style="border-radius:0;box-shadow:none;border-bottom:1px solid var(--lms-border);padding:.9rem 1.3rem;">
@@ -863,7 +881,7 @@ const pages = {
               <strong>${r.title}</strong>
               <span>${r.subject||''} · ${r.type}</span>
             </div>
-            <button onclick="deleteResource('${r.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;margin-left:auto;" title="Delete"><i class="fas fa-trash"></i></button>
+            <button onclick="deleteItem('resource', '${r.id}')" style="background:none;border:none;color:#ef4444;cursor:pointer;margin-left:auto;" title="Delete"><i class="fas fa-trash"></i></button>
           </div>`).join('')}
       </div>`}
     </div>
@@ -1007,7 +1025,7 @@ function renderQuizQuestion(){
   const {questions,idx} = activeQuiz;
   const q = questions[idx];
   const pct = Math.round((idx/questions.length)*100);
-  document.getElementById('quiz-body').innerHTML = ` <div class="quiz-counter">Question ${idx+1} of ${questions.length}</div> <div class="quiz-prog"><div class="fill" style="width:${pct}%;"></div></div> <div class="quiz-q">${q.question}</div> <div class="quiz-opts"> ${q.options.filter(o=>o).map((o,i)=>`
+  document.getElementById('quiz-body').innerHTML = ` <div class="quiz-counter">Question ${idx+1} of ${questions.length}</div> <div class="quiz-prog">${renderProgressBar(pct)}</div> <div class="quiz-q">${q.question}</div> <div class="quiz-opts"> ${q.options.filter(o=>o).map((o,i)=>`
   <div class="quiz-opt" onclick="selectQuizOpt(${i})" id="qopt-${i}">${String.fromCharCode(65+i)}. ${o}</div>`).join('')} </div> <button class="btn-gold" id="quiz-next-btn" style="display:none;" onclick="nextQuizQ()"> ${idx+1<questions.length?'Next Question →':'See Results'} </button>`;
 }
 
@@ -1117,14 +1135,6 @@ window.publishNotice = async function(){
   renderPage('t-notices');
 };
 
-window.deleteNotice = async function(id){
-  if(!confirm('Delete this notice?')) return;
-  if(supabase) await supabase.from('notices').delete().eq('id',id);
-  NOTICES = NOTICES.filter(n=>n.id!==id);
-  toast('Notice deleted.');
-  renderPage('t-notices');
-};
-
 window.publishResource = async function(){
   const title=document.getElementById('res-title').value.trim();
   const subject=document.getElementById('res-subj').value;
@@ -1144,12 +1154,22 @@ window.publishResource = async function(){
   renderPage('t-resources');
 };
 
-window.deleteResource = async function(id){
-  if(!confirm('Remove this resource?')) return;
-  if(supabase) await supabase.from('resources').delete().eq('id',id);
-  RESOURCES = RESOURCES.filter(r=>r.id!==id);
-  toast('Resource removed.');
-  renderPage('t-resources');
+window.deleteItem = async function(type, id) {
+  const isNotice = type === 'notice';
+  const itemName = isNotice ? 'notice' : 'resource';
+  
+  if(!confirm(`Delete this ${itemName}?`)) return;
+  
+  if(supabase) await supabase.from(isNotice ? 'notices' : 'resources').delete().eq('id', id);
+  
+  if (isNotice) {
+    NOTICES = NOTICES.filter(n => n.id !== id);
+  } else {
+    RESOURCES = RESOURCES.filter(r => r.id !== id);
+  }
+  
+  toast(`${itemName.charAt(0).toUpperCase() + itemName.slice(1)} deleted.`);
+  renderPage(isNotice ? 't-notices' : 't-resources');
 };
 
 /* ====================== ATTENDANCE ====================== */
@@ -1176,7 +1196,7 @@ window.saveAttendance = async function(){
 function renderAttList(){
   const el=document.getElementById('att-mark-list');
   if(!el) return;
-  el.innerHTML=STUDENTS.map((s,i)=>` <div class="std-row"> <div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto" style="display:flex;gap:.4rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">P</button> <button onclick="setAtt(${i},'absent')" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">A</button> </div> </div>`).join('');
+  el.innerHTML=STUDENTS.map((s,i)=>` <div class="std-row"> <div class="std-av">${getInitials(s)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto" style="display:flex;gap:.4rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">P</button> <button onclick="setAtt(${i},'absent')" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">A</button> </div> </div>`).join('');
 }
 
 window.setAtt=function(i,v){attState[i]=v;renderAttList();};
@@ -1247,7 +1267,7 @@ window.publishAssignment=async function(){
 function afterRender(page){
   if(page==='t-dashboard'){
     const el=document.getElementById('t-quick-att');
-    if(el) el.innerHTML=STUDENTS.slice(0,6).map((s,i)=>` <div class="std-row"> <div class="std-av">${s.split(' ').map(n=>n[0]).join('').slice(0,2)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto"><span class="chip ${i===2?'red':'green'}">${i===2?'Absent':'Present'}</span></div> </div>`).join('');
+    if(el) el.innerHTML=STUDENTS.slice(0,6).map((s,i)=>` <div class="std-row"> <div class="std-av">${getInitials(s)}</div> <div class="std-info"><strong>${s}</strong><span>STU${String(i+1).padStart(3,'0')}</span></div> <div class="ml-auto"><span class="chip ${i===2?'red':'green'}">${i===2?'Absent':'Present'}</span></div> </div>`).join('');
   }
   if(page==='t-attendance'){
     STUDENTS.forEach((_,i)=>{if(attState[i]===undefined) attState[i]='present';});
