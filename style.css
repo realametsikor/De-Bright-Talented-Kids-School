@@ -107,7 +107,7 @@ html, body {
   color: var(--primary); font-size: .9rem; }
 @keyframes ticker { from{transform:translateX(0);}to{transform:translateX(-50%);} }
 
-/* ===================== HERO (ELEGANT FADE-IN) ===================== */
+/* ===================== HERO (WITH PLAYFUL BOUNCE RESTORED) ===================== */
 .hero {
   height: 92vh; position: relative; 
   background-color: #ffffff; 
@@ -143,22 +143,39 @@ html, body {
 .hero-content { max-width: 900px; z-index: 2; position: relative;
   text-shadow: 0 5px 15px rgba(0,0,0,.5); width: 100%; margin-bottom: 50px; }
 
-/* The new elegant fade sequence */
-@keyframes smoothFadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
+/* YOUR RESTORED PLAYFUL BOUNCE ANIMATION */
 .hero-eyebrow { 
-  display: block; 
-  font-size: clamp(1rem, 3.5vw, 1.3rem); 
+  position: absolute; 
+  top: -100px; 
+  left: 0;
+  width: 100%; 
+  font-size: clamp(1.2rem, 4vw, 1.8rem); 
   text-transform: uppercase;
   letter-spacing: 4px; 
   color: var(--accent); 
   font-weight: 800; 
-  margin-bottom: 1rem;
+  text-shadow: 0 4px 15px rgba(0,0,0,0.6); 
+  
   opacity: 0; 
-  animation: smoothFadeInUp 0.8s ease forwards 0.3s;
+  transform-origin: center center; 
+  animation: playfulBounce 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation-delay: 0.2s; 
+}
+
+@keyframes playfulBounce {
+  0% { transform: translateY(-100px) scale(0.2) rotate(-20deg); opacity: 0; }
+  40% { transform: translateY(20px) scale(1.2) rotate(10deg); opacity: 1; }
+  60% { transform: translateY(-15px) scale(0.9) rotate(-5deg); }
+  80% { transform: translateY(5px) scale(1.05) rotate(2deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+}
+
+
+/* Smooth fades for the rest of the hero text */
+@keyframes smoothFadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .hero h1 { 
@@ -197,6 +214,7 @@ html, body {
   animation: smoothFadeInUp 0.8s ease forwards 0.9s;
 }
 .cta-button:hover { transform: translateY(-5px); background: white; }
+
 
 /* ===================== VACANCY MODAL ===================== */
 .vacancy-modal { position: fixed; inset: 0; background: rgba(10,37,64,.7);
@@ -424,6 +442,9 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 
 /* ===================== RESPONSIVE (INCLUDES OUR NEW GRID FIXES) ===================== */
 @media (max-width: 768px) {
+  /* TWEAK TO PREVENT OVERLAP ON MOBILE */
+  .hero-eyebrow { top: -60px; }
+
   .section-padding { padding: 3rem 5%; }
   .contact-grid { gap: 1.2rem; }
   .contact-hero { padding: 6rem 5% 8rem; }
