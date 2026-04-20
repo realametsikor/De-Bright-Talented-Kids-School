@@ -83,6 +83,7 @@ window.doLogin = async function(){
   if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
   if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
 
+  // Auto-detect role from credentials — no role mismatch errors
   currentRole = USERS[id].role;
   window.setRole(currentRole);
 
@@ -1318,5 +1319,15 @@ window.filterStudents=function(){
 document.addEventListener('DOMContentLoaded',()=>{
   const y=document.getElementById('year');
   if(y) y.textContent=new Date().getFullYear();
+  
+  // Enter key support for login
+  const passInput = document.getElementById('login-pass');
+  if(passInput) {
+    passInput.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault(); 
+        doLogin();
+      }
+    });
+  }
 });
-}
