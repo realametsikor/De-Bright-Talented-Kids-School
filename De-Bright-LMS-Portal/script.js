@@ -89,6 +89,7 @@ window.doLogin = async function(){
   currentUser = USERS[id];
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
 
+  // NEW: The crash-proof database connection
   try {
     await fetchAllData();
   } catch (error) {
@@ -112,6 +113,7 @@ window.doLogin = async function(){
 
 async function fetchAllData(){
   if(!supabase) return;
+  // NEW: Catch block for the fetcher
   try {
     const [asgn, subs, noticesRes, resRes, attRes] = await Promise.all([
       supabase.from('assignments').select('*').order('created_at',{ascending:false}),
@@ -1316,15 +1318,5 @@ window.filterStudents=function(){
 document.addEventListener('DOMContentLoaded',()=>{
   const y=document.getElementById('year');
   if(y) y.textContent=new Date().getFullYear();
-
-  // Listen for the "Enter" key on the password input
-  const passInput = document.getElementById('login-pass');
-  if(passInput) {
-    passInput.addEventListener('keypress', function(event) {
-      if (event.key === 'Enter') {
-        event.preventDefault(); 
-        doLogin();
-      }
-    });
-  }
 });
+}
