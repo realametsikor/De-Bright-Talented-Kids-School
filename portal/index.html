@@ -378,7 +378,7 @@ footer{background:var(--primary);color:rgba(255,255,255,.7);padding:2rem;font-si
     <li><a href="/about.html">About</a></li>
     <li><a href="/articles.html">Articles</a></li>
     <li><a href="/gallery.html">Gallery</a></li>
-    <li><a href="/portal/" class="active">Student Portal</a></li>
+    <li><a href="/De-Bright-LMS-Portal/" class="active">Student Portal</a></li>
     <li><a href="/contact.html">Contact</a></li>
     <li><a href="/apply.html" class="btn-apply">Apply Now</a></li>
   </ul>
@@ -431,7 +431,7 @@ footer{background:var(--primary);color:rgba(255,255,255,.7);padding:2rem;font-si
   </div>
 </div>
 
-<div id="lms-dashboard">
+<div id="lms-dashboard" style="display:none;">
   <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
 
   <aside class="lms-sidebar" id="lms-sidebar">
@@ -658,7 +658,7 @@ window.doLogin = function(){
     var btt      = document.getElementById('backToTop');
 
     if(loginSec) loginSec.style.display = 'none';
-    if(dash)     { dash.style.display = 'flex'; dash.classList.add('active'); }
+    if(dash)     { dash.style.cssText = 'display:flex'; dash.classList.add('active'); }
     if(navbar)   navbar.style.display = 'none';
     if(footer)   footer.style.display = 'none';
     if(wa)       wa.style.display = 'none';
@@ -712,6 +712,7 @@ function showErr(msg){
 window.doLogout = function doLogout(){
   const dash = document.getElementById('lms-dashboard');
   dash.classList.remove('active');
+  dash.style.cssText = 'display:none';
 
   document.getElementById('login-section').classList.remove('hidden');
 
