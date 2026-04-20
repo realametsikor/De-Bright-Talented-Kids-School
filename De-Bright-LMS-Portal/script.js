@@ -90,7 +90,11 @@ window.doLogin = async function(){
   currentUser = USERS[id];
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
 
-  await fetchAllData();
+  try {
+    await fetchAllData();
+  } catch (error) {
+    console.warn("Database fetch failed, continuing with local demo data.", error);
+  }
 
   btn.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
   setTimeout(()=>{
@@ -109,18 +113,23 @@ window.doLogin = async function(){
 
 async function fetchAllData(){
   if(!supabase) return;
-  const [asgn, subs, noticesRes, resRes, attRes] = await Promise.all([
-    supabase.from('assignments').select('*').order('created_at',{ascending:false}),
-    supabase.from('submissions').select('*').order('created_at',{ascending:false}),
-    supabase.from('notices').select('*').order('created_at',{ascending:false}),
-    supabase.from('resources').select('*').order('created_at',{ascending:false}),
-    supabase.from('attendance').select('*').order('date',{ascending:false}),
-  ]);
-  if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
-  if(subs.data) SUBMISSIONS = subs.data;
-  if(noticesRes.data) NOTICES = noticesRes.data;
-  if(resRes.data) RESOURCES = resRes.data;
-  if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
+  try {
+    const [asgn, subs, noticesRes, resRes, attRes] = await Promise.all([
+      supabase.from('assignments').select('*').order('created_at',{ascending:false}),
+      supabase.from('submissions').select('*').order('created_at',{ascending:false}),
+      supabase.from('notices').select('*').order('created_at',{ascending:false}),
+      supabase.from('resources').select('*').order('created_at',{ascending:false}),
+      supabase.from('attendance').select('*').order('date',{ascending:false}),
+    ]);
+    if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
+    if(subs.data) SUBMISSIONS = subs.data;
+    if(noticesRes.data) NOTICES = noticesRes.data;
+    if(resRes.data) RESOURCES = resRes.data;
+    if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
+  } catch (e) {
+    console.error("Supabase Error:", e);
+    throw e;
+  }
 }
 
 function mapAssignment(item){
@@ -897,7 +906,7 @@ const pages = {
         ${RESOURCES.map(r=>`
           <div class="resource-card" style="border-radius:0;box-shadow:none;border-bottom:1px solid var(--lms-border);padding:.9rem 1.3rem;">
             <div class="res-icon" style="background:${r.type==='PDF'?'#fee2e2':r.type==='Video'?'#dbeafe':'#f0fdf4'};color:${r.type==='PDF'?'#b91c1c':r.type==='Video'?'#1e40af':'#15803d'};">
-              <i class="fas fa-${r.type==='PDF'?'file-pdf':r.type==='Video'?'video':'link'}"></i>
+              <i class="fas fa-${r.type==='PDF'?'file-pdf':r.type==='Video'?'link'}"></i>
             </div>
             <div class="res-info">
               <strong>${r.title}</strong>
@@ -1308,4 +1317,15 @@ window.filterStudents=function(){
 document.addEventListener('DOMContentLoaded',()=>{
   const y=document.getElementById('year');
   if(y) y.textContent=new Date().getFullYear();
+
+  // Listen for the "Enter" key on the password input
+  const passInput = document.getElementById('login-pass');
+  if(passInput) {
+    passInput.addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        event.preventDefault(); 
+        doLogin();
+      }
+    });
+  }
 });
