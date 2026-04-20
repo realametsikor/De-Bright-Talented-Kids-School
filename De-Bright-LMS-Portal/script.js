@@ -65,22 +65,27 @@ let attState = {};
 let aiHistory = [];
 
 /* ====================== LOGIN ====================== */
-function setRole(r){
+window.setRole = function(r){
   currentRole = r;
   document.getElementById('role-student').classList.toggle('active', r==='student');
   document.getElementById('role-teacher').classList.toggle('active', r==='teacher');
   document.getElementById('id-label').textContent = r==='student' ? 'Student ID' : 'Teacher ID';
-}
+  document.getElementById('login-id').placeholder = r==='student' ? 'e.g. STU001' : 'e.g. TCH001';
+};
 
-async function doLogin(){
+window.doLogin = async function(){
   const id = document.getElementById('login-id').value.trim().toUpperCase();
   const pw = document.getElementById('login-pass').value;
   const btn = document.getElementById('login-btn-text');
-  document.getElementById('login-error').style.display='none';
+  document.getElementById('login-error').style.display = 'none';
 
-  if(!id||!pw){showErr('Please enter your ID and password.');return;}
-  if(!USERS[id]||PASSWORDS[id]!==pw){showErr('Invalid ID or password.');return;}
-  if(USERS[id].role!==currentRole){showErr('Please select the correct role for this account.');return;}
+  if(!id || !pw){ showErr('Please enter your ID and password.'); return; }
+  if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
+  if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
+
+  // Auto-detect role from credentials — no role mismatch errors
+  currentRole = USERS[id].role;
+  window.setRole(currentRole);
 
   currentUser = USERS[id];
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
@@ -90,18 +95,17 @@ async function doLogin(){
   btn.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
   setTimeout(()=>{
     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
-    document.getElementById('login-section').style.display='none';
+    document.getElementById('login-section').style.display = 'none';
     document.getElementById('lms-dashboard').classList.add('active');
-    // Hide site chrome when inside LMS
-    document.querySelector('.navbar').style.display='none';
-    document.querySelector('footer').style.display='none';
+    document.querySelector('.navbar').style.display = 'none';
+    document.querySelector('footer').style.display = 'none';
     const wa = document.querySelector('.whatsapp-btn');
-    if(wa) wa.style.display='none';
+    if(wa) wa.style.display = 'none';
     const btt = document.getElementById('backToTop');
-    if(btt) btt.style.display='none';
+    if(btt) btt.style.display = 'none';
     buildDashboard();
   }, 600);
-}
+};
 
 async function fetchAllData(){
   if(!supabase) return;
@@ -128,12 +132,16 @@ function mapAssignment(item){
   };
 }
 
-function showErr(msg){const e=document.getElementById('login-error');e.textContent=msg;e.style.display='block';}
+function showErr(msg){
+  const e = document.getElementById('login-error');
+  e.textContent = msg;
+  e.style.display = 'block';
+  e.scrollIntoView({behavior:'smooth', block:'center'});
+}
 
 function doLogout(){
   document.getElementById('lms-dashboard').classList.remove('active');
   document.getElementById('login-section').style.display='';
-  // Restore site chrome
   document.querySelector('.navbar').style.display='';
   document.querySelector('footer').style.display='';
   const wa = document.querySelector('.whatsapp-btn');
