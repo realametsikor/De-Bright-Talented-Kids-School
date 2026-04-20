@@ -48,8 +48,8 @@ body{font-family:'Open Sans',sans-serif;color:var(--text);background:var(--light
 #backToTop{position:fixed;bottom:1.5rem;right:1.5rem;z-index:9997;width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;border:none;cursor:pointer;font-size:.9rem;box-shadow:var(--lms-shadow);display:none;}
 
 /* LOGIN */
-.lms-login-section{background:linear-gradient(rgba(10,37,64,.88),rgba(10,37,64,.92)),url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover;min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;}
-.lms-login-card{background:#fff;border-radius:24px;padding:3rem 2.5rem;width:100%;max-width:460px;box-shadow:0 25px 60px rgba(0,0,0,.4);border-top:5px solid var(--accent);animation:slideUp .6s cubic-bezier(.22,1,.36,1) both;}
+.lms-login-section{background:linear-gradient(rgba(10,37,64,.88),rgba(10,37,64,.92)),url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover;min-height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem;position:relative;}
+.lms-login-card{background:#fff;border-radius:24px;padding:3rem 2.5rem;width:100%;max-width:460px;box-shadow:0 25px 60px rgba(0,0,0,.4);border-top:5px solid var(--accent);animation:slideUp .6s cubic-bezier(.22,1,.36,1) both;position:relative;z-index:2;}
 @keyframes slideUp{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
 .login-logo-row{display:flex;align-items:center;gap:1rem;margin-bottom:1.8rem;padding-bottom:1.4rem;border-bottom:2px solid var(--light);}
 .login-logo-row img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid var(--accent);}
