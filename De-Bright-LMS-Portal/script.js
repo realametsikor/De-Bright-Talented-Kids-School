@@ -1,4 +1,4 @@
-/* ====================== SUPABASE SETUP ====================== */
+l/* ====================== SUPABASE SETUP ====================== */
 let supabase = null;
 function initSupabase() {
   try {
@@ -83,59 +83,49 @@ window.setRole = function(r){
   document.getElementById('login-id').placeholder = r==='student' ? 'e.g. STU001' : 'e.g. TCH001';
 };
 
-window.doLogin = async function(){
-  // Try init again in case CDN loaded late
-  if (!supabase) initSupabase();
+window.doLogin = function(){
+  var idEl = document.getElementById('login-id');
+  var pwEl = document.getElementById('login-pass');
+  var btn  = document.getElementById('login-btn-text');
+  if(!idEl || !pwEl || !btn) return;
 
-  const id = document.getElementById('login-id').value.trim().toUpperCase();
-  const pw = document.getElementById('login-pass').value;
-  const btn = document.getElementById('login-btn-text');
+  var id = idEl.value.trim().toUpperCase();
+  var pw = pwEl.value;
 
-  document.getElementById('login-error').style.display = 'none';
+  var errEl = document.getElementById('login-error');
+  if(errEl) errEl.style.display = 'none';
 
-  if(!id || !pw){ showErr('Please enter your ID and password.'); return; }
-  if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
+  if(!id || !pw)         { showErr('Please enter your ID and password.'); return; }
+  if(!USERS[id])         { showErr('ID not found. Please check and try again.'); return; }
   if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
 
-  // Prevent double-click
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
-  btn.parentElement.disabled = true;
-
+  currentUser = USERS[id];
   currentRole = USERS[id].role;
   window.setRole(currentRole);
-  currentUser = USERS[id];
 
-  try {
-    // Timeout after 4 seconds — never let DB hang the login
-    await Promise.race([
-      fetchAllData(),
-      new Promise(resolve => setTimeout(resolve, 4000))
-    ]);
-  } catch (error) {
-    console.warn("Database fetch failed, continuing with local demo data.", error);
-  }
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
 
-  btn.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
-  setTimeout(()=>{
+  setTimeout(function(){
+    var loginSec = document.getElementById('login-section');
+    var dash     = document.getElementById('lms-dashboard');
+    var navbar   = document.querySelector('.navbar');
+    var footer   = document.querySelector('footer');
+    var wa       = document.querySelector('.whatsapp-btn');
+    var btt      = document.getElementById('backToTop');
+
+    if(loginSec) loginSec.style.display = 'none';
+    if(dash)     { dash.style.display = 'flex'; dash.classList.add('active'); }
+    if(navbar)   navbar.style.display = 'none';
+    if(footer)   footer.style.display = 'none';
+    if(wa)       wa.style.display = 'none';
+    if(btt)      btt.style.display = 'none';
+
     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
-    btn.parentElement.disabled = false;
-
-    // Show dashboard, hide login page chrome
-    document.getElementById('login-section').classList.add('hidden');
-    const dash = document.getElementById('lms-dashboard');
-    dash.classList.add('active');
-
-    const navbar = document.querySelector('.navbar');
-    const footer = document.querySelector('footer');
-    const wa = document.querySelector('.whatsapp-btn');
-    const btt = document.getElementById('backToTop');
-    if(navbar) navbar.style.display = 'none';
-    if(footer) footer.style.display = 'none';
-    if(wa) wa.style.display = 'none';
-    if(btt) btt.style.display = 'none';
-
     buildDashboard();
-  }, 600);
+
+    // Load live DB data in background — won't block the dashboard
+    try { initSupabase(); fetchAllData().catch(function(){}); } catch(e){}
+  }, 400);
 };
 
 async function fetchAllData(){
