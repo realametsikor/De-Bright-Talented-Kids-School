@@ -586,7 +586,7 @@ const pages = {
         </div>
       </div>`;
     }).join('')}
-  </div>`};
+  </div>`}`;
 },
 
 /* ─────── STUDENT RESOURCES ─────── */
@@ -906,7 +906,7 @@ const pages = {
         ${RESOURCES.map(r=>`
           <div class="resource-card" style="border-radius:0;box-shadow:none;border-bottom:1px solid var(--lms-border);padding:.9rem 1.3rem;">
             <div class="res-icon" style="background:${r.type==='PDF'?'#fee2e2':r.type==='Video'?'#dbeafe':'#f0fdf4'};color:${r.type==='PDF'?'#b91c1c':r.type==='Video'?'#1e40af':'#15803d'};">
-              <i class="fas fa-${r.type==='PDF'?'file-pdf':r.type==='Video'?'link'}"></i>
+              <i class="fas fa-${r.type==='PDF'?'file-pdf':r.type==='Video'?'video':'link'}"></i>
             </div>
             <div class="res-info">
               <strong>${r.title}</strong>
