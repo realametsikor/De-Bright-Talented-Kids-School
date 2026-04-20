@@ -40,7 +40,10 @@
     <li><a href="/contact.html">Contact</a></li>
     <li><a href="/apply.html" class="btn-apply">Apply Now</a></li>
   </ul>
-  <button class="menu-toggle" id="mobile-menu" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+  <div style="display:flex;align-items:center;gap:.8rem;">
+    <a href="/" class="nav-home-btn" title="Back to Home">🏠 Home</a>
+    <button class="menu-toggle" id="mobile-menu" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+  </div>
 </nav>
 
 <a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="fab fa-whatsapp"></i></a>
@@ -59,8 +62,8 @@
       </div>
 
   <div class="role-toggle">
-    <button class="role-btn active" id="role-student" onclick="setRole('student')"><i class="fas fa-graduation-cap"></i> Student</button>
-    <button class="role-btn" id="role-teacher" onclick="setRole('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
+    <button type="button" class="role-btn active" id="role-student" onclick="setRole('student')"><i class="fas fa-graduation-cap"></i> Student</button>
+    <button type="button" class="role-btn" id="role-teacher" onclick="setRole('teacher')"><i class="fas fa-chalkboard-teacher"></i> Teacher</button>
   </div>
 
   <div class="demo-creds">
@@ -79,7 +82,7 @@
     <label>Password</label>
     <input type="password" id="login-pass" placeholder="Enter password" autocomplete="current-password">
   </div>
-  <button class="btn-lms-primary" onclick="doLogin()"><span id="login-btn-text"><i class="fas fa-sign-in-alt"></i> Log In</span></button>
+  <button type="button" class="btn-lms-primary" onclick="doLogin()"><span id="login-btn-text"><i class="fas fa-sign-in-alt"></i> Log In</span></button>
   <p class="lms-login-footer">Forgot your details? <a href="/contact.html">Contact the school office</a></p>
 </div>
 
@@ -196,8 +199,8 @@
 <div id="lms-toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script src="/De-Bright-LMS-Portal/script.js?v=2.0"></script>
+<script src="/main.js"></script>
+<script src="/De-Bright-LMS-Portal/script.js?v=2.1"></script>
 
 </body>
 </html>
