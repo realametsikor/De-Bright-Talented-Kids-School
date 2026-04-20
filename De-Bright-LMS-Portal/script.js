@@ -117,9 +117,9 @@ window.doLogin = async function(){
     btn.parentElement.disabled = false;
 
     // Show dashboard, hide login page chrome
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('lms-dashboard').style.display = 'flex';
-    document.getElementById('lms-dashboard').classList.add('active');
+    document.getElementById('login-section').classList.add('hidden');
+    const dash = document.getElementById('lms-dashboard');
+    dash.classList.add('active');
 
     const navbar = document.querySelector('.navbar');
     const footer = document.querySelector('footer');
@@ -174,9 +174,8 @@ function showErr(msg){
 window.doLogout = function doLogout(){
   const dash = document.getElementById('lms-dashboard');
   dash.classList.remove('active');
-  dash.style.display = 'none';
 
-  document.getElementById('login-section').style.display = '';
+  document.getElementById('login-section').classList.remove('hidden');
 
   const navbar = document.querySelector('.navbar');
   const footer = document.querySelector('footer');
