@@ -106,7 +106,11 @@ window.doLogin = async function(){
   currentUser = USERS[id];
 
   try {
-    await fetchAllData();
+    // Timeout after 4 seconds — never let DB hang the login
+    await Promise.race([
+      fetchAllData(),
+      new Promise(resolve => setTimeout(resolve, 4000))
+    ]);
   } catch (error) {
     console.warn("Database fetch failed, continuing with local demo data.", error);
   }
