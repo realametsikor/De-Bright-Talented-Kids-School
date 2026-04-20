@@ -1,10 +1,20 @@
 /* ====================== SUPABASE SETUP ====================== */
 let supabase = null;
-if (window.supabase) {
-  const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
-  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+function initSupabase() {
+  try {
+    if (window.supabase && window.supabase.createClient) {
+      const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
+      supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    }
+  } catch(e) {
+    console.warn('Supabase init failed, running in local demo mode.', e);
+    supabase = null;
+  }
 }
+// Try to init immediately and also after DOM ready (CDN may load late)
+initSupabase();
+document.addEventListener('DOMContentLoaded', initSupabase);
 
 /* ====================== STATIC DATA ====================== */
 const USERS = {
@@ -74,22 +84,27 @@ window.setRole = function(r){
 };
 
 window.doLogin = async function(){
+  // Try init again in case CDN loaded late
+  if (!supabase) initSupabase();
+
   const id = document.getElementById('login-id').value.trim().toUpperCase();
   const pw = document.getElementById('login-pass').value;
   const btn = document.getElementById('login-btn-text');
+
   document.getElementById('login-error').style.display = 'none';
 
   if(!id || !pw){ showErr('Please enter your ID and password.'); return; }
   if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
   if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
 
+  // Prevent double-click
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
+  btn.parentElement.disabled = true;
+
   currentRole = USERS[id].role;
   window.setRole(currentRole);
-
   currentUser = USERS[id];
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
 
-  // FIX: This try/catch block stops the login button from crashing!
   try {
     await fetchAllData();
   } catch (error) {
@@ -99,14 +114,22 @@ window.doLogin = async function(){
   btn.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
   setTimeout(()=>{
     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+    btn.parentElement.disabled = false;
+
+    // Show dashboard, hide login page chrome
     document.getElementById('login-section').style.display = 'none';
+    document.getElementById('lms-dashboard').style.display = 'flex';
     document.getElementById('lms-dashboard').classList.add('active');
-    document.querySelector('.navbar').style.display = 'none';
-    document.querySelector('footer').style.display = 'none';
+
+    const navbar = document.querySelector('.navbar');
+    const footer = document.querySelector('footer');
     const wa = document.querySelector('.whatsapp-btn');
-    if(wa) wa.style.display = 'none';
     const btt = document.getElementById('backToTop');
+    if(navbar) navbar.style.display = 'none';
+    if(footer) footer.style.display = 'none';
+    if(wa) wa.style.display = 'none';
     if(btt) btt.style.display = 'none';
+
     buildDashboard();
   }, 600);
 };
@@ -148,19 +171,27 @@ function showErr(msg){
   e.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-function doLogout(){
-  document.getElementById('lms-dashboard').classList.remove('active');
-  document.getElementById('login-section').style.display='';
-  document.querySelector('.navbar').style.display='';
-  document.querySelector('footer').style.display='';
+window.doLogout = function doLogout(){
+  const dash = document.getElementById('lms-dashboard');
+  dash.classList.remove('active');
+  dash.style.display = 'none';
+
+  document.getElementById('login-section').style.display = '';
+
+  const navbar = document.querySelector('.navbar');
+  const footer = document.querySelector('footer');
   const wa = document.querySelector('.whatsapp-btn');
-  if(wa) wa.style.display='';
   const btt = document.getElementById('backToTop');
-  if(btt) btt.style.display='';
-  document.getElementById('login-id').value='';
-  document.getElementById('login-pass').value='';
-  currentUser=null; aiHistory=[];
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(navbar) navbar.style.display = '';
+  if(footer) footer.style.display = '';
+  if(wa) wa.style.display = '';
+  if(btt) btt.style.display = '';
+
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pass').value = '';
+  currentUser = null;
+  aiHistory = [];
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 /* ====================== DASHBOARD BUILDER ====================== */
@@ -1315,6 +1346,39 @@ window.filterStudents=function(){
 
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded',()=>{
+  // Year in footer
   const y=document.getElementById('year');
   if(y) y.textContent=new Date().getFullYear();
+
+  // Try Supabase init once DOM is ready (CDN may have loaded by now)
+  initSupabase();
+
+  // Mobile nav menu toggle
+  const menuBtn = document.getElementById('mobile-menu');
+  const navLinks = document.getElementById('nav-menu');
+  const menuIcon = menuBtn?.querySelector('i');
+  const closeMenu = () => {
+    if(navLinks) navLinks.classList.remove('active');
+    if(menuIcon){ menuIcon.classList.add('fa-bars'); menuIcon.classList.remove('fa-times'); }
+  };
+  if(menuBtn && navLinks){
+    menuBtn.addEventListener('click', ()=>{
+      navLinks.classList.toggle('active');
+      if(menuIcon){ menuIcon.classList.toggle('fa-bars'); menuIcon.classList.toggle('fa-times'); }
+    });
+    navLinks.querySelectorAll('a').forEach(a=>a.addEventListener('click', closeMenu));
+  }
+
+  // Back-to-top button
+  const btt = document.getElementById('backToTop');
+  if(btt){
+    window.addEventListener('scroll', ()=>{ btt.style.display = window.scrollY > 300 ? 'flex' : 'none'; });
+    btt.addEventListener('click', ()=>window.scrollTo({top:0, behavior:'smooth'}));
+  }
+
+  // Enter key support for login
+  ['login-id','login-pass'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('keydown', e=>{ if(e.key==='Enter') window.doLogin(); });
+  });
 });
