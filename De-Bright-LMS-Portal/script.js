@@ -83,7 +83,6 @@ window.doLogin = async function(){
   if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
   if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
 
-  // Auto-detect role from credentials — no role mismatch errors
   currentRole = USERS[id].role;
   window.setRole(currentRole);
 
