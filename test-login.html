@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Test</title>
+<style>
+  body { font-family: sans-serif; padding: 2rem; background: #f0f4f8; }
+  input { display: block; width: 300px; padding: 10px; margin: 8px 0; font-size: 1rem; border: 2px solid #ccc; border-radius: 8px; }
+  button { display: block; width: 320px; padding: 12px; background: #0a2540; color: white; font-size: 1rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; margin-top: 12px; }
+  button:hover { background: #fbc02d; color: #0a2540; }
+  #result { margin-top: 1rem; padding: 1rem; border-radius: 8px; font-weight: bold; display: none; }
+  #result.ok { background: #dcfce7; color: #15803d; display: block; }
+  #result.err { background: #fee2e2; color: #b91c1c; display: block; }
+  #dashboard { display: none; background: white; padding: 2rem; border-radius: 12px; margin-top: 1rem; }
+  #dashboard.show { display: block; }
+</style>
+</head>
+<body>
+
+<h2>🔐 Login Test Page</h2>
+<p>Student: <strong>STU001</strong> / <strong>student123</strong> &nbsp;|&nbsp; Teacher: <strong>TCH001</strong> / <strong>teacher123</strong></p>
+
+<div id="login-area">
+  <input type="text" id="uid" placeholder="Enter ID e.g. STU001">
+  <input type="password" id="pw" placeholder="Enter password">
+  <button onclick="tryLogin()">Log In</button>
+  <div id="result"></div>
+</div>
+
+<div id="dashboard">
+  <h2>✅ Login Successful!</h2>
+  <p id="welcome-msg"></p>
+  <button onclick="tryLogout()">Log Out</button>
+</div>
+
+<script>
+var USERS = {
+  STU001: { name: 'Ama Korkor', role: 'student' },
+  STU002: { name: 'Kofi Asante', role: 'student' },
+  TCH001: { name: 'Abena Boateng', role: 'teacher' }
+};
+var PASSWORDS = { STU001: 'student123', STU002: 'student456', TCH001: 'teacher123' };
+
+function tryLogin() {
+  var id = document.getElementById('uid').value.trim().toUpperCase();
+  var pw = document.getElementById('pw').value;
+  var result = document.getElementById('result');
+
+  if (!id || !pw) { showResult('err', 'Please enter ID and password.'); return; }
+  if (!USERS[id]) { showResult('err', 'ID not found: ' + id); return; }
+  if (PASSWORDS[id] !== pw) { showResult('err', 'Wrong password.'); return; }
+
+  showResult('ok', 'Credentials valid! Switching to dashboard...');
+  setTimeout(function() {
+    document.getElementById('login-area').style.display = 'none';
+    document.getElementById('dashboard').classList.add('show');
+    document.getElementById('welcome-msg').textContent =
+      'Welcome ' + USERS[id].name + '! Role: ' + USERS[id].role;
+  }, 500);
+}
+
+function tryLogout() {
+  document.getElementById('login-area').style.display = 'block';
+  document.getElementById('dashboard').classList.remove('show');
+  document.getElementById('uid').value = '';
+  document.getElementById('pw').value = '';
+  document.getElementById('result').className = '';
+  document.getElementById('result').style.display = 'none';
+}
+
+function showResult(type, msg) {
+  var el = document.getElementById('result');
+  el.textContent = msg;
+  el.className = type;
+}
+
+// Also support Enter key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') tryLogin();
+});
+</script>
+</body>
+</html>
