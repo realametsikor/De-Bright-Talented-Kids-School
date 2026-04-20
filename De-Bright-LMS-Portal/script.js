@@ -92,6 +92,13 @@ async function doLogin(){
     btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
     document.getElementById('login-section').style.display='none';
     document.getElementById('lms-dashboard').classList.add('active');
+    // Hide site chrome when inside LMS
+    document.querySelector('.navbar').style.display='none';
+    document.querySelector('footer').style.display='none';
+    const wa = document.querySelector('.whatsapp-btn');
+    if(wa) wa.style.display='none';
+    const btt = document.getElementById('backToTop');
+    if(btt) btt.style.display='none';
     buildDashboard();
   }, 600);
 }
@@ -126,6 +133,13 @@ function showErr(msg){const e=document.getElementById('login-error');e.textConte
 function doLogout(){
   document.getElementById('lms-dashboard').classList.remove('active');
   document.getElementById('login-section').style.display='';
+  // Restore site chrome
+  document.querySelector('.navbar').style.display='';
+  document.querySelector('footer').style.display='';
+  const wa = document.querySelector('.whatsapp-btn');
+  if(wa) wa.style.display='';
+  const btt = document.getElementById('backToTop');
+  if(btt) btt.style.display='';
   document.getElementById('login-id').value='';
   document.getElementById('login-pass').value='';
   currentUser=null; aiHistory=[];
@@ -1186,7 +1200,6 @@ window.saveAttendance = async function(){
   if(supabase){
     const {error}=await supabase.from('attendance').upsert(records,{onConflict:'student_id,date'});
     if(error){toast('Failed to save attendance.', 'error'); console.error(error); return;}
-    // Refresh
     const {data}=await supabase.from('attendance').select('*').order('date',{ascending:false});
     if(data) ATTENDANCE_RECORDS=data;
   }
