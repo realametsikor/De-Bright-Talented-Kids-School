@@ -1,10 +1,14 @@
 /* ====================== SUPABASE SETUP ====================== */
-let supabase = null;
+let supabaseClient = null;
+
 if (window.supabase) {
   const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
-  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Keep your full key here!
+  supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+} else {
+  console.error("CRITICAL: Supabase library failed to load from the CDN.");
 }
+
 
 /* ====================== STATIC DATA (Subjects/Timetable) ====================== */
 const SUBJECTS = [
