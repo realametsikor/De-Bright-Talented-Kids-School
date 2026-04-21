@@ -139,7 +139,8 @@ function mapAssignment(item){
   return {
     id:item.id, title:item.title, subject:item.subject,
     desc:item.description, due:item.due, status:item.status||'open',
-    color:item.color||'blue', attachment_url:item.attachment_url, created_at:item.created_at
+    color:item.color||'blue', attachment_url:item.attachment_url, 
+    submission_type:item.submission_type||'any', created_at:item.created_at
   };
 }
 
@@ -185,7 +186,7 @@ function buildDashboard(){
     {section:'Learning', links:[
       {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
       {icon:'folder-open',label:'Resources',page:'s-resources'},
-      {icon:'robot',label:'AI Tutor',page:'s-ai'}, // AI TUTOR RESTORED HERE!
+      {icon:'robot',label:'AI Tutor',page:'s-ai'}, // AI TUTOR RESTORED!
       {icon:'bullhorn',label:'Notices',page:'s-notices'},
     ]},
   ] : [
@@ -337,7 +338,6 @@ const pages = {
               </div>
               <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
               <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
-              ${a.attachment_url ? `<div style="margin-top:0.8rem;"><a href="${a.attachment_url}" target="_blank" style="font-size:0.85rem; color:var(--primary); text-decoration:none; background: var(--lms-surface); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--lms-border);"><i class="fas fa-paperclip"></i> View Teacher's Attachment</a></div>` : ''}
           </div>
           <div>
             ${!isSubmitted ? 
@@ -450,7 +450,8 @@ const pages = {
                 </td>
                 <td><strong style="font-size:0.9rem;">${asgn ? asgn.title : 'Unknown Assignment'}</strong><div style="font-size:0.75rem; color:var(--lms-muted);">${sub.comments ? `"${sub.comments}"` : ''}</div></td>
                 <td style="text-align:center;"><span class="chip ${sub.status==='graded'?'green':'gold'}">${sub.status==='graded'?'Graded':'Needs Grading'}</span></td>
-                <td style="text-align:center; display:flex; justify-content:center; gap:0.5rem; padding: 1rem;">
+                <td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:0.5rem; padding: 1rem;">
+                  ${sub.typed_response ? `<button class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;background:var(--lms-gold);color:#000;border:none;cursor:pointer;" onclick="viewTypedResponse('${sub.id}')"><i class="fas fa-align-left"></i> Text</button>` : ''}
                   ${sub.file_url ? `<a href="${sub.file_url}" target="_blank" class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;text-decoration:none;"><i class="fas fa-file-download"></i> File</a>` : ''}
                   ${sub.link ? `<a href="${sub.link}" target="_blank" class="btn-outline" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;text-decoration:none;"><i class="fas fa-link"></i> Link</a>` : ''}
                 </td>
@@ -608,7 +609,7 @@ function buildNotices(isTeacher = false) {
   </div>`;
 }
 
-/* ====================== ASSIGNMENTS (WITH ATTACHMENTS) ====================== */
+/* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
 function injectAssignmentModal() {
   if(document.getElementById('assignment-modal')) return;
   const m = document.createElement('div');
@@ -624,11 +625,22 @@ function injectAssignmentModal() {
           <div class="lms-form-group"><label>Subject</label><select id="asgn-subject">${SUBJECTS.map(s=>`<option value="${s.name}">${s.name}</option>`).join('')}</select></div>
           <div class="lms-form-group"><label>Due Date</label><input type="date" id="asgn-due"></div>
         </div>
-        <div class="lms-form-group"><label>Description</label><textarea id="asgn-desc" rows="3" placeholder="Instructions for students..."></textarea></div>
+        <div class="lms-form-group"><label>Assignment Instructions / Questions</label><textarea id="asgn-desc" rows="3" placeholder="Type the full assignment here for students to read..."></textarea></div>
         
-        <div class="lms-form-group">
-          <label>Attach File (Optional)</label>
-          <input type="file" id="asgn-file" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+          <div class="lms-form-group">
+            <label>Allowed Submission Format</label>
+            <select id="asgn-sub-type" style="padding: 0.5rem; border: 1px solid var(--lms-border); border-radius: 8px; width: 100%;">
+              <option value="any">Any Method</option>
+              <option value="text">Typed Response Only</option>
+              <option value="file">File Upload Only</option>
+              <option value="link">URL Link Only</option>
+            </select>
+          </div>
+          <div class="lms-form-group">
+            <label>Attach File (Optional)</label>
+            <input type="file" id="asgn-file" style="padding: 0.4rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
+          </div>
         </div>
 
         <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
@@ -649,17 +661,19 @@ window.openAssignmentModal = function(id = null) {
   const desc = document.getElementById('asgn-desc');
   const idInput = document.getElementById('asgn-id');
   const fileInput = document.getElementById('asgn-file');
+  const subType = document.getElementById('asgn-sub-type');
   const mTitle = document.getElementById('asgn-modal-title');
   
   if(id) {
     const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
     if (a) {
       t.value = a.title; s.value = a.subject; d.value = a.due; desc.value = a.desc; idInput.value = a.id;
+      subType.value = a.submission_type || 'any';
       fileInput.value = '';
       mTitle.textContent = "Edit Assignment";
     }
   } else {
-    t.value = ''; d.value = ''; desc.value = ''; idInput.value = ''; fileInput.value = '';
+    t.value = ''; d.value = ''; desc.value = ''; idInput.value = ''; fileInput.value = ''; subType.value = 'any';
     mTitle.textContent = "Create Assignment";
   }
   openModal('assignment-modal');
@@ -673,6 +687,7 @@ window.saveAssignment = async function() {
   const subject = document.getElementById('asgn-subject').value;
   const due = document.getElementById('asgn-due').value;
   const desc = document.getElementById('asgn-desc').value.trim();
+  const subType = document.getElementById('asgn-sub-type').value;
   const fileInput = document.getElementById('asgn-file');
   const btn = document.getElementById('btn-save-asgn');
   
@@ -695,21 +710,21 @@ window.saveAssignment = async function() {
     attachmentUrl = publicUrlData.publicUrl;
   }
   
-  const payload = { title: title, subject: subject, due: due, description: desc }; 
+  const payload = { title: title, subject: subject, due: due, description: desc, submission_type: subType }; 
   if (attachmentUrl) payload.attachment_url = attachmentUrl; 
   
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
   
   if(id) {
     const { error } = await supabaseClient.from('assignments').update(payload).eq('id', id);
-    if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('Error: ' + error.message, 'error'); }
+    if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('DB Error: ' + error.message, 'error'); }
     
     const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(id));
     if(idx !== -1) { ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], ...payload }; }
     toast('Assignment updated successfully!');
   } else {
     const { data, error } = await supabaseClient.from('assignments').insert([payload]).select();
-    if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('Error: ' + error.message, 'error'); }
+    if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('DB Error: ' + error.message, 'error'); }
     
     if (data && data.length > 0) { ASSIGNMENTS.unshift(mapAssignment(data[0])); }
     toast('Assignment created successfully!');
@@ -737,34 +752,9 @@ function injectSubmitModal() {
   m.className = 'lms-modal';
   m.id = 'dynamic-submit-modal';
   m.innerHTML = `
-    <div class="lms-modal-box">
+    <div class="lms-modal-box" style="max-width: 600px;">
       <div class="modal-h"><h3><i class="fas fa-paper-plane" style="color:var(--primary);margin-right:6px;"></i>Submit Work</h3><button onclick="closeModal('dynamic-submit-modal')"><i class="fas fa-times"></i></button></div>
-      <div class="modal-body">
-        <input type="hidden" id="submit-asgn-id">
-        <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--lms-muted);">Submitting for: <strong id="submit-asgn-title" style="color: var(--text);"></strong></p>
-        
-        <div class="lms-form-group">
-          <label>1. Upload Document/File</label>
-          <input type="file" id="submit-file" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
-        </div>
-        
-        <div style="text-align: center; margin: 15px 0; color: var(--lms-muted); font-size: 0.8rem; font-weight: 600;">— OR —</div>
-        
-        <div class="lms-form-group">
-          <label>2. Paste Link (Google Drive, Docs, etc.)</label>
-          <input type="url" id="submit-link" placeholder="https://...">
-        </div>
-
-        <div class="lms-form-group">
-          <label>Student Comments (Optional)</label>
-          <textarea id="submit-comment" rows="2" placeholder="Any notes for your teacher?"></textarea>
-        </div>
-        
-        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
-          <button class="btn-lms-primary" id="btn-do-submit" style="flex:1;" onclick="doSubmit()"><i class="fas fa-check"></i> Finalize Submission</button>
-          <button class="btn-outline" onclick="closeModal('dynamic-submit-modal')">Cancel</button>
-        </div>
-      </div>
+      <div class="modal-body" id="submit-modal-content"></div>
     </div>
   `;
   document.body.appendChild(m);
@@ -773,32 +763,74 @@ function injectSubmitModal() {
 window.openSubmitModal = function(id) {
   injectSubmitModal();
   const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
-  document.getElementById('submit-asgn-id').value = id;
-  document.getElementById('submit-asgn-title').textContent = a.title;
-  document.getElementById('submit-file').value = '';
-  document.getElementById('submit-link').value = '';
-  document.getElementById('submit-comment').value = '';
+  const subType = a.submission_type || 'any';
+
+  // Show the assignment details so the student can read it before submitting
+  let html = `
+    <input type="hidden" id="submit-asgn-id" value="${id}">
+    <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--lms-border);">
+      <strong style="display:block; margin-bottom:0.5rem; color:var(--primary); font-size:1.1rem;">${a.title}</strong>
+      <p style="font-size:0.9rem; color:var(--text); line-height:1.6; margin-bottom:0.8rem; white-space:pre-wrap;">${a.desc || 'No instructions provided.'}</p>
+      ${a.attachment_url ? `<a href="${a.attachment_url}" target="_blank" class="btn-outline" style="font-size:0.8rem; padding:0.4rem 0.8rem; text-decoration:none;"><i class="fas fa-paperclip"></i> View Attached Material</a>` : ''}
+    </div>
+  `;
+
+  // Dynamically load inputs based on what the teacher requires
+  if (subType === 'any' || subType === 'text') {
+    html += `<div class="lms-form-group"><label>Typed Response</label><textarea id="submit-typed" rows="4" placeholder="Type your answer here..."></textarea></div>`;
+  }
+  if (subType === 'any') html += `<div style="text-align: center; margin: 10px 0; color: var(--lms-muted); font-size: 0.8rem; font-weight: 600;">— OR —</div>`;
+  
+  if (subType === 'any' || subType === 'file') {
+    html += `<div class="lms-form-group"><label>Upload Document/File</label><input type="file" id="submit-file" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #fff;"></div>`;
+  }
+  if (subType === 'any') html += `<div style="text-align: center; margin: 10px 0; color: var(--lms-muted); font-size: 0.8rem; font-weight: 600;">— OR —</div>`;
+  
+  if (subType === 'any' || subType === 'link') {
+    html += `<div class="lms-form-group"><label>Paste Link</label><input type="url" id="submit-link" placeholder="https://..."></div>`;
+  }
+
+  html += `
+    <div class="lms-form-group" style="margin-top:1rem;"><label>Private Comment to Teacher</label><textarea id="submit-comment" rows="2" placeholder="Any notes?"></textarea></div>
+    <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+      <button class="btn-lms-primary" id="btn-do-submit" style="flex:1;" onclick="doSubmit('${subType}')"><i class="fas fa-check"></i> Finalize Submission</button>
+      <button class="btn-outline" onclick="closeModal('dynamic-submit-modal')">Cancel</button>
+    </div>
+  `;
+
+  document.getElementById('submit-modal-content').innerHTML = html;
   openModal('dynamic-submit-modal');
 }
 
-window.doSubmit = async function() {
+window.doSubmit = async function(subType) {
   if (!supabaseClient) return toast('Database connection missing!', 'error');
   
   const btn = document.getElementById('btn-do-submit');
   const asgnId = document.getElementById('submit-asgn-id').value;
-  const link = document.getElementById('submit-link').value.trim();
-  const comment = document.getElementById('submit-comment').value.trim();
-  const fileInput = document.getElementById('submit-file');
-  
-  if(fileInput.files.length === 0 && !link) return toast('Please upload a file or paste a link.', 'error');
+  const commentEl = document.getElementById('submit-comment');
+  const comment = commentEl ? commentEl.value.trim() : '';
+
+  const typedEl = document.getElementById('submit-typed');
+  const linkEl = document.getElementById('submit-link');
+  const fileEl = document.getElementById('submit-file');
+
+  const typedVal = typedEl ? typedEl.value.trim() : '';
+  const linkVal = linkEl ? linkEl.value.trim() : '';
+  const fileCount = fileEl ? fileEl.files.length : 0;
+
+  // Validate that the student provided what the teacher asked for
+  if(subType === 'text' && !typedVal) return toast('Please type your response.', 'error');
+  if(subType === 'file' && fileCount === 0) return toast('Please attach a file.', 'error');
+  if(subType === 'link' && !linkVal) return toast('Please provide a link.', 'error');
+  if(subType === 'any' && !typedVal && !linkVal && fileCount === 0) return toast('Please provide an answer, link, or file.', 'error');
   
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
   btn.disabled = true;
   
   let fileUrl = null;
   
-  if(fileInput.files.length > 0) {
-      const file = fileInput.files[0];
+  if(fileCount > 0) {
+      const file = fileEl.files[0];
       const filePath = `submissions/${currentUser.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
       const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
       
@@ -817,7 +849,8 @@ window.doSubmit = async function() {
       student_id: currentUser.id,
       student_name: currentUser.name,
       file_url: fileUrl,
-      link: link,
+      link: linkVal,
+      typed_response: typedVal,
       comments: comment,
       status: 'submitted',
       class: currentUser.class
@@ -827,12 +860,25 @@ window.doSubmit = async function() {
   
   btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
   
-  if(error) return toast('Error saving submission: ' + error.message, 'error');
+  if(error) return toast('DB Error: ' + error.message, 'error');
   
   SUBMISSIONS.unshift(payload);
   closeModal('dynamic-submit-modal');
   toast('Work submitted successfully! 🎉');
   renderPage('s-assignments');
+}
+
+/* Helper to View Typed Responses for Teachers */
+window.viewTypedResponse = function(subId) {
+  const sub = SUBMISSIONS.find(s => String(s.id) === String(subId));
+  if(!document.getElementById('view-text-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'view-text-modal';
+    m.innerHTML = `<div class="lms-modal-box"><div class="modal-h"><h3>Typed Response</h3><button onclick="closeModal('view-text-modal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div style="background:#f8fafc;padding:1.5rem;border-radius:8px;border:1px solid var(--lms-border);white-space:pre-wrap;font-family:var(--font-lms);font-size:0.95rem;color:var(--text);line-height:1.6;" id="view-text-content"></div></div></div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('view-text-content').textContent = sub.typed_response || 'No text provided.';
+  openModal('view-text-modal');
 }
 
 /* ====================== REAL WORK: MANAGE STUDENTS ====================== */
@@ -848,7 +894,7 @@ window.saveNewStudent = async function() {
   const newId = 'STU' + String(nextNumber).padStart(3, '0');
   const payload = { id: newId, name: name, age: age, gender: gender, parent_contact: parentContact, class: currentUser.class };
   const { data, error } = await supabaseClient.from('students').insert([payload]).select();
-  if (error) { console.error(error); toast('Failed to add student to DB.', 'error'); return; }
+  if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
   if (data) STUDENTS_DB.push(data[0]);
   closeModal('add-student-modal'); renderPage('t-class'); toast(`${name} added successfully! ID: ${newId}`);
 };
@@ -858,7 +904,7 @@ window.deleteStudent = async function(id) {
   const student = STUDENTS_DB.find(s => s.id === id);
   if(confirm(`Are you absolutely sure you want to remove ${student.name} from the database?`)) {
     const { error } = await supabaseClient.from('students').delete().eq('id', id);
-    if (error) { console.error(error); toast('Failed to remove student.', 'error'); return; }
+    if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
     STUDENTS_DB = STUDENTS_DB.filter(s => s.id !== id);
     renderPage('t-class'); toast('Student removed successfully.', 'error');
   }
@@ -878,7 +924,7 @@ window.saveTransfer = async function() {
   const std = STUDENTS_DB.find(s => s.id === id);
   if(std) {
     const { error } = await supabaseClient.from('students').update({ class: newClass }).eq('id', id);
-    if (error) { console.error(error); toast('Failed to transfer student.', 'error'); return; }
+    if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
     std.class = newClass; 
   }
   closeModal('transfer-modal'); renderPage('t-class'); toast(`${std.name} has been transferred to ${newClass}`);
@@ -907,7 +953,7 @@ window.saveReportCard = async function() {
   if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
   const payload = { id: 'REP' + Date.now(), student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
   const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
-  if (error) { console.error(error); toast('Failed to save report card.', 'error'); return; }
+  if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
   if (data) REPORT_CARDS.push(data[0]);
   closeModal('build-report-modal'); renderPage('t-grades'); toast('Report Card Generated & Published! ✅');
 };
