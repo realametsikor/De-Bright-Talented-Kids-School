@@ -1,11 +1,3 @@
-/* ====================== SUPABASE SETUP ====================== */
-let supabase = null;
-if (window.supabase) {
-  const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
-  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-}
-
 /* ====================== STATIC DATA ====================== */
 const USERS = {
   STU001:{role:'student',name:'Ama Korkor',initials:'AK',class:'6B',id:'STU001'},
@@ -74,50 +66,26 @@ window.setRole = function(r){
 };
 
 window.doLogin = async function(){
-  console.log("Login button tapped!"); 
-
   const idInput = document.getElementById('login-id');
   const passInput = document.getElementById('login-pass');
   const errorBox = document.getElementById('login-error');
   const btnText = document.getElementById('login-btn-text');
 
-  if (!idInput || !passInput || !errorBox || !btnText) {
-    console.error("Missing HTML elements for login!");
-    return;
-  }
+  if (!idInput || !passInput || !errorBox || !btnText) return;
 
   const id = idInput.value.trim().toUpperCase();
   const pw = passInput.value;
   errorBox.style.display = 'none';
 
-  console.log("Attempting login for ID:", id);
-
-  if(!id || !pw){ 
-    showErr('Please enter your ID and password.'); 
-    return; 
-  }
-  if(!USERS[id]){ 
-    showErr('ID not found. Please check and try again.'); 
-    return; 
-  }
-  if(PASSWORDS[id] !== pw){ 
-    showErr('Incorrect password. Please try again.'); 
-    return; 
-  }
-
-  console.log("Credentials match! Logging in as:", USERS[id].role);
+  if(!id || !pw){ showErr('Please enter your ID and password.'); return; }
+  if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
+  if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
 
   currentRole = USERS[id].role;
   window.setRole(currentRole);
 
   currentUser = USERS[id];
   btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
-
-  try {
-    await fetchAllData();
-  } catch (error) {
-    console.warn("Database fetch failed, continuing with local demo data.", error);
-  }
 
   btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
   
@@ -139,27 +107,6 @@ window.doLogin = async function(){
     buildDashboard();
   }, 600);
 };
-
-async function fetchAllData(){
-  if(!supabase) return;
-  try {
-    const [asgn, subs, noticesRes, resRes, attRes] = await Promise.all([
-      supabase.from('assignments').select('*').order('created_at',{ascending:false}),
-      supabase.from('submissions').select('*').order('created_at',{ascending:false}),
-      supabase.from('notices').select('*').order('created_at',{ascending:false}),
-      supabase.from('resources').select('*').order('created_at',{ascending:false}),
-      supabase.from('attendance').select('*').order('date',{ascending:false}),
-    ]);
-    if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
-    if(subs.data) SUBMISSIONS = subs.data;
-    if(noticesRes.data) NOTICES = noticesRes.data;
-    if(resRes.data) RESOURCES = resRes.data;
-    if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
-  } catch (e) {
-    console.error("Supabase Error:", e);
-    throw e;
-  }
-}
 
 function mapAssignment(item){
   return {
@@ -1007,13 +954,6 @@ window.saveGrades = async function(){
   const feedback = document.getElementById('grade-feedback').value.trim();
   if(isNaN(score)||score<0||score>100){toast('Enter a valid score (0–100).', 'error');return;}
 
-  if(supabase){
-    const {error} = await supabase.from('submissions').update({
-      score, feedback, graded:true, graded_at:new Date().toISOString()
-    }).eq('id',subId);
-    if(error){toast('Failed to save grade.', 'error'); console.error(error); return;}
-  }
-
   const idx = SUBMISSIONS.findIndex(s=>s.id===subId);
   if(idx>-1){SUBMISSIONS[idx]={...SUBMISSIONS[idx],score,feedback,graded:true,graded_at:new Date().toISOString()};}
   closeModal('grader-modal');
@@ -1059,13 +999,9 @@ async function submitAssignment(aId, answer){
     feedback: null,
     created_at: new Date().toISOString()
   };
-  if(supabase){
-    const {data,error} = await supabase.from('submissions').insert([payload]).select();
-    if(error){toast('Submission failed. Please try again.', 'error'); console.error(error); return;}
-    if(data) SUBMISSIONS.unshift(data[0]);
-  } else {
-    SUBMISSIONS.unshift({...payload, id:'local-'+Date.now()});
-  }
+
+  SUBMISSIONS.unshift({...payload, id:'local-'+Date.now()});
+  
   toast('Assignment submitted successfully! ✅');
   renderPage('s-assignments');
 }
@@ -1116,81 +1052,13 @@ window.nextQuizQ = async function(){
   renderQuizQuestion();
 };
 
-/* ====================== AI TUTOR ====================== */
-window.sendAiMsg = async function(){
-  const inp = document.getElementById('ai-input');
-  const chat = document.getElementById('ai-chat');
-  if(!inp||!chat||!inp.value.trim()) return;
-  const msg = inp.value.trim();
-  inp.value='';
-
-  document.getElementById('ai-suggestions') && (document.getElementById('ai-suggestions').style.display='none');
-
-  chat.innerHTML += `<div class="ai-msg user"><div class="ai-av usr">👤</div><div class="ai-bubble">${msg}</div></div>`;
-  chat.innerHTML += `<div class="ai-msg ai" id="ai-typing-indicator"><div class="ai-av bot">🤖</div><div class="ai-bubble"><div class="ai-typing"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div></div></div>`;
-  chat.scrollTop = chat.scrollHeight;
-
-  aiHistory.push({role:'user',content:msg});
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        system:`You are a friendly, encouraging AI Study Tutor for De-Bright Talented Kids School in Ghana — a primary school. You help students in Class 6 with their subjects: Mathematics, English Language, Science, Social Studies, Creative Arts, RME, French, and ICT.
-
-        Key guidelines:
-        - Use simple, age-appropriate language (students are ~11-12 years old)
-        - Be warm, encouraging, and patient
-        - Give practical examples using Ghanaian context where possible
-        - If explaining Maths, show step-by-step workings
-        - Keep responses concise but complete
-        - Use emojis sparingly to be friendly
-        - If a student is struggling, break concepts into smaller steps
-        - The Ghanaian curriculum follows the NaCCA framework
-        - Current term is Term 2, 2025/26 academic year`,
-        messages: aiHistory.slice(-10)
-      })
-    });
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || "I'm sorry, I couldn't generate a response. Please try again!";
-    aiHistory.push({role:'assistant',content:reply});
-  
-    document.getElementById('ai-typing-indicator')?.remove();
-    chat.innerHTML += `<div class="ai-msg ai"><div class="ai-av bot">🤖</div><div class="ai-bubble">${reply.replace(/\n/g,'<br>')}</div></div>`;
-    chat.scrollTop = chat.scrollHeight;
-  } catch(e){
-    document.getElementById('ai-typing-indicator')?.remove();
-    chat.innerHTML += `<div class="ai-msg ai"><div class="ai-av bot">🤖</div><div class="ai-bubble">Sorry, I'm having trouble connecting. Please check your internet and try again.</div></div>`;
-    chat.scrollTop = chat.scrollHeight;
-  }
-};
-
-window.setAiInput = function(text){
-  const inp = document.getElementById('ai-input');
-  if(inp){inp.value=text;inp.focus();}
-};
-
-window.clearAiChat = function(){
-  aiHistory=[];
-  renderPage('s-ai');
-};
-
 /* ====================== TEACHER ACTIONS ====================== */
 window.publishNotice = async function(){
   const title = document.getElementById('notice-title').value.trim();
   const body = document.getElementById('notice-body').value.trim();
   if(!title||!body){toast('Please fill in both fields.', 'error');return;}
   const payload = {title, body, posted_by:currentUser.name, created_at:new Date().toISOString()};
-  if(supabase){
-    const {data,error}=await supabase.from('notices').insert([payload]).select();
-    if(error){toast('Failed to post notice.', 'error'); console.error(error); return;}
-    if(data) NOTICES.unshift(data[0]);
-  } else {
-    NOTICES.unshift({...payload,id:'local-'+Date.now()});
-  }
+  NOTICES.unshift({...payload,id:'local-'+Date.now()});
   toast('Notice published to all students! 📢');
   renderPage('t-notices');
 };
@@ -1203,13 +1071,7 @@ window.publishResource = async function(){
   const description=document.getElementById('res-desc').value.trim();
   if(!title){toast('Please enter a resource title.', 'error');return;}
   const payload={title,subject,type,url,description,created_at:new Date().toISOString()};
-  if(supabase){
-    const {data,error}=await supabase.from('resources').insert([payload]).select();
-    if(error){toast('Failed to share resource.', 'error'); console.error(error); return;}
-    if(data) RESOURCES.unshift(data[0]);
-  } else {
-    RESOURCES.unshift({...payload,id:'local-'+Date.now()});
-  }
+  RESOURCES.unshift({...payload,id:'local-'+Date.now()});
   toast('Resource shared with students! 📚');
   renderPage('t-resources');
 };
@@ -1217,17 +1079,12 @@ window.publishResource = async function(){
 window.deleteItem = async function(type, id) {
   const isNotice = type === 'notice';
   const itemName = isNotice ? 'notice' : 'resource';
-  
   if(!confirm(`Delete this ${itemName}?`)) return;
-  
-  if(supabase) await supabase.from(isNotice ? 'notices' : 'resources').delete().eq('id', id);
-  
   if (isNotice) {
     NOTICES = NOTICES.filter(n => n.id !== id);
   } else {
     RESOURCES = RESOURCES.filter(r => r.id !== id);
   }
-  
   toast(`${itemName.charAt(0).toUpperCase() + itemName.slice(1)} deleted.`);
   renderPage(isNotice ? 't-notices' : 't-resources');
 };
@@ -1243,12 +1100,6 @@ window.saveAttendance = async function(){
     notes:'',
     class:'6B'
   }));
-  if(supabase){
-    const {error}=await supabase.from('attendance').upsert(records,{onConflict:'student_id,date'});
-    if(error){toast('Failed to save attendance.', 'error'); console.error(error); return;}
-    const {data}=await supabase.from('attendance').select('*').order('date',{ascending:false});
-    if(data) ATTENDANCE_RECORDS=data;
-  }
   toast(`Attendance saved for ${records.length} students! ✅`);
 };
 
@@ -1310,13 +1161,7 @@ window.publishAssignment=async function(){
   btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Publishing…';
   const payload={title,subject,description,due,status:'open',color:'blue',assignment_type:type,content:contentPayload};
 
-  if(supabase){
-    const {data,error}=await supabase.from('assignments').insert([payload]).select();
-    if(error){toast('Failed to publish.', 'error'); console.error(error); btn.innerHTML='<i class="fas fa-paper-plane"></i> Publish to Class';return;}
-    if(data) ASSIGNMENTS.unshift(mapAssignment(data[0]));
-  } else {
-    ASSIGNMENTS.unshift({...payload,id:'local-'+Date.now(),desc:description,type:payload.assignment_type});
-  }
+  ASSIGNMENTS.unshift({...payload,id:'local-'+Date.now(),desc:description,type:payload.assignment_type});
 
   toast(`"${title}" published to all students! 🎉`);
   renderPage('t-assignments');
