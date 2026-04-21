@@ -186,7 +186,7 @@ function buildDashboard(){
     {section:'Learning', links:[
       {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
       {icon:'folder-open',label:'Resources',page:'s-resources'},
-      {icon:'robot',label:'AI Tutor',page:'s-ai'}, // AI TUTOR RESTORED!
+      {icon:'robot',label:'AI Tutor',page:'s-ai'},
       {icon:'bullhorn',label:'Notices',page:'s-notices'},
     ]},
   ] : [
@@ -352,7 +352,6 @@ const pages = {
   </div>`
 },
 
-/* AI TUTOR RESTORED */
 's-ai':()=>`
   <div style="height: calc(100vh - 180px); background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;">
     <div style="padding: 1.5rem; background: var(--primary); color: white; display: flex; align-items: center; gap: 1rem;">
@@ -765,7 +764,6 @@ window.openSubmitModal = function(id) {
   const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
   const subType = a.submission_type || 'any';
 
-  // Show the assignment details so the student can read it before submitting
   let html = `
     <input type="hidden" id="submit-asgn-id" value="${id}">
     <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--lms-border);">
@@ -775,7 +773,6 @@ window.openSubmitModal = function(id) {
     </div>
   `;
 
-  // Dynamically load inputs based on what the teacher requires
   if (subType === 'any' || subType === 'text') {
     html += `<div class="lms-form-group"><label>Typed Response</label><textarea id="submit-typed" rows="4" placeholder="Type your answer here..."></textarea></div>`;
   }
@@ -818,7 +815,6 @@ window.doSubmit = async function(subType) {
   const linkVal = linkEl ? linkEl.value.trim() : '';
   const fileCount = fileEl ? fileEl.files.length : 0;
 
-  // Validate that the student provided what the teacher asked for
   if(subType === 'text' && !typedVal) return toast('Please type your response.', 'error');
   if(subType === 'file' && fileCount === 0) return toast('Please attach a file.', 'error');
   if(subType === 'link' && !linkVal) return toast('Please provide a link.', 'error');
@@ -843,8 +839,8 @@ window.doSubmit = async function(subType) {
       fileUrl = publicUrlData.publicUrl;
   }
   
+  // NOTE: Removed the custom ID entirely so Supabase can safely auto-generate its own UUID!
   const payload = {
-      id: 'SUB' + Date.now(),
       assignment_id: asgnId,
       student_id: currentUser.id,
       student_name: currentUser.name,
@@ -856,13 +852,17 @@ window.doSubmit = async function(subType) {
       class: currentUser.class
   };
   
-  const { error } = await supabaseClient.from('submissions').insert([payload]);
+  // We use .select() here to pull the database-generated UUID back to the screen
+  const { data, error } = await supabaseClient.from('submissions').insert([payload]).select();
   
   btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
   
   if(error) return toast('DB Error: ' + error.message, 'error');
   
-  SUBMISSIONS.unshift(payload);
+  if (data && data.length > 0) {
+      SUBMISSIONS.unshift(data[0]);
+  }
+  
   closeModal('dynamic-submit-modal');
   toast('Work submitted successfully! 🎉');
   renderPage('s-assignments');
@@ -951,10 +951,14 @@ window.saveReportCard = async function() {
   const conduct = document.getElementById('report-conduct').value;
   const remarks = document.getElementById('report-remarks').value.trim();
   if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
-  const payload = { id: 'REP' + Date.now(), student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
+  
+  // NOTE: Removed the custom ID here as well to protect the database!
+  const payload = { student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
   const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
+  
   if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
-  if (data) REPORT_CARDS.push(data[0]);
+  
+  if (data && data.length > 0) REPORT_CARDS.push(data[0]);
   closeModal('build-report-modal'); renderPage('t-grades'); toast('Report Card Generated & Published! ✅');
 };
 
