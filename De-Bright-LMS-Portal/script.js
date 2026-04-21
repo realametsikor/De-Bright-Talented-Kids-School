@@ -600,6 +600,7 @@ window.openAssignmentModal = function(id = null) {
 
 window.saveAssignment = async function() {
   if (!supabaseClient) return toast('Database connection missing!', 'error');
+  
   const id = document.getElementById('asgn-id').value;
   const title = document.getElementById('asgn-title').value.trim();
   const subject = document.getElementById('asgn-subject').value;
@@ -608,25 +609,45 @@ window.saveAssignment = async function() {
   
   if(!title || !due) return toast('Please provide a title and due date', 'error');
   
-  const payload = { title, subject, due, description: desc, color: 'blue' }; 
+  // We only send exactly what matches the database columns
+  const payload = { title: title, subject: subject, due: due, description: desc }; 
   
   if(id) {
+    // === EDIT EXISTING ASSIGNMENT ===
     const { error } = await supabaseClient.from('assignments').update(payload).eq('id', id);
-    if(error) { console.error(error); return toast('Failed to update assignment', 'error'); }
-    const idx = ASSIGNMENTS.findIndex(a => a.id === id);
-    ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], title, subject, due, desc };
+    
+    if(error) { 
+      console.error(error); 
+      // This will pop up on your screen telling you exactly what Supabase didn't like!
+      return toast('Error: ' + error.message, 'error'); 
+    }
+    
+    const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(id));
+    if(idx !== -1) {
+      ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], title, subject, due, desc };
+    }
     toast('Assignment updated successfully!');
+    
   } else {
-    const newId = 'ASG' + Date.now();
-    payload.id = newId;
+    // === CREATE NEW ASSIGNMENT ===
+    // Notice: We do NOT create an ID here. We let Supabase generate the number automatically!
     const { data, error } = await supabaseClient.from('assignments').insert([payload]).select();
-    if(error) { console.error(error); return toast('Failed to create assignment', 'error'); }
-    ASSIGNMENTS.unshift(mapAssignment(data[0] || payload)); 
+    
+    if(error) { 
+      console.error(error); 
+      return toast('Error: ' + error.message, 'error'); 
+    }
+    
+    if (data && data.length > 0) {
+      ASSIGNMENTS.unshift(mapAssignment(data[0])); 
+    }
     toast('Assignment created successfully!');
   }
+  
   closeModal('assignment-modal');
   renderPage('t-assignments');
 };
+
 
 window.deleteAssignment = async function(id) {
   if (!supabaseClient) return;
