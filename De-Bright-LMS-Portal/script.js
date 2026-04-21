@@ -588,9 +588,11 @@ window.openAssignmentModal = function(id = null) {
   const mTitle = document.getElementById('asgn-modal-title');
   
   if(id) {
-    const a = ASSIGNMENTS.find(x => x.id === id);
-    t.value = a.title; s.value = a.subject; d.value = a.due; desc.value = a.desc; idInput.value = a.id;
-    mTitle.textContent = "Edit Assignment";
+    const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
+    if (a) {
+      t.value = a.title; s.value = a.subject; d.value = a.due; desc.value = a.desc; idInput.value = a.id;
+      mTitle.textContent = "Edit Assignment";
+    }
   } else {
     t.value = ''; d.value = ''; desc.value = ''; idInput.value = '';
     mTitle.textContent = "Create Assignment";
@@ -609,45 +611,26 @@ window.saveAssignment = async function() {
   
   if(!title || !due) return toast('Please provide a title and due date', 'error');
   
-  // We only send exactly what matches the database columns
   const payload = { title: title, subject: subject, due: due, description: desc }; 
   
   if(id) {
-    // === EDIT EXISTING ASSIGNMENT ===
     const { error } = await supabaseClient.from('assignments').update(payload).eq('id', id);
-    
-    if(error) { 
-      console.error(error); 
-      // This will pop up on your screen telling you exactly what Supabase didn't like!
-      return toast('Error: ' + error.message, 'error'); 
-    }
+    if(error) { console.error(error); return toast('Error: ' + error.message, 'error'); }
     
     const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(id));
-    if(idx !== -1) {
-      ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], title, subject, due, desc };
-    }
+    if(idx !== -1) { ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], title, subject, due, desc }; }
     toast('Assignment updated successfully!');
-    
   } else {
-    // === CREATE NEW ASSIGNMENT ===
-    // Notice: We do NOT create an ID here. We let Supabase generate the number automatically!
     const { data, error } = await supabaseClient.from('assignments').insert([payload]).select();
+    if(error) { console.error(error); return toast('Error: ' + error.message, 'error'); }
     
-    if(error) { 
-      console.error(error); 
-      return toast('Error: ' + error.message, 'error'); 
-    }
-    
-    if (data && data.length > 0) {
-      ASSIGNMENTS.unshift(mapAssignment(data[0])); 
-    }
+    if (data && data.length > 0) { ASSIGNMENTS.unshift(mapAssignment(data[0])); }
     toast('Assignment created successfully!');
   }
   
   closeModal('assignment-modal');
   renderPage('t-assignments');
 };
-
 
 window.deleteAssignment = async function(id) {
   if (!supabaseClient) return;
@@ -656,9 +639,9 @@ window.deleteAssignment = async function(id) {
   const { error } = await supabaseClient.from('assignments').delete().eq('id', id);
   if(error) { console.error(error); return toast('Failed to delete assignment', 'error'); }
   
-  ASSIGNMENTS = ASSIGNMENTS.filter(a => a.id !== id);
+  ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(id));
   renderPage('t-assignments');
-  toast('Assignment deleted successfully', 'error');
+  toast('Assignment deleted successfully', 'error'); 
 };
 
 /* ====================== REAL WORK: MANAGE STUDENTS ====================== */
