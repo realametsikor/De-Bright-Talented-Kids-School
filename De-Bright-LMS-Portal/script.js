@@ -1,3 +1,11 @@
+/* ====================== SUPABASE SETUP ====================== */
+let supabase = null;
+if (window.supabase) {
+  const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
+  supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+}
+
 /* ====================== STATIC DATA ====================== */
 const USERS = {
   STU001:{role:'student',name:'Ama Korkor',initials:'AK',class:'6B',id:'STU001'},
@@ -87,26 +95,47 @@ window.doLogin = async function(){
   currentUser = USERS[id];
   btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
 
+  try {
+    await fetchAllData();
+  } catch (error) {
+    console.warn("Database fetch failed, continuing with local demo data.", error);
+  }
+
   btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
-  
   setTimeout(()=>{
     btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('lms-dashboard').classList.add('active');
-    
-    const nav = document.querySelector('.navbar');
-    const footer = document.querySelector('footer');
+    document.querySelector('.navbar').style.display = 'none';
+    document.querySelector('footer').style.display = 'none';
     const wa = document.querySelector('.whatsapp-btn');
-    const btt = document.getElementById('backToTop');
-    
-    if(nav) nav.style.display = 'none';
-    if(footer) footer.style.display = 'none';
     if(wa) wa.style.display = 'none';
+    const btt = document.getElementById('backToTop');
     if(btt) btt.style.display = 'none';
-    
     buildDashboard();
   }, 600);
 };
+
+async function fetchAllData(){
+  if(!supabase) return;
+  try {
+    const [asgn, subs, noticesRes, resRes, attRes] = await Promise.all([
+      supabase.from('assignments').select('*').order('created_at',{ascending:false}),
+      supabase.from('submissions').select('*').order('created_at',{ascending:false}),
+      supabase.from('notices').select('*').order('created_at',{ascending:false}),
+      supabase.from('resources').select('*').order('created_at',{ascending:false}),
+      supabase.from('attendance').select('*').order('date',{ascending:false}),
+    ]);
+    if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
+    if(subs.data) SUBMISSIONS = subs.data;
+    if(noticesRes.data) NOTICES = noticesRes.data;
+    if(resRes.data) RESOURCES = resRes.data;
+    if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
+  } catch (e) {
+    console.error("Supabase Error:", e);
+    throw e;
+  }
+}
 
 function mapAssignment(item){
   return {
@@ -585,26 +614,26 @@ const pages = {
 
 /* ─────── STUDENT AI TUTOR ─────── */
 's-ai':()=>`
-  <div class="page-header"><h2>AI Study Tutor</h2><span>Powered by Claude</span></div>
-  <div class="panel" style="max-width:720px;">
-    <div class="panel-head">
-      <h3>🤖 Ask me anything about your subjects</h3>
-      <button class="btn-outline" style="font-size:.75rem;padding:.35rem .8rem;" onclick="clearAiChat()"><i class="fas fa-redo"></i> Reset</button>
+  <div class="page-header"><h2>AI Study Tutor</h2><span>Powered by Claude 3</span></div>
+  <div class="panel" style="max-width:800px; margin: 0 auto; box-shadow: var(--lms-shadow-lg); border-radius: 20px; overflow: hidden;">
+    <div class="panel-head" style="background: var(--primary); color: white; padding: 1.2rem 1.5rem;">
+      <h3 style="color: white; font-size: 1.1rem;"><i class="fas fa-robot" style="color: var(--accent); margin-right: 8px;"></i> De-Bright AI Tutor</h3>
+      <button class="btn-outline" style="border-color: rgba(255,255,255,0.3); color: white; font-size:.75rem;padding:.35rem .8rem;" onclick="clearAiChat()"><i class="fas fa-redo"></i> Reset Chat</button>
     </div>
-    <div class="modal-body" style="padding:1.2rem;">
-      <div class="ai-chat" id="ai-chat" style="max-height:420px;">
-        <div class="ai-msg ai">
-          <div class="ai-av bot">🤖</div>
-          <div class="ai-bubble">Hi ${currentUser.name.split(' ')[0]}! I'm your AI Study Tutor. I can help you understand any subject — Maths, Science, English, Social Studies, or anything from your syllabus. What would you like to learn today?</div>
-        </div>
-      </div>
-      <div class="ai-input-row" style="margin-top:1rem;">
-        <input class="ai-input" id="ai-input" placeholder="Ask a question, e.g. 'Explain fractions with examples'" onkeydown="if(event.key==='Enter')sendAiMsg()">
-        <button class="btn-gold" onclick="sendAiMsg()"><i class="fas fa-paper-plane"></i></button>
-      </div>
-      <div style="margin-top:.8rem;display:flex;gap:.5rem;flex-wrap:wrap;" id="ai-suggestions">
+    <div class="modal-body" style="padding:1.5rem; background: #fff;">
+      <div id="ai-suggestions">
         ${['What are fractions?','Explain photosynthesis','How do I write an essay?','What is the water cycle?'].map(s=>
           `<button class="ai-suggestion" onclick="setAiInput('${s}')">${s}</button>`).join('')}
+      </div>
+      <div class="ai-chat" id="ai-chat">
+        <div class="ai-msg ai">
+          <div class="ai-av bot"><i class="fas fa-robot"></i></div>
+          <div class="ai-bubble">Hi <strong>${currentUser.name.split(' ')[0]}</strong>! 👋 I'm your De-Bright AI Study Tutor. I can help you understand Maths, Science, English, or anything from your syllabus. What would you like to learn today?</div>
+        </div>
+      </div>
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-input" placeholder="Type your question here..." onkeydown="if(event.key==='Enter')sendAiMsg()">
+        <button class="btn-send-ai" onclick="sendAiMsg()"><i class="fas fa-paper-plane"></i></button>
       </div>
     </div>
   </div>`,
@@ -954,6 +983,13 @@ window.saveGrades = async function(){
   const feedback = document.getElementById('grade-feedback').value.trim();
   if(isNaN(score)||score<0||score>100){toast('Enter a valid score (0–100).', 'error');return;}
 
+  if(supabase){
+    const {error} = await supabase.from('submissions').update({
+      score, feedback, graded:true, graded_at:new Date().toISOString()
+    }).eq('id',subId);
+    if(error){toast('Failed to save grade.', 'error'); console.error(error); return;}
+  }
+
   const idx = SUBMISSIONS.findIndex(s=>s.id===subId);
   if(idx>-1){SUBMISSIONS[idx]={...SUBMISSIONS[idx],score,feedback,graded:true,graded_at:new Date().toISOString()};}
   closeModal('grader-modal');
@@ -999,9 +1035,13 @@ async function submitAssignment(aId, answer){
     feedback: null,
     created_at: new Date().toISOString()
   };
-
-  SUBMISSIONS.unshift({...payload, id:'local-'+Date.now()});
-  
+  if(supabase){
+    const {data,error} = await supabase.from('submissions').insert([payload]).select();
+    if(error){toast('Submission failed. Please try again.', 'error'); console.error(error); return;}
+    if(data) SUBMISSIONS.unshift(data[0]);
+  } else {
+    SUBMISSIONS.unshift({...payload, id:'local-'+Date.now()});
+  }
   toast('Assignment submitted successfully! ✅');
   renderPage('s-assignments');
 }
@@ -1052,13 +1092,84 @@ window.nextQuizQ = async function(){
   renderQuizQuestion();
 };
 
+
+/* ====================== AI TUTOR ====================== */
+window.sendAiMsg = async function(){
+  const inp = document.getElementById('ai-input');
+  const chat = document.getElementById('ai-chat');
+  if(!inp||!chat||!inp.value.trim()) return;
+  const msg = inp.value.trim();
+  inp.value='';
+
+  // Hide suggestions once chat starts
+  document.getElementById('ai-suggestions') && (document.getElementById('ai-suggestions').style.display='none');
+
+  // Add User Message
+  chat.innerHTML += `<div class="ai-msg user"><div class="ai-av usr">${currentUser.initials}</div><div class="ai-bubble">${msg}</div></div>`;
+  
+  // Add Typing Indicator
+  chat.innerHTML += `<div class="ai-msg ai" id="ai-typing-indicator"><div class="ai-av bot"><i class="fas fa-robot"></i></div><div class="ai-bubble"><div class="ai-typing"><div class="ai-dot"></div><div class="ai-dot"></div><div class="ai-dot"></div></div></div></div>`;
+  chat.scrollTop = chat.scrollHeight;
+
+  // Format history for our backend
+  aiHistory.push({role:'user',content:msg});
+  const formattedHistory = aiHistory.map(m => ({ role: m.role, content: m.content }));
+
+  try {
+    // 🔒 Calling the secure backend!
+    const res = await fetch('/api/chat', {
+      method:'POST',
+      headers:{ 'Content-Type': 'application/json' },
+      body:JSON.stringify({
+        messages: formattedHistory.slice(-8)
+      })
+    });
+
+    if(!res.ok) throw new Error("Backend API Error");
+
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || "I'm sorry, I couldn't generate a response.";
+    
+    // Save to history
+    aiHistory.push({role:'assistant',content:reply});
+  
+    // Replace typing indicator with actual response
+    document.getElementById('ai-typing-indicator')?.remove();
+    chat.innerHTML += `<div class="ai-msg ai"><div class="ai-av bot"><i class="fas fa-robot"></i></div><div class="ai-bubble">${reply.replace(/\n/g,'<br>')}</div></div>`;
+    chat.scrollTop = chat.scrollHeight;
+
+  } catch(e){
+    console.error("AI Fetch Error:", e);
+    document.getElementById('ai-typing-indicator')?.remove();
+    chat.innerHTML += `<div class="ai-msg ai"><div class="ai-av bot"><i class="fas fa-exclamation-triangle"></i></div><div class="ai-bubble" style="color:var(--lms-red);">Sorry, I couldn't connect to the server. Please check your internet and try again.</div></div>`;
+    chat.scrollTop = chat.scrollHeight;
+  }
+};
+
+window.setAiInput = function(text){
+  const inp = document.getElementById('ai-input');
+  if(inp){inp.value=text;inp.focus();}
+};
+
+window.clearAiChat = function(){
+  aiHistory=[];
+  renderPage('s-ai');
+};
+
+
 /* ====================== TEACHER ACTIONS ====================== */
 window.publishNotice = async function(){
   const title = document.getElementById('notice-title').value.trim();
   const body = document.getElementById('notice-body').value.trim();
   if(!title||!body){toast('Please fill in both fields.', 'error');return;}
   const payload = {title, body, posted_by:currentUser.name, created_at:new Date().toISOString()};
-  NOTICES.unshift({...payload,id:'local-'+Date.now()});
+  if(supabase){
+    const {data,error}=await supabase.from('notices').insert([payload]).select();
+    if(error){toast('Failed to post notice.', 'error'); console.error(error); return;}
+    if(data) NOTICES.unshift(data[0]);
+  } else {
+    NOTICES.unshift({...payload,id:'local-'+Date.now()});
+  }
   toast('Notice published to all students! 📢');
   renderPage('t-notices');
 };
@@ -1071,7 +1182,13 @@ window.publishResource = async function(){
   const description=document.getElementById('res-desc').value.trim();
   if(!title){toast('Please enter a resource title.', 'error');return;}
   const payload={title,subject,type,url,description,created_at:new Date().toISOString()};
-  RESOURCES.unshift({...payload,id:'local-'+Date.now()});
+  if(supabase){
+    const {data,error}=await supabase.from('resources').insert([payload]).select();
+    if(error){toast('Failed to share resource.', 'error'); console.error(error); return;}
+    if(data) RESOURCES.unshift(data[0]);
+  } else {
+    RESOURCES.unshift({...payload,id:'local-'+Date.now()});
+  }
   toast('Resource shared with students! 📚');
   renderPage('t-resources');
 };
@@ -1079,12 +1196,17 @@ window.publishResource = async function(){
 window.deleteItem = async function(type, id) {
   const isNotice = type === 'notice';
   const itemName = isNotice ? 'notice' : 'resource';
+  
   if(!confirm(`Delete this ${itemName}?`)) return;
+  
+  if(supabase) await supabase.from(isNotice ? 'notices' : 'resources').delete().eq('id', id);
+  
   if (isNotice) {
     NOTICES = NOTICES.filter(n => n.id !== id);
   } else {
     RESOURCES = RESOURCES.filter(r => r.id !== id);
   }
+  
   toast(`${itemName.charAt(0).toUpperCase() + itemName.slice(1)} deleted.`);
   renderPage(isNotice ? 't-notices' : 't-resources');
 };
@@ -1100,6 +1222,12 @@ window.saveAttendance = async function(){
     notes:'',
     class:'6B'
   }));
+  if(supabase){
+    const {error}=await supabase.from('attendance').upsert(records,{onConflict:'student_id,date'});
+    if(error){toast('Failed to save attendance.', 'error'); console.error(error); return;}
+    const {data}=await supabase.from('attendance').select('*').order('date',{ascending:false});
+    if(data) ATTENDANCE_RECORDS=data;
+  }
   toast(`Attendance saved for ${records.length} students! ✅`);
 };
 
@@ -1161,7 +1289,13 @@ window.publishAssignment=async function(){
   btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Publishing…';
   const payload={title,subject,description,due,status:'open',color:'blue',assignment_type:type,content:contentPayload};
 
-  ASSIGNMENTS.unshift({...payload,id:'local-'+Date.now(),desc:description,type:payload.assignment_type});
+  if(supabase){
+    const {data,error}=await supabase.from('assignments').insert([payload]).select();
+    if(error){toast('Failed to publish.', 'error'); console.error(error); btn.innerHTML='<i class="fas fa-paper-plane"></i> Publish to Class';return;}
+    if(data) ASSIGNMENTS.unshift(mapAssignment(data[0]));
+  } else {
+    ASSIGNMENTS.unshift({...payload,id:'local-'+Date.now(),desc:description,type:payload.assignment_type});
+  }
 
   toast(`"${title}" published to all students! 🎉`);
   renderPage('t-assignments');
