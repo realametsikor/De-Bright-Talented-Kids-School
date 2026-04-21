@@ -6,14 +6,7 @@ if (window.supabase) {
   supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 }
 
-/* ====================== STATIC DATA ====================== */
-const USERS = {
-  STU001:{role:'student',name:'Ama Korkor',initials:'AK',class:'6B',id:'STU001'},
-  STU002:{role:'student',name:'Kofi Asante',initials:'KA',class:'6B',id:'STU002'},
-  TCH001:{role:'teacher',name:'Abena Boateng',initials:'AB',class:'Class 6B Teacher',id:'TCH001'}
-};
-const PASSWORDS = {STU001:'student123',STU002:'student456',TCH001:'teacher123'};
-
+/* ====================== STATIC DATA (Subjects/Timetable) ====================== */
 const SUBJECTS = [
   {name:'Mathematics',teacher:'Mr. Asare',progress:82,emoji:'➕',color:'gold'},
   {name:'English Language',teacher:'Ms. Owusu',progress:75,emoji:'📝',color:'blue'},
@@ -36,15 +29,6 @@ const GRADES = [
   {subject:'ICT',classScore:'39/40',examScore:'55/60',total:94,grade:'A',remark:'Excellent'},
 ];
 
-/* UPGRADED: Students are now detailed objects! */
-let STUDENTS_DB = [
-  {id:'STU001', name:'Ama Korkor', class:'6B', age: 11, gender:'Female', parentContact:'024 111 2222'},
-  {id:'STU002', name:'Kofi Asante', class:'6B', age: 12, gender:'Male', parentContact:'055 333 4444'},
-  {id:'STU003', name:'Adwoa Mensah', class:'6B', age: 11, gender:'Female', parentContact:'020 555 6666'},
-  {id:'STU004', name:'Kweku Boateng', class:'6B', age: 12, gender:'Male', parentContact:'054 777 8888'},
-  {id:'STU005', name:'Efua Ofori', class:'6B', age: 11, gender:'Female', parentContact:'026 999 0000'}
-];
-
 const TIMETABLE = [
   ['Maths','English','Science','Maths','French'],
   ['Science','Maths','English','ICT','Maths'],
@@ -60,13 +44,14 @@ const TT_COLORS = {
   'Creative Arts':'filled-gold','RME':'filled-red','BREAK':'break','LUNCH':'lunch'
 };
 
-/* ====================== LIVE STATE ====================== */
+/* ====================== LIVE DB STATE ====================== */
 let currentUser = null, currentRole = 'student';
-let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [], REPORT_CARDS = [];
+let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
+let STUDENTS_DB = [], REPORT_CARDS = []; // Now powered by Supabase!
 let attState = {};
 let aiHistory = [];
 
-/* ====================== LOGIN ====================== */
+/* ====================== DYNAMIC LOGIN ====================== */
 window.setRole = function(r){
   currentRole = r;
   document.getElementById('role-student').classList.toggle('active', r==='student');
@@ -76,58 +61,99 @@ window.setRole = function(r){
 };
 
 window.doLogin = async function(){
-  const idInput = document.getElementById('login-id');
-  const passInput = document.getElementById('login-pass');
+  const idInput = document.getElementById('login-id').value.trim().toUpperCase();
+  const pwInput = document.getElementById('login-pass').value;
   const errorBox = document.getElementById('login-error');
   const btnText = document.getElementById('login-btn-text');
 
-  if (!idInput || !passInput || !errorBox || !btnText) return;
+  if(!idInput || !pwInput) { showErr('Please enter your ID and password.'); return; }
 
-  const id = idInput.value.trim().toUpperCase();
-  const pw = passInput.value;
   errorBox.style.display = 'none';
+  btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating…';
 
-  if(!id || !pw){ showErr('Please enter your ID and password.'); return; }
-  if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
-  if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
+  let authenticated = false;
+  let fetchedUser = null;
 
-  currentRole = USERS[id].role;
-  window.setRole(currentRole);
+  try {
+    if (currentRole === 'teacher') {
+      // Hardcoded Teacher for Demo Purposes
+      if (idInput === 'TCH001' && pwInput === 'teacher123') {
+        authenticated = true;
+        fetchedUser = { role: 'teacher', name: 'Abena Boateng', initials: 'AB', class: 'Class 6B Teacher', id: 'TCH001' };
+      } else { showErr('Invalid teacher credentials.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
+    } else {
+      // REAL WORK: Query Supabase directly for Students!
+      if (!supabase) throw new Error("Supabase not initialized");
+      
+      const { data, error } = await supabase.from('students').select('*').eq('id', idInput).single();
+      
+      if (error || !data) { showErr('Student ID not found in database.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
+      if (pwInput !== 'student123') { showErr('Incorrect password.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
 
-  currentUser = USERS[id];
-  btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
+      authenticated = true;
+      fetchedUser = { role: 'student', name: data.name, initials: getInitials(data.name), class: data.class, id: data.id };
+    }
 
-  try { await fetchAllData(); } catch (error) { console.warn("DB fetch failed, using local."); }
-
-  btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
-  setTimeout(()=>{
+    if (authenticated) {
+      currentUser = fetchedUser;
+      await fetchAllData();
+      
+      btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
+      setTimeout(()=>{
+        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('lms-dashboard').classList.add('active');
+        document.querySelector('.navbar').style.display = 'none';
+        document.querySelector('footer').style.display = 'none';
+        const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display = 'none';
+        const btt = document.getElementById('backToTop'); if(btt) btt.style.display = 'none';
+        buildDashboard();
+      }, 600);
+    }
+  } catch (error) {
+    console.error("Login Error:", error);
+    showErr('Database connection error. Please try again.');
     btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('lms-dashboard').classList.add('active');
-    
-    const nav = document.querySelector('.navbar');
-    const footer = document.querySelector('footer');
-    const wa = document.querySelector('.whatsapp-btn');
-    const btt = document.getElementById('backToTop');
-    
-    if(nav) nav.style.display = 'none';
-    if(footer) footer.style.display = 'none';
-    if(wa) wa.style.display = 'none';
-    if(btt) btt.style.display = 'none';
-    
-    buildDashboard();
-  }, 600);
+  }
 };
 
 async function fetchAllData(){
   if(!supabase) return;
-  // Supabase fetches left intact for future integration
+  try {
+    const [asgn, subs, noticesRes, resRes, attRes, stdRes, repRes] = await Promise.all([
+      supabase.from('assignments').select('*').order('created_at',{ascending:false}),
+      supabase.from('submissions').select('*').order('created_at',{ascending:false}),
+      supabase.from('notices').select('*').order('created_at',{ascending:false}),
+      supabase.from('resources').select('*').order('created_at',{ascending:false}),
+      supabase.from('attendance').select('*').order('date',{ascending:false}),
+      supabase.from('students').select('*').order('name',{ascending:true}), // Fetch Students!
+      supabase.from('report_cards').select('*').order('date',{ascending:false}) // Fetch Reports!
+    ]);
+    if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
+    if(subs.data) SUBMISSIONS = subs.data;
+    if(noticesRes.data) NOTICES = noticesRes.data;
+    if(resRes.data) RESOURCES = resRes.data;
+    if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
+    if(stdRes.data) STUDENTS_DB = stdRes.data;
+    if(repRes.data) REPORT_CARDS = repRes.data;
+  } catch (e) {
+    console.error("Supabase Error:", e);
+    throw e;
+  }
+}
+
+function mapAssignment(item){
+  return {
+    id:item.id, title:item.title, subject:item.subject,
+    desc:item.description, due:item.due, status:item.status||'open',
+    color:item.color||'blue', type:item.assignment_type||'standard',
+    content:item.content, created_at:item.created_at
+  };
 }
 
 function showErr(msg){
   const e = document.getElementById('login-error');
-  e.textContent = msg;
-  e.style.display = 'block';
+  e.textContent = msg; e.style.display = 'block'; e.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
 function doLogout(){
@@ -135,10 +161,10 @@ function doLogout(){
   document.getElementById('login-section').style.display='';
   document.querySelector('.navbar').style.display='';
   document.querySelector('footer').style.display='';
-  const wa = document.querySelector('.whatsapp-btn');
-  if(wa) wa.style.display='';
-  currentUser=null; aiHistory=[];
-  window.scrollTo({top:0,behavior:'smooth'});
+  const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display='';
+  const btt = document.getElementById('backToTop'); if(btt) btt.style.display='';
+  document.getElementById('login-id').value=''; document.getElementById('login-pass').value='';
+  currentUser=null; aiHistory=[]; window.scrollTo({top:0,behavior:'smooth'});
 }
 
 /* ====================== DASHBOARD BUILDER ====================== */
@@ -159,7 +185,7 @@ function buildDashboard(){
     ]},
     {section:'Academics', links:[
       {icon:'tasks',label:'Assignments',page:'s-assignments',badge:pending||null},
-      {icon:'chart-bar',label:'Grades & Reports',page:'s-grades'}, // Renamed to include reports
+      {icon:'chart-bar',label:'Grades & Reports',page:'s-grades'},
       {icon:'calendar-alt',label:'Timetable',page:'s-timetable'},
       {icon:'user-check',label:'Attendance',page:'s-attendance'},
     ]},
@@ -201,9 +227,7 @@ function showPage(page, el){
   if(el) el.classList.add('active');
   const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book'};
   document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').toUpperCase();
-  renderPage(page);
-  closeSidebar();
-  window.scrollTo({top:0,behavior:'smooth'});
+  renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function openSidebar(){document.getElementById('lms-sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('open');}
@@ -220,10 +244,8 @@ function toast(msg,type='success'){
 }
 
 function renderPage(page){
-  const c = document.getElementById('pages-container');
-  c.innerHTML='';
-  const div = document.createElement('div');
-  div.className='lms-page active';
+  const c = document.getElementById('pages-container'); c.innerHTML='';
+  const div = document.createElement('div'); div.className='lms-page active';
   div.innerHTML = pages[page] ? pages[page]() : `<div class="empty-state"><i class="fas fa-tools"></i><h3>Coming Soon</h3></div>`;
   c.appendChild(div);
   if(page==='t-attendance') { renderAttList(); }
@@ -254,7 +276,6 @@ const pages = {
 
 /* ─────── STUDENT GRADES (WITH REPORT CARDS) ─────── */
 's-grades':()=>{
-  // Find report cards for this student
   const myReports = REPORT_CARDS.filter(r => r.student_id === currentUser.id);
   
   return `
@@ -325,7 +346,7 @@ const pages = {
           <div class="std-info">
             <strong style="font-size:.95rem;">${s.name}</strong>
             <span style="font-size:.75rem;margin-top:3px;display:block;">
-              <span class="chip grey">${s.id}</span> · Age: ${s.age} · ${s.gender} · Parent: <a href="tel:${s.parentContact}">${s.parentContact}</a>
+              <span class="chip grey">${s.id}</span> · Age: ${s.age} · ${s.gender} · Parent: <a href="tel:${s.parent_contact}">${s.parent_contact}</a>
             </span>
           </div>
           <div class="ml-auto" style="display:flex;gap:.4rem;">
@@ -367,7 +388,7 @@ const pages = {
   </div>`
 },
 
-/* Dummy fillers for navigation to work without errors */
+/* Dummy fillers for navigation */
 's-timetable':()=>`<div class="page-header"><h2>Timetable</h2></div>`,
 's-attendance':()=>`<div class="page-header"><h2>Attendance</h2></div>`,
 's-quiz':()=>`<div class="page-header"><h2>Quizzes</h2></div>`,
@@ -384,8 +405,10 @@ const pages = {
 't-timetable':()=>`<div class="page-header"><h2>Timetable</h2></div>`,
 };
 
-/* ====================== CRUD: MANAGE STUDENTS ====================== */
-window.saveNewStudent = function() {
+/* ====================== REAL WORK: MANAGE STUDENTS IN SUPABASE ====================== */
+window.saveNewStudent = async function() {
+  if (!supabase) { toast('Database connection missing!', 'error'); return; }
+
   const name = document.getElementById('new-std-name').value.trim();
   const age = document.getElementById('new-std-age').value;
   const gender = document.getElementById('new-std-gender').value;
@@ -393,26 +416,34 @@ window.saveNewStudent = function() {
 
   if(!name || !age || !parentContact) { toast('Please fill all fields', 'error'); return; }
 
-  // Generate a new ID like STU006
-  const newId = 'STU' + String(STUDENTS_DB.length + 1).padStart(3, '0');
+  // Count ALL students in DB to get the next ID number properly
+  const { count } = await supabase.from('students').select('*', { count: 'exact', head: true });
+  const nextNumber = (count || STUDENTS_DB.length) + 1;
+  const newId = 'STU' + String(nextNumber).padStart(3, '0');
   
-  // Push to main database
-  STUDENTS_DB.push({ id: newId, name, age, gender, parentContact, class: '6B' });
+  const payload = { id: newId, name: name, age: age, gender: gender, parent_contact: parentContact, class: '6B' };
+
+  const { data, error } = await supabase.from('students').insert([payload]).select();
+
+  if (error) { console.error(error); toast('Failed to add student to DB.', 'error'); return; }
   
-  // Add logic to allow them to log in!
-  USERS[newId] = {role: 'student', name: name, initials: getInitials(name), class: '6B', id: newId};
-  PASSWORDS[newId] = 'student123'; // Default password
+  if (data) STUDENTS_DB.push(data[0]);
 
   closeModal('add-student-modal');
   renderPage('t-class');
   toast(`${name} added successfully! ID: ${newId}`);
 };
 
-window.deleteStudent = function(id) {
+window.deleteStudent = async function(id) {
+  if (!supabase) return;
   const student = STUDENTS_DB.find(s => s.id === id);
-  if(confirm(`Are you absolutely sure you want to remove ${student.name} from the school system?`)) {
+  
+  if(confirm(`Are you absolutely sure you want to remove ${student.name} from the database?`)) {
+    const { error } = await supabase.from('students').delete().eq('id', id);
+    
+    if (error) { console.error(error); toast('Failed to remove student.', 'error'); return; }
+
     STUDENTS_DB = STUDENTS_DB.filter(s => s.id !== id);
-    delete USERS[id]; // Revoke login access
     renderPage('t-class');
     toast('Student removed successfully.', 'error');
   }
@@ -425,18 +456,21 @@ window.openTransferModal = function(id) {
   openModal('transfer-modal');
 };
 
-window.saveTransfer = function() {
+window.saveTransfer = async function() {
+  if (!supabase) return;
   const id = document.getElementById('transfer-modal').dataset.stdId;
   const newClass = document.getElementById('transfer-class-select').value;
   const std = STUDENTS_DB.find(s => s.id === id);
   
   if(std) {
-    std.class = newClass; // Update DB
-    if(USERS[id]) USERS[id].class = newClass; // Update Auth profile
+    const { error } = await supabase.from('students').update({ class: newClass }).eq('id', id);
+    if (error) { console.error(error); toast('Failed to transfer student.', 'error'); return; }
+    
+    std.class = newClass; // Update local DB
   }
   
   closeModal('transfer-modal');
-  renderPage('t-class'); // Re-render. They will disappear because the teacher only sees 6B!
+  renderPage('t-class'); 
   toast(`${std.name} has been transferred to ${newClass}`);
 };
 
@@ -447,7 +481,7 @@ window.filterStudents = function(){
   });
 };
 
-/* ====================== REPORT CARDS ENGINE ====================== */
+/* ====================== REAL WORK: REPORT CARDS IN SUPABASE ====================== */
 window.openReportModal = function(id) {
   const std = STUDENTS_DB.find(s => s.id === id);
   document.getElementById('report-std-name').textContent = std.name;
@@ -455,24 +489,30 @@ window.openReportModal = function(id) {
   openModal('build-report-modal');
 };
 
-window.saveReportCard = function() {
+window.saveReportCard = async function() {
+  if (!supabase) return;
   const id = document.getElementById('build-report-modal').dataset.stdId;
   const conduct = document.getElementById('report-conduct').value;
   const remarks = document.getElementById('report-remarks').value.trim();
 
   if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
 
-  REPORT_CARDS.push({
+  const payload = {
     id: 'REP' + Date.now(),
     student_id: id,
     term: 'Term 2',
     conduct: conduct,
-    remarks: remarks,
-    date: new Date().toISOString()
-  });
+    remarks: remarks
+  };
+
+  const { data, error } = await supabase.from('report_cards').insert([payload]).select();
+
+  if (error) { console.error(error); toast('Failed to save report card.', 'error'); return; }
+
+  if (data) REPORT_CARDS.push(data[0]);
 
   closeModal('build-report-modal');
-  renderPage('t-grades'); // Re-render to show the "Published" badge
+  renderPage('t-grades'); 
   toast('Report Card Generated & Published! ✅');
 };
 
@@ -480,7 +520,6 @@ window.viewReportCard = function(reportId) {
   const report = REPORT_CARDS.find(r => r.id === reportId);
   const printArea = document.getElementById('print-area');
 
-  // Build the visual Report Card
   printArea.innerHTML = `
     <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff;">
       <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
@@ -529,6 +568,15 @@ window.viewReportCard = function(reportId) {
 
   openModal('view-report-modal');
 };
+
+/* ====================== ATTENDANCE ====================== */
+function renderAttList(){
+  const el=document.getElementById('att-mark-list');
+  if(!el) return;
+  const myClass = STUDENTS_DB.filter(s => s.class === '6B');
+  el.innerHTML=myClass.map((s,i)=>` <div class="std-row"> <div class="std-av">${getInitials(s.name)}</div> <div class="std-info"><strong>${s.name}</strong><span>${s.id}</span></div> <div class="ml-auto" style="display:flex;gap:.4rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">P</button> <button onclick="setAtt(${i},'absent')" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">A</button> </div> </div>`).join('');
+}
+window.setAtt=function(i,v){attState[i]=v;renderAttList();};
 
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded',()=>{
