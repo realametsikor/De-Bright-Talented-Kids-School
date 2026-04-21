@@ -198,6 +198,84 @@
 
 <div id="lms-toast"><i class="fas fa-check-circle"></i><span id="toast-msg"></span></div>
 
+<div class="lms-modal" id="add-student-modal">
+  <div class="lms-modal-box">
+    <div class="modal-h"><h3><i class="fas fa-user-plus" style="color:var(--accent);margin-right:6px;"></i>Add New Student</h3><button onclick="closeModal('add-student-modal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="lms-form-group"><label>Full Name</label><input type="text" id="new-std-name" placeholder="e.g. Kwame Mensah"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+        <div class="lms-form-group"><label>Age</label><input type="number" id="new-std-age" placeholder="e.g. 11"></div>
+        <div class="lms-form-group"><label>Gender</label><select id="new-std-gender"><option>Male</option><option>Female</option></select></div>
+      </div>
+      <div class="lms-form-group"><label>Parent's Contact (Phone/WhatsApp)</label><input type="text" id="new-std-contact" placeholder="e.g. 024 123 4567"></div>
+      <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+        <button class="btn-lms-primary" style="flex:1;" onclick="saveNewStudent()">Add to Class</button>
+        <button class="btn-outline" onclick="closeModal('add-student-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lms-modal" id="transfer-modal">
+  <div class="lms-modal-box">
+    <div class="modal-h"><h3><i class="fas fa-exchange-alt" style="color:var(--accent);margin-right:6px;"></i>Promote / Transfer</h3><button onclick="closeModal('transfer-modal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:var(--lms-muted);margin-bottom:1rem;">Select the new class for <strong id="transfer-std-name" style="color:var(--text);"></strong>. Their profile and data will be moved automatically.</p>
+      <div class="lms-form-group">
+        <label>Destination Class</label>
+        <select id="transfer-class-select">
+          <option value="JHS 1A">JHS 1A (Promotion)</option>
+          <option value="6A">Class 6A (Lateral Transfer)</option>
+          <option value="7B">Class 7B (Promotion)</option>
+        </select>
+      </div>
+      <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+        <button class="btn-lms-primary" style="flex:1;" onclick="saveTransfer()">Confirm Transfer</button>
+        <button class="btn-outline" onclick="closeModal('transfer-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lms-modal" id="build-report-modal">
+  <div class="lms-modal-box">
+    <div class="modal-h"><h3><i class="fas fa-file-signature" style="color:var(--accent);margin-right:6px;"></i>Create End of Term Report</h3><button onclick="closeModal('build-report-modal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div style="background:var(--lms-surface);padding:1rem;border-radius:10px;margin-bottom:1rem;">
+        <strong id="report-std-name"></strong> · Term 2, 2025/26
+      </div>
+      <div class="lms-form-group"><label>Conduct / Behavior</label><select id="report-conduct"><option>Excellent</option><option>Good</option><option>Satisfactory</option><option>Needs Improvement</option></select></div>
+      <div class="lms-form-group"><label>Class Teacher's Remarks</label><textarea id="report-remarks" rows="4" placeholder="Write comprehensive feedback for the parents..."></textarea></div>
+      <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+        <button class="btn-lms-primary" style="flex:1;" onclick="saveReportCard()">Generate & Publish Report</button>
+        <button class="btn-outline" onclick="closeModal('build-report-modal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="lms-modal" id="view-report-modal">
+  <div class="lms-modal-box" style="max-width:700px;">
+    <div class="modal-h"><h3><i class="fas fa-award" style="color:var(--accent);margin-right:6px;"></i>Official Report Card</h3><button onclick="closeModal('view-report-modal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" id="print-area" style="background:#fff; color:#000;">
+       </div>
+    <div style="padding:1.5rem;display:flex;gap:.7rem;border-top:1px solid var(--lms-border);">
+      <button class="btn-lms-primary" style="flex:1;background:var(--lms-green);" onclick="window.print()"><i class="fas fa-download"></i> Download PDF / Print</button>
+      <button class="btn-outline" onclick="closeModal('view-report-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Quick Print CSS just for the report card */
+@media print {
+  body * { visibility: hidden; }
+  #print-area, #print-area * { visibility: visible; }
+  #print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+  .lms-modal-box { box-shadow: none; border: none; }
+}
+</style>
+
 <script src="/main.js"></script>
 
 <script src="/De-Bright-LMS-Portal/script.js?v=3.0"></script>
