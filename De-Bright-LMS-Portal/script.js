@@ -74,39 +74,68 @@ window.setRole = function(r){
 };
 
 window.doLogin = async function(){
-  const id = document.getElementById('login-id').value.trim().toUpperCase();
-  const pw = document.getElementById('login-pass').value;
-  const btn = document.getElementById('login-btn-text');
-  document.getElementById('login-error').style.display = 'none';
+  console.log("Login button tapped!"); 
 
-  if(!id || !pw){ showErr('Please enter your ID and password.'); return; }
-  if(!USERS[id]){ showErr('ID not found. Please check and try again.'); return; }
-  if(PASSWORDS[id] !== pw){ showErr('Incorrect password. Please try again.'); return; }
+  const idInput = document.getElementById('login-id');
+  const passInput = document.getElementById('login-pass');
+  const errorBox = document.getElementById('login-error');
+  const btnText = document.getElementById('login-btn-text');
+
+  if (!idInput || !passInput || !errorBox || !btnText) {
+    console.error("Missing HTML elements for login!");
+    return;
+  }
+
+  const id = idInput.value.trim().toUpperCase();
+  const pw = passInput.value;
+  errorBox.style.display = 'none';
+
+  console.log("Attempting login for ID:", id);
+
+  if(!id || !pw){ 
+    showErr('Please enter your ID and password.'); 
+    return; 
+  }
+  if(!USERS[id]){ 
+    showErr('ID not found. Please check and try again.'); 
+    return; 
+  }
+  if(PASSWORDS[id] !== pw){ 
+    showErr('Incorrect password. Please try again.'); 
+    return; 
+  }
+
+  console.log("Credentials match! Logging in as:", USERS[id].role);
 
   currentRole = USERS[id].role;
   window.setRole(currentRole);
 
   currentUser = USERS[id];
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
+  btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading Portal…';
 
-  // FIX: This try/catch block stops the login button from crashing!
   try {
     await fetchAllData();
   } catch (error) {
     console.warn("Database fetch failed, continuing with local demo data.", error);
   }
 
-  btn.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
+  btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
+  
   setTimeout(()=>{
-    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
+    btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('lms-dashboard').classList.add('active');
-    document.querySelector('.navbar').style.display = 'none';
-    document.querySelector('footer').style.display = 'none';
+    
+    const nav = document.querySelector('.navbar');
+    const footer = document.querySelector('footer');
     const wa = document.querySelector('.whatsapp-btn');
-    if(wa) wa.style.display = 'none';
     const btt = document.getElementById('backToTop');
+    
+    if(nav) nav.style.display = 'none';
+    if(footer) footer.style.display = 'none';
+    if(wa) wa.style.display = 'none';
     if(btt) btt.style.display = 'none';
+    
     buildDashboard();
   }, 600);
 };
