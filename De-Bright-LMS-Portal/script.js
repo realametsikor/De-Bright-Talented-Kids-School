@@ -3,12 +3,11 @@ let supabaseClient = null;
 
 if (window.supabase) {
   const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Keep your full key here!
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
   supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 } else {
   console.error("CRITICAL: Supabase library failed to load from the CDN.");
 }
-
 
 /* ====================== STATIC DATA (Subjects/Timetable) ====================== */
 const SUBJECTS = [
@@ -87,9 +86,9 @@ window.doLogin = async function(){
       } else { showErr('Invalid teacher credentials.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
     } else {
       // REAL WORK: Query Supabase directly for Students!
-      if (!supabase) throw new Error("Supabase not initialized");
+      if (!supabaseClient) throw new Error("Supabase not initialized");
       
-      const { data, error } = await supabase.from('students').select('*').eq('id', idInput).single();
+      const { data, error } = await supabaseClient.from('students').select('*').eq('id', idInput).single();
       
       if (error || !data) { showErr('Student ID not found in database.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
       if (pwInput !== 'student123') { showErr('Incorrect password.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
@@ -116,22 +115,22 @@ window.doLogin = async function(){
     }
   } catch (error) {
     console.error("Login Error:", error);
-    showErr('Database connection error. Please try again.');
+    showErr(`System Error: ${error.message || 'Check console for details'}`); 
     btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
   }
 };
 
 async function fetchAllData(){
-  if(!supabase) return;
+  if(!supabaseClient) return;
   try {
     const [asgn, subs, noticesRes, resRes, attRes, stdRes, repRes] = await Promise.all([
-      supabase.from('assignments').select('*').order('created_at',{ascending:false}),
-      supabase.from('submissions').select('*').order('created_at',{ascending:false}),
-      supabase.from('notices').select('*').order('created_at',{ascending:false}),
-      supabase.from('resources').select('*').order('created_at',{ascending:false}),
-      supabase.from('attendance').select('*').order('date',{ascending:false}),
-      supabase.from('students').select('*').order('name',{ascending:true}), // Fetch Students!
-      supabase.from('report_cards').select('*').order('date',{ascending:false}) // Fetch Reports!
+      supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('notices').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('resources').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('attendance').select('*').order('date',{ascending:false}),
+      supabaseClient.from('students').select('*').order('name',{ascending:true}), // Fetch Students!
+      supabaseClient.from('report_cards').select('*').order('date',{ascending:false}) // Fetch Reports!
     ]);
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
     if(subs.data) SUBMISSIONS = subs.data;
@@ -411,7 +410,7 @@ const pages = {
 
 /* ====================== REAL WORK: MANAGE STUDENTS IN SUPABASE ====================== */
 window.saveNewStudent = async function() {
-  if (!supabase) { toast('Database connection missing!', 'error'); return; }
+  if (!supabaseClient) { toast('Database connection missing!', 'error'); return; }
 
   const name = document.getElementById('new-std-name').value.trim();
   const age = document.getElementById('new-std-age').value;
@@ -421,13 +420,13 @@ window.saveNewStudent = async function() {
   if(!name || !age || !parentContact) { toast('Please fill all fields', 'error'); return; }
 
   // Count ALL students in DB to get the next ID number properly
-  const { count } = await supabase.from('students').select('*', { count: 'exact', head: true });
+  const { count } = await supabaseClient.from('students').select('*', { count: 'exact', head: true });
   const nextNumber = (count || STUDENTS_DB.length) + 1;
   const newId = 'STU' + String(nextNumber).padStart(3, '0');
   
   const payload = { id: newId, name: name, age: age, gender: gender, parent_contact: parentContact, class: '6B' };
 
-  const { data, error } = await supabase.from('students').insert([payload]).select();
+  const { data, error } = await supabaseClient.from('students').insert([payload]).select();
 
   if (error) { console.error(error); toast('Failed to add student to DB.', 'error'); return; }
   
@@ -439,11 +438,11 @@ window.saveNewStudent = async function() {
 };
 
 window.deleteStudent = async function(id) {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   const student = STUDENTS_DB.find(s => s.id === id);
   
   if(confirm(`Are you absolutely sure you want to remove ${student.name} from the database?`)) {
-    const { error } = await supabase.from('students').delete().eq('id', id);
+    const { error } = await supabaseClient.from('students').delete().eq('id', id);
     
     if (error) { console.error(error); toast('Failed to remove student.', 'error'); return; }
 
@@ -461,13 +460,13 @@ window.openTransferModal = function(id) {
 };
 
 window.saveTransfer = async function() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   const id = document.getElementById('transfer-modal').dataset.stdId;
   const newClass = document.getElementById('transfer-class-select').value;
   const std = STUDENTS_DB.find(s => s.id === id);
   
   if(std) {
-    const { error } = await supabase.from('students').update({ class: newClass }).eq('id', id);
+    const { error } = await supabaseClient.from('students').update({ class: newClass }).eq('id', id);
     if (error) { console.error(error); toast('Failed to transfer student.', 'error'); return; }
     
     std.class = newClass; // Update local DB
@@ -494,7 +493,7 @@ window.openReportModal = function(id) {
 };
 
 window.saveReportCard = async function() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   const id = document.getElementById('build-report-modal').dataset.stdId;
   const conduct = document.getElementById('report-conduct').value;
   const remarks = document.getElementById('report-remarks').value.trim();
@@ -509,7 +508,7 @@ window.saveReportCard = async function() {
     remarks: remarks
   };
 
-  const { data, error } = await supabase.from('report_cards').insert([payload]).select();
+  const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
 
   if (error) { console.error(error); toast('Failed to save report card.', 'error'); return; }
 
