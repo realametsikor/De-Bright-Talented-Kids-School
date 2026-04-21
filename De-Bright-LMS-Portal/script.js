@@ -185,6 +185,7 @@ function buildDashboard(){
     {section:'Learning', links:[
       {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
       {icon:'folder-open',label:'Resources',page:'s-resources'},
+      {icon:'robot',label:'AI Tutor',page:'s-ai'}, // AI TUTOR RESTORED HERE!
       {icon:'bullhorn',label:'Notices',page:'s-notices'},
     ]},
   ] : [
@@ -350,6 +351,27 @@ const pages = {
     }
   </div>`
 },
+
+/* AI TUTOR RESTORED */
+'s-ai':()=>`
+  <div style="height: calc(100vh - 180px); background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;">
+    <div style="padding: 1.5rem; background: var(--primary); color: white; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤖</div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.2rem; font-family: var(--font-lms-heading);">De-Bright AI Tutor</h3>
+        <span style="font-size: 0.8rem; opacity: 0.8;">Powered by Gemini</span>
+      </div>
+    </div>
+    <div style="flex: 1; padding: 2rem; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 1.5rem;">
+      <div style="align-self: flex-start; max-width: 80%; background: #fff; padding: 1rem 1.5rem; border-radius: 0 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 0.95rem; line-height: 1.5; color: var(--text);">
+        Hello ${currentUser.name.split(' ')[0]}! I am your personal AI study assistant. Do you need help with your assignments or preparing for a quiz?
+      </div>
+    </div>
+    <div style="padding: 1.5rem; background: #fff; border-top: 1px solid var(--lms-border); display: flex; gap: 1rem;">
+      <input type="text" placeholder="Ask a question..." style="flex: 1; padding: 1rem 1.5rem; border: 1px solid var(--lms-border); border-radius: 99px; outline: none; font-family: var(--font-lms); font-size: 0.95rem; background: #f8fafc;">
+      <button style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.3);"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>`,
 
 't-dashboard':()=>`
   <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, var(--primary)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
@@ -565,7 +587,6 @@ const pages = {
 't-notices':()=>buildNotices(true),
 's-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>`,
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
-'s-ai':()=>`<div class="page-header"><h2>AI Tutor</h2></div>`,
 's-quiz':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Active Quizzes</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-clipboard-check" style="font-size:3rem;color:var(--lms-gold);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Active Quizzes</h3></div>`,
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
 't-timetable': () => pages['s-timetable']()
@@ -659,7 +680,6 @@ window.saveAssignment = async function() {
   
   let attachmentUrl = id ? ASSIGNMENTS.find(x => String(x.id) === String(id))?.attachment_url : null;
 
-  // Handle Supabase File Upload if teacher selected a file
   if(fileInput.files.length > 0) {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading File...';
     btn.disabled = true;
@@ -676,7 +696,7 @@ window.saveAssignment = async function() {
   }
   
   const payload = { title: title, subject: subject, due: due, description: desc }; 
-  if (attachmentUrl) payload.attachment_url = attachmentUrl; // ONLY update if a file exists
+  if (attachmentUrl) payload.attachment_url = attachmentUrl; 
   
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
   
@@ -709,7 +729,6 @@ window.deleteAssignment = async function(id) {
   renderPage('t-assignments');
   toast('Assignment deleted successfully', 'error'); 
 };
-
 
 /* ====================== SUBMISSIONS (STUDENTS SUBMITTING WORK) ====================== */
 function injectSubmitModal() {
@@ -778,7 +797,6 @@ window.doSubmit = async function() {
   
   let fileUrl = null;
   
-  // Handle Supabase File Upload if student selected a file
   if(fileInput.files.length > 0) {
       const file = fileInput.files[0];
       const filePath = `submissions/${currentUser.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
