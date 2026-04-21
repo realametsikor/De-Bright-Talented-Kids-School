@@ -487,7 +487,7 @@ const pages = {
               </td>
               <td>${ASSIGNMENTS[i]?.title || 'Mathematics Worksheet'}</td>
               <td style="text-align:center;"><span class="chip ${i===0?'green':'gold'}">${i===0?'Graded':'Needs Grading'}</span></td>
-              <td style="text-align:center;"><button class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Review</button></td>
+              <td style="text-align:center;"><button class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;">Review</button></td>
             </tr>
           `).join('')}
         </tbody>
@@ -527,12 +527,129 @@ const pages = {
   </div>`,
 
 /* ─────── TEACHER TIMETABLE ─────── */
-'t-timetable':()=> pages['s-timetable'](), // Reuses student timetable layout
+'t-timetable': () => pages['s-timetable'](),
 
-/* ─────── KEEP EXISTING COMPLEX PAGES ─────── */
-'s-grades': pages['s-grades'],
-'t-class': pages['t-class'],
-'t-grades': pages['t-grades']
+/* ─────── REBUILT STUDENT & TEACHER GRADES ─────── */
+'s-grades':()=>{
+  const myReports = REPORT_CARDS.filter(r => r.student_id === currentUser.id);
+  return `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Grades & Reports</h2><span style="color:var(--lms-muted);">Term 2 · 2025/26</span></div>
+  <div class="panel" style="border: 2px solid var(--accent); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden; margin-bottom: 2rem;">
+    <div class="panel-head" style="background:var(--lms-gold-pale); padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+      <h3 style="margin:0; color: var(--accent);"><i class="fas fa-scroll"></i> Official End of Term Reports</h3>
+    </div>
+    <div style="padding:1.5rem;">
+      ${myReports.length === 0 ? `<p style="font-size:.9rem;color:var(--lms-muted);margin:0;">No reports have been published for you yet.</p>` : `
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+        ${myReports.map(rep => `
+          <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;padding:1rem 1.5rem;border-radius:10px;border:1px solid var(--lms-border);">
+            <div>
+              <strong style="color:var(--primary);display:block;font-size:1.05rem;">${rep.term} Report Card</strong>
+              <span style="font-size:.8rem;color:var(--lms-muted);">Published on: ${fmtDate(rep.date)}</span>
+            </div>
+            <button class="btn-lms-primary" style="width:auto;padding:.5rem 1.2rem;border-radius:8px;" onclick="viewReportCard('${rep.id}')"><i class="fas fa-file-pdf"></i> View / Download</button>
+          </div>
+        `).join('')}
+      </div>
+      `}
+    </div>
+  </div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+      <h3 style="margin:0;">Current Continuous Assessment</h3>
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+        <thead style="background: var(--lms-surface);">
+          <tr><th style="padding: 1rem; text-align:left;">Subject</th><th>Class Score</th><th>Exam Score</th><th>Total</th><th>Grade</th></tr>
+        </thead>
+        <tbody>${GRADES.map(g=>`
+          <tr style="border-bottom: 1px solid var(--lms-border);">
+            <td style="padding: 1rem;"><strong>${g.subject}</strong></td>
+            <td style="text-align:center;">${g.classScore}</td>
+            <td style="text-align:center;">${g.examScore}</td>
+            <td style="text-align:center;"><strong>${g.total}/100</strong></td>
+            <td style="text-align:center;"><span class="grade-${g.grade}" style="font-weight:bold; padding: 4px 12px; border-radius: 6px; background: var(--lms-surface);">${g.grade}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`
+},
+
+'t-class':()=>{
+  const myClass = STUDENTS_DB.filter(s => s.class === '6B');
+  return `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <h2>Manage My Class</h2>
+      <span style="color:var(--lms-muted);">${myClass.length} students currently enrolled in 6B</span>
+    </div>
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; box-shadow: 0 4px 10px rgba(13,59,102,0.2);" onclick="openModal('add-student-modal')"><i class="fas fa-user-plus"></i> Add Student</button>
+  </div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border); display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0;">Class Roster</h3>
+      <input type="text" id="student-search" placeholder="Search student..." onkeyup="filterStudents()" style="padding:.5rem 1rem;border:1px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.9rem;outline:none;width:200px; background:#f8fafc;">
+    </div>
+    <div id="student-list" style="padding: 1.5rem; display:flex; flex-direction:column; gap:0.8rem;">
+      ${myClass.length === 0 ? `<div class="empty-state" style="text-align:center; padding:2rem;"><p>No students in this class.</p></div>` : 
+      myClass.map(s=>`
+        <div class="std-row" data-name="${s.name.toLowerCase()}" style="background:#fff; border:1px solid var(--lms-border); border-radius:10px; padding:1rem; display:flex; align-items:center; gap:1rem; transition: border-color 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--lms-border)'">
+          <div class="std-av" style="width:40px; height:40px; font-size:1rem; flex-shrink:0;">${getInitials(s.name)}</div>
+          <div class="std-info" style="flex:1;">
+            <strong style="font-size:1.05rem; color:var(--text);">${s.name}</strong>
+            <span style="font-size:.8rem; margin-top:4px; display:block; color:var(--lms-muted);">
+              <span class="chip grey" style="padding:2px 8px; border-radius:4px;">${s.id}</span> · Age: ${s.age} · ${s.gender} · Parent: <a href="tel:${s.parent_contact}" style="color:var(--primary); text-decoration:none;">${s.parent_contact}</a>
+            </span>
+          </div>
+          <div class="ml-auto" style="display:flex;gap:.5rem;">
+            <button class="btn-outline" style="font-size:.8rem;padding:.4rem .8rem; border-radius:6px;" onclick="openTransferModal('${s.id}')"><i class="fas fa-exchange-alt"></i> Transfer</button>
+            <button class="btn-danger" style="font-size:.8rem;padding:.4rem .8rem; border-radius:6px;" onclick="deleteStudent('${s.id}')" title="Remove from system"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`
+},
+
+'t-grades':()=>{
+  const myClass = STUDENTS_DB.filter(s => s.class === '6B');
+  return `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Grade Book & Reports</h2><span style="color:var(--lms-muted);">Class 6B · Term 2</span></div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+      <h3 style="margin:0;">Term 2 Assessments</h3>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="lms-tbl" style="width: 100%; min-width: 700px;">
+        <thead style="background: var(--lms-surface);">
+          <tr><th style="padding: 1rem; text-align:left;">Student</th><th>Maths</th><th>English</th><th>Science</th><th>Avg</th><th>Report Card Action</th></tr>
+        </thead>
+        <tbody>${myClass.map((s,i)=>{
+          const hasReport = REPORT_CARDS.find(r => r.student_id === s.id);
+          const sc=[75+i%15,68+i%18,80+i%12];
+          const avg=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
+          return `<tr style="border-bottom: 1px solid var(--lms-border);">
+          <td style="padding: 1rem;">
+            <div style="display:flex;align-items:center;gap:.8rem;">
+              <div class="std-av" style="width:32px;height:32px;font-size:.8rem;">${getInitials(s.name)}</div>
+              <strong style="font-size:.95rem;">${s.name}</strong>
+            </div>
+          </td>
+          ${sc.map(v=>`<td style="text-align:center;">${v}%</td>`).join('')}
+          <td style="text-align:center; font-size:1.05rem;"><strong style="color:var(--primary);">${avg}%</strong></td>
+          <td style="text-align:center;">
+            ${hasReport 
+              ? `<span class="chip green" style="padding: 6px 12px; border-radius: 6px;"><i class="fas fa-check"></i> Published</span>` 
+              : `<button class="btn-gold" style="font-size:.8rem;padding:.4rem 1rem; border-radius:6px; background:var(--accent); color:#fff; border:none; cursor:pointer;" onclick="openReportModal('${s.id}')"><i class="fas fa-pen"></i> Generate Report</button>`
+            }
+          </td></tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`
+}
 };
 
 /* Notice Builder Helper */
