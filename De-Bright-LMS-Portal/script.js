@@ -50,7 +50,7 @@ const TT_COLORS = {
 /* ====================== LIVE DB STATE ====================== */
 let currentUser = null, currentRole = 'student';
 let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
-let STUDENTS_DB = [], REPORT_CARDS = []; // Now powered by Supabase!
+let STUDENTS_DB = [], REPORT_CARDS = []; 
 let attState = {};
 let aiHistory = [];
 
@@ -79,13 +79,11 @@ window.doLogin = async function(){
 
   try {
     if (currentRole === 'teacher') {
-      // Hardcoded Teacher for Demo Purposes
       if (idInput === 'TCH001' && pwInput === 'teacher123') {
         authenticated = true;
-        fetchedUser = { role: 'teacher', name: 'Abena Boateng', initials: 'AB', class: 'Class 6B Teacher', id: 'TCH001' };
+        fetchedUser = { role: 'teacher', name: 'Abena Boateng', initials: 'AB', class: 'Class 6B', id: 'TCH001' };
       } else { showErr('Invalid teacher credentials.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
     } else {
-      // REAL WORK: Query Supabase directly for Students!
       if (!supabaseClient) throw new Error("Supabase not initialized");
       
       const { data, error } = await supabaseClient.from('students').select('*').eq('id', idInput).single();
@@ -129,8 +127,8 @@ async function fetchAllData(){
       supabaseClient.from('notices').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('resources').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('attendance').select('*').order('date',{ascending:false}),
-      supabaseClient.from('students').select('*').order('name',{ascending:true}), // Fetch Students!
-      supabaseClient.from('report_cards').select('*').order('date',{ascending:false}) // Fetch Reports!
+      supabaseClient.from('students').select('*').order('name',{ascending:true}), 
+      supabaseClient.from('report_cards').select('*').order('date',{ascending:false}) 
     ]);
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
     if(subs.data) SUBMISSIONS = subs.data;
@@ -175,7 +173,7 @@ function buildDashboard(){
   const u = currentUser;
   document.getElementById('sb-avatar').textContent = u.initials;
   document.getElementById('sb-name').textContent = u.name;
-  document.getElementById('sb-sub').textContent = u.role==='student'?`Class ${u.class} · ${u.id}`:`${u.class} · ${u.id}`;
+  document.getElementById('sb-sub').textContent = u.role==='student'?`Class ${u.class} · ${u.id}`:`Teacher · ${u.class}`;
   document.getElementById('sb-role-label').textContent = u.role==='student'?'Student Portal':'Teacher Portal';
 
   const nav = document.getElementById('sidebar-nav');
@@ -194,9 +192,9 @@ function buildDashboard(){
     ]},
     {section:'Learning', links:[
       {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
-      {icon:'book',label:'Resources',page:'s-resources'},
+      {icon:'folder-open',label:'Resources',page:'s-resources'},
       {icon:'robot',label:'AI Tutor',page:'s-ai'},
-      {icon:'bell',label:'Notices',page:'s-notices'},
+      {icon:'bullhorn',label:'Notices',page:'s-notices'},
     ]},
   ] : [
     {section:'Overview', links:[
@@ -211,7 +209,7 @@ function buildDashboard(){
     ]},
     {section:'Communication', links:[
       {icon:'bullhorn',label:'Notices',page:'t-notices'},
-      {icon:'file-upload',label:'Resources',page:'t-resources'},
+      {icon:'folder-open',label:'Resources',page:'t-resources'},
       {icon:'calendar-alt',label:'Timetable',page:'t-timetable'},
     ]},
   ];
@@ -229,7 +227,7 @@ function showPage(page, el){
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
   const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book'};
-  document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').toUpperCase();
+  document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').replace(/-/g, ' ').toUpperCase();
   renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -257,198 +255,334 @@ function renderPage(page){
 /* ====================== HELPERS ====================== */
 function getAvgGrade(){return 83;}
 function getInitials(name) { return name ? name.split(' ').map(n => n[0]).join('').slice(0, 2) : ''; }
-function renderProgressBar(pct, color = '') { return `<div class="prog-bar"><div class="fill" style="width:${pct}%;${color?`background:${color}`:''}"></div></div>`; }
+function renderProgressBar(pct, color = '') { return `<div class="prog-bar" style="background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden;width:100%;"><div class="fill" style="height:100%;width:${pct}%;background:${color||'var(--primary)'};border-radius:99px;transition:width 1s ease;"></div></div>`; }
 function fmtDate(d){try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
 
-/* ====================== PAGE DEFINITIONS ====================== */
+/* ====================== MODERN UI PAGE DEFINITIONS ====================== */
 const pages = {
 
 /* ─────── STUDENT DASHBOARD ─────── */
 's-dashboard':()=>`
-    <div class="welcome-banner">
+    <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 2rem;">
       <div class="wb-text">
-        <div class="wb-tag">📚 Term 2 — 2025/26</div>
-        <h2>Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
+        <div class="wb-tag" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📚 Term 2 — 2025/26</div>
+        <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
+        <p style="margin-top: 0.5rem; opacity: 0.9; font-size: 0.9rem;">You have ${ASSIGNMENTS.filter(a=>a.status==='open').length} assignments due this week.</p>
       </div>
-      <div class="wb-icon"><i class="fas fa-graduation-cap"></i></div>
+      <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-graduation-cap"></i></div>
     </div>
-    <div class="stats-row">
-      <div class="sc blue"><div class="sc-icon blue"><i class="fas fa-chart-line"></i></div><div class="sc-info"><label>Avg Grade</label><div class="val">83%</div><div class="sub">All subjects</div></div></div>
-      <div class="sc green"><div class="sc-icon green"><i class="fas fa-check-circle"></i></div><div class="sc-info"><label>Attendance</label><div class="val">98%</div><div class="sub">Term 2</div></div></div>
+    <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+      <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
+        <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-chart-line"></i></div>
+        <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase; letter-spacing: 0.5px;">Avg Grade</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">83%</div></div>
+      </div>
+      <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
+        <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-check-circle"></i></div>
+        <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase; letter-spacing: 0.5px;">Attendance</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">98%</div></div>
+      </div>
     </div>`,
 
-/* ─────── STUDENT GRADES (WITH REPORT CARDS) ─────── */
-'s-grades':()=>{
-  const myReports = REPORT_CARDS.filter(r => r.student_id === currentUser.id);
-  
-  return `
-  <div class="page-header"><h2>Grades & Reports</h2><span>Term 2 · 2025/26</span></div>
-  
-  <div class="panel" style="border: 2px solid var(--accent);">
-    <div class="panel-head" style="background:var(--lms-gold-pale);"><h3>📜 Official End of Term Reports</h3></div>
-    <div style="padding:1.3rem;">
-      ${myReports.length === 0 ? `<p style="font-size:.85rem;color:var(--lms-muted);">No reports have been published for you yet.</p>` : `
-      <div style="display:flex;flex-direction:column;gap:1rem;">
-        ${myReports.map(rep => `
-          <div style="display:flex;align-items:center;justify-content:space-between;background:var(--lms-surface);padding:1rem 1.5rem;border-radius:10px;">
-            <div>
-              <strong style="color:var(--primary);display:block;font-size:1rem;">${rep.term} Report Card</strong>
-              <span style="font-size:.75rem;color:var(--lms-muted);">Published on: ${fmtDate(rep.date)}</span>
-            </div>
-            <button class="btn-lms-primary" style="width:auto;padding:.5rem 1.2rem;" onclick="viewReportCard('${rep.id}')"><i class="fas fa-file-pdf"></i> View / Download</button>
-          </div>
-        `).join('')}
+/* ─────── STUDENT SUBJECTS ─────── */
+'s-subjects':()=>`
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>My Subjects</h2><span style="color:var(--lms-muted);">Overview of your active courses</span></div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+    ${SUBJECTS.map(s => `
+      <div style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); transition: transform 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
+        <div style="height: 60px; background: var(--lms-${s.color}-pale); display: flex; align-items: center; padding: 0 1.5rem; font-size: 1.5rem;">${s.emoji}</div>
+        <div style="padding: 1.5rem;">
+          <h3 style="margin: 0 0 0.2rem 0; font-size: 1.1rem; color: var(--text);">${s.name}</h3>
+          <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--lms-muted);"><i class="fas fa-chalkboard-teacher"></i> ${s.teacher}</p>
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.4rem; font-weight: 600;"><span>Progress</span><span>${s.progress}%</span></div>
+          ${renderProgressBar(s.progress, `var(--lms-${s.color})`)}
+        </div>
       </div>
-      `}
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-head"><h3>Current Continuous Assessment</h3></div>
-    <table class="lms-tbl">
-      <thead><tr><th>Subject</th><th>Class Score</th><th>Exam Score</th><th>Total</th><th>Grade</th></tr></thead>
-      <tbody>${GRADES.map(g=>`
-        <tr><td><strong>${g.subject}</strong></td><td>${g.classScore}</td><td>${g.examScore}</td><td><strong>${g.total}/100</strong></td><td><span class="grade-${g.grade}">${g.grade}</span></td></tr>`).join('')}
-      </tbody>
-    </table>
-  </div>`
-},
-
-/* ─────── TEACHER DASHBOARD ─────── */
-'t-dashboard':()=>`
-  <div class="welcome-banner">
-    <div class="wb-text">
-      <div class="wb-tag">📋 Class Teacher — 6B</div>
-      <h2>Good day, ${currentUser.name.split(' ')[1]||currentUser.name}! 👩‍🏫</h2>
-    </div>
-    <div class="wb-icon"><i class="fas fa-chalkboard-teacher"></i></div>
-  </div>
-  <div class="stats-row">
-    <div class="sc gold"><div class="sc-icon gold"><i class="fas fa-users"></i></div><div class="sc-info"><label>Students</label><div class="val">${STUDENTS_DB.filter(s=>s.class==='6B').length}</div><div class="sub">Class 6B</div></div></div>
-    <div class="sc blue"><div class="sc-icon blue"><i class="fas fa-tasks"></i></div><div class="sc-info"><label>Assignments</label><div class="val">${ASSIGNMENTS.length}</div><div class="sub">Published</div></div></div>
+    `).join('')}
   </div>`,
 
-/* ─────── TEACHER CLASS MANAGEMENT (FULL CRUD) ─────── */
-'t-class':()=>{
-  const myClass = STUDENTS_DB.filter(s => s.class === '6B');
-  return `
-  <div class="page-header"><h2>Manage My Class</h2><span>${myClass.length} students currently enrolled in 6B</span></div>
-  <div class="panel">
-    <div class="panel-head">
-      <h3>Class Roster</h3>
-      <div style="display:flex;gap:.5rem;">
-        <input type="text" id="student-search" placeholder="Search student..." onkeyup="filterStudents()" style="padding:.4rem .9rem;border:1.5px solid var(--lms-border);border-radius:8px;font-family:var(--font-lms);font-size:.82rem;outline:none;width:180px;">
-        <button class="btn-lms-primary" style="width:auto;padding:.4rem 1rem;font-size:.8rem;" onclick="openModal('add-student-modal')"><i class="fas fa-user-plus"></i> Add Student</button>
-      </div>
-    </div>
-    <div id="student-list">
-      ${myClass.length === 0 ? `<div class="empty-state"><p>No students in this class.</p></div>` : 
-      myClass.map(s=>`
-        <div class="std-row" data-name="${s.name.toLowerCase()}">
-          <div class="std-av">${getInitials(s.name)}</div>
-          <div class="std-info">
-            <strong style="font-size:.95rem;">${s.name}</strong>
-            <span style="font-size:.75rem;margin-top:3px;display:block;">
-              <span class="chip grey">${s.id}</span> · Age: ${s.age} · ${s.gender} · Parent: <a href="tel:${s.parent_contact}">${s.parent_contact}</a>
-            </span>
-          </div>
-          <div class="ml-auto" style="display:flex;gap:.4rem;">
-            <button class="btn-outline" style="font-size:.7rem;padding:.3rem .7rem;" onclick="openTransferModal('${s.id}')"><i class="fas fa-exchange-alt"></i> Transfer</button>
-            <button class="btn-danger" style="font-size:.7rem;padding:.3rem .7rem;" onclick="deleteStudent('${s.id}')" title="Remove from system"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>`).join('')}
-    </div>
-  </div>`
-},
-
-/* ─────── TEACHER GRADE BOOK & REPORTS ─────── */
-'t-grades':()=>{
-  const myClass = STUDENTS_DB.filter(s => s.class === '6B');
-  return `
-  <div class="page-header"><h2>Grade Book & Reports</h2><span>Class 6B · Term 2</span></div>
-  <div class="panel">
-    <div class="panel-head"><h3>Term 2 Assessments</h3></div>
-    <div style="overflow-x:auto;">
-      <table class="lms-tbl">
-        <thead><tr><th>Student</th><th>Maths</th><th>English</th><th>Science</th><th>Avg</th><th>Report Card Action</th></tr></thead>
-        <tbody>${myClass.map((s,i)=>{
-          const hasReport = REPORT_CARDS.find(r => r.student_id === s.id);
-          const sc=[75+i%15,68+i%18,80+i%12];
-          const avg=Math.round(sc.reduce((a,b)=>a+b,0)/sc.length);
-          return `<tr>
-          <td><div style="display:flex;align-items:center;gap:.6rem;"><div class="std-av" style="width:26px;height:26px;font-size:.68rem;">${getInitials(s.name)}</div><span>${s.name}</span></div></td>
-          ${sc.map(v=>`<td>${v}%</td>`).join('')}<td><strong>${avg}%</strong></td>
-          <td>
-            ${hasReport 
-              ? `<span class="chip green"><i class="fas fa-check"></i> Published</span>` 
-              : `<button class="btn-gold" style="font-size:.7rem;padding:.3rem .7rem;" onclick="openReportModal('${s.id}')"><i class="fas fa-pen"></i> Generate Report</button>`
-            }
-          </td></tr>`;
-        }).join('')}
+/* ─────── STUDENT TIMETABLE ─────── */
+'s-timetable':()=>`
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Class Timetable</h2><span style="color:var(--lms-muted);">Term 2 Schedule</span></div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table class="lms-tbl" style="width: 100%; min-width: 700px; text-align: center;">
+        <thead style="background: var(--lms-surface);">
+          <tr><th style="padding: 1rem;">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
+        </thead>
+        <tbody>
+          ${TT_TIMES.map((time, i) => `
+            <tr style="border-bottom: 1px solid var(--lms-border);">
+              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">${time}</td>
+              ${['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
+                const sub = TIMETABLE[i]?.[j] || '-';
+                const colorClass = TT_COLORS[sub] || 'grey';
+                if(sub === 'LUNCH' || sub === 'BREAK') {
+                  if(j===0) return `<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted);">${sub}</td>`;
+                  return '';
+                }
+                return `<td style="padding: 0.5rem;"><span class="chip ${colorClass}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">${sub}</span></td>`;
+              }).join('')}
+            </tr>
+          `).join('')}
         </tbody>
       </table>
     </div>
+  </div>`,
+
+/* ─────── STUDENT ASSIGNMENTS ─────── */
+'s-assignments': () => {
+  const pending = ASSIGNMENTS.filter(a => a.status === 'open' || a.status === 'pending').length;
+  return `
+  <div class="page-header" style="margin-bottom: 2rem;">
+    <h2>Assignments</h2>
+    <span style="color:var(--lms-muted);"><strong style="color:var(--lms-red);">${pending}</strong> pending tasks</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    ${ASSIGNMENTS.length === 0 ? '<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--lms-green);margin-bottom:1rem;"></i><p>You are all caught up!</p></div>' : 
+      ASSIGNMENTS.map(a => `
+        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--lms-${a.color || 'blue'}); box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='0 4px 15px rgba(0,0,0,0.03)'">
+          <div style="flex: 1; min-width: 250px;">
+              <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;">
+                <span class="chip ${a.color || 'blue'}">${a.subject}</span>
+                <span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>
+              </div>
+              <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
+          </div>
+          <div>
+            <button class="btn-lms-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openModal('submit-modal')"><i class="fas fa-cloud-upload-alt"></i> Submit Work</button>
+          </div>
+        </div>
+      `).join('')
+    }
   </div>`
 },
 
-/* Dummy fillers for navigation */
-'s-timetable':()=>`<div class="page-header"><h2>Timetable</h2></div>`,
-'s-attendance':()=>`<div class="page-header"><h2>Attendance</h2></div>`,
-'s-quiz':()=>`<div class="page-header"><h2>Quizzes</h2></div>`,
-'s-resources':()=>`<div class="page-header"><h2>Resources</h2></div>`,
-'s-ai':()=>`<div class="page-header"><h2>AI Tutor</h2></div>`,
-'s-notices':()=>`<div class="page-header"><h2>Notices</h2></div>`,
-'s-subjects':()=>`<div class="page-header"><h2>Subjects</h2></div>`,
-'s-assignments':()=>`<div class="page-header"><h2>Assignments</h2></div>`,
-'t-assignments':()=>`<div class="page-header"><h2>Assignments</h2></div>`,
-'t-submissions':()=>`<div class="page-header"><h2>Submissions</h2></div>`,
-'t-attendance':()=>`<div class="page-header"><h2>Attendance Tracker</h2><div id="att-mark-list"></div></div>`,
-'t-notices':()=>`<div class="page-header"><h2>Notices</h2></div>`,
-'t-resources':()=>`<div class="page-header"><h2>Resources</h2></div>`,
-'t-timetable':()=>`<div class="page-header"><h2>Timetable</h2></div>`,
+/* ─────── STUDENT RESOURCES ─────── */
+'s-resources':()=>`
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    ${[
+      {title:'Algebra Formulation', sub:'Mathematics', type:'pdf', icon:'file-pdf', color:'red'},
+      {title:'Solar System Diagram', sub:'Science', type:'img', icon:'file-image', color:'blue'},
+      {title:'Term 2 Grammar Guide', sub:'English', type:'doc', icon:'file-word', color:'blue'},
+      {title:'History of Ghana (Slides)', sub:'Social Studies', type:'ppt', icon:'file-powerpoint', color:'gold'}
+    ].map(r => `
+      <div style="background:#fff; border: 1px solid var(--lms-border); border-radius: 12px; padding: 1.5rem; display: flex; gap: 1.2rem; align-items: center; transition: all 0.2s; cursor:pointer;" onmouseover="this.style.borderColor='var(--primary)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)'" onmouseout="this.style.borderColor='var(--lms-border)'; this.style.boxShadow='none'">
+        <div style="width: 50px; height: 50px; background: var(--lms-${r.color}-pale); color: var(--lms-${r.color}); border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem;"><i class="fas fa-${r.icon}"></i></div>
+        <div style="flex: 1;">
+          <h4 style="margin: 0 0 0.3rem 0; color: var(--text); font-size: 1rem;">${r.title}</h4>
+          <span style="font-size: 0.8rem; color: var(--lms-muted);">${r.sub} · ${r.type.toUpperCase()}</span>
+        </div>
+        <button style="background:transparent; border:none; color:var(--primary); font-size: 1.2rem; cursor:pointer;"><i class="fas fa-download"></i></button>
+      </div>
+    `).join('')}
+  </div>`,
+
+/* ─────── STUDENT AI TUTOR ─────── */
+'s-ai':()=>`
+  <div style="height: calc(100vh - 180px); background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;">
+    <div style="padding: 1.5rem; background: var(--primary); color: white; display: flex; align-items: center; gap: 1rem;">
+      <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤖</div>
+      <div>
+        <h3 style="margin: 0; font-size: 1.2rem; font-family: var(--font-lms-heading);">De-Bright AI Tutor</h3>
+        <span style="font-size: 0.8rem; opacity: 0.8;">Powered by Gemini</span>
+      </div>
+    </div>
+    <div style="flex: 1; padding: 2rem; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 1.5rem;">
+      <div style="align-self: flex-start; max-width: 80%; background: #fff; padding: 1rem 1.5rem; border-radius: 0 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 0.95rem; line-height: 1.5; color: var(--text);">
+        Hello ${currentUser.name.split(' ')[0]}! I am your personal AI study assistant. Do you need help with your Mathematics assignment or preparing for your Science quiz?
+      </div>
+    </div>
+    <div style="padding: 1.5rem; background: #fff; border-top: 1px solid var(--lms-border); display: flex; gap: 1rem;">
+      <input type="text" placeholder="Ask a question..." style="flex: 1; padding: 1rem 1.5rem; border: 1px solid var(--lms-border); border-radius: 99px; outline: none; font-family: var(--font-lms); font-size: 0.95rem; background: #f8fafc;">
+      <button style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.3);"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>`,
+
+/* ─────── STUDENT & TEACHER NOTICES ─────── */
+'s-notices':()=>buildNotices(),
+'t-notices':()=>buildNotices(true),
+
+/* ─────── STUDENT QUIZZES ─────── */
+'s-quiz':()=>`
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Active Quizzes</h2><span style="color:var(--lms-muted);">Test your knowledge</span></div>
+  <div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+    <i class="fas fa-clipboard-check" style="font-size:3rem;color:var(--lms-gold);margin-bottom:1rem;"></i>
+    <h3 style="color:var(--primary);">No Active Quizzes</h3>
+    <p style="color:var(--lms-muted); max-width:300px; margin: 0 auto;">Your teachers have not published any online quizzes for this week.</p>
+  </div>`,
+
+/* ─────── TEACHER DASHBOARD ─────── */
+'t-dashboard':()=>`
+  <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, var(--primary)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
+    <div class="wb-text">
+      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📋 Class Teacher — 6B</div>
+      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Good day, ${currentUser.name.split(' ')[1]||currentUser.name}! 👩‍🏫</h2>
+      <p style="margin-top: 0.5rem; opacity: 0.9; font-size: 0.9rem;">Your class has 3 new submissions awaiting grading.</p>
+    </div>
+    <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-chalkboard-teacher"></i></div>
+  </div>
+  <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-gold);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #fef9c3; color: #a16207; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-users"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${STUDENTS_DB.filter(s=>s.class==='6B').length}</div></div>
+    </div>
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-tasks"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Assignments</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${ASSIGNMENTS.length}</div></div>
+    </div>
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-red);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #fef2f2; color: var(--lms-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-inbox"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">To Grade</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">3</div></div>
+    </div>
+  </div>`,
+
+/* ─────── TEACHER ASSIGNMENTS ─────── */
+'t-assignments': () => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2>Assignments</h2>
+      <span style="color:var(--lms-muted);">${ASSIGNMENTS.length} published assignments</span>
+    </div>
+    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);"><i class="fas fa-plus"></i> Create New</button>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    ${ASSIGNMENTS.length === 0 ? '<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No assignments published yet.</p></div>' : 
+      ASSIGNMENTS.map(a => `
+        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--lms-${a.color || 'blue'}); box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center;">
+          <div style="flex: 1; min-width: 250px;">
+              <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;">
+                <span class="chip ${a.color || 'blue'}">${a.subject}</span>
+                <span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>
+              </div>
+              <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
+              <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-outline" style="padding: 0.5rem 1rem; border-radius: 8px;"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn-danger" style="padding: 0.5rem 1rem; border-radius: 8px;"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('')
+    }
+  </div>`,
+
+/* ─────── TEACHER SUBMISSIONS ─────── */
+'t-submissions':()=>`
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Submissions Inbox</h2><span style="color:var(--lms-muted);">Review and grade student work</span></div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+        <thead style="background: var(--lms-surface);">
+          <tr><th style="padding: 1rem; text-align:left;">Student</th><th style="text-align:left;">Assignment</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          ${STUDENTS_DB.slice(0,3).map((s, i) => `
+            <tr style="border-bottom: 1px solid var(--lms-border);">
+              <td style="padding: 1rem;">
+                <div style="display:flex;align-items:center;gap:.8rem;">
+                  <div class="std-av" style="width:32px;height:32px;font-size:.8rem;">${getInitials(s.name)}</div>
+                  <div><strong style="display:block;font-size:.9rem;">${s.name}</strong><span style="font-size:.75rem;color:var(--lms-muted);">${s.id}</span></div>
+                </div>
+              </td>
+              <td>${ASSIGNMENTS[i]?.title || 'Mathematics Worksheet'}</td>
+              <td style="text-align:center;"><span class="chip ${i===0?'green':'gold'}">${i===0?'Graded':'Needs Grading'}</span></td>
+              <td style="text-align:center;"><button class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;">Review</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`,
+
+/* ─────── TEACHER ATTENDANCE ─────── */
+'t-attendance':()=>`
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2>Attendance Tracker</h2>
+      <span style="color:var(--lms-muted);">Mark register for Class 6B</span>
+    </div>
+    <div style="display:flex; gap: 0.5rem;">
+      <input type="date" value="${new Date().toISOString().split('T')[0]}" style="padding: 0.5rem; border: 1px solid var(--lms-border); border-radius: 8px; outline:none; font-family:var(--font-lms);">
+      <button class="btn-lms-primary" style="padding: 0.5rem 1rem; border-radius: 8px;" onclick="toast('Attendance Saved successfully!')"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden; padding: 1.5rem;">
+    <div id="att-mark-list" style="display: flex; flex-direction: column; gap: 0.8rem;"></div>
+  </div>`,
+
+/* ─────── TEACHER RESOURCES ─────── */
+'t-resources':()=>`
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2>Resource Library</h2>
+      <span style="color:var(--lms-muted);">Manage files for Class 6B</span>
+    </div>
+    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px;"><i class="fas fa-upload"></i> Upload File</button>
+  </div>
+  <div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+    <i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i>
+    <h3 style="color:var(--primary);">Library Ready</h3>
+    <p style="color:var(--lms-muted); max-width:300px; margin: 0 auto;">Click "Upload File" to start sharing notes, slides, and PDFs with your class.</p>
+  </div>`,
+
+/* ─────── TEACHER TIMETABLE ─────── */
+'t-timetable':()=> pages['s-timetable'](), // Reuses student timetable layout
+
+/* ─────── KEEP EXISTING COMPLEX PAGES ─────── */
+'s-grades': pages['s-grades'],
+'t-class': pages['t-class'],
+'t-grades': pages['t-grades']
 };
+
+/* Notice Builder Helper */
+function buildNotices(isTeacher = false) {
+  return `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h2>School Board</h2>
+      <span style="color:var(--lms-muted);">Announcements & Notices</span>
+    </div>
+    ${isTeacher ? `<button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px;"><i class="fas fa-bullhorn"></i> New Notice</button>` : ''}
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+        <strong style="font-size: 1.1rem; color: var(--text);">Mid-Term Break Announcement</strong>
+        <span style="font-size: 0.8rem; color: var(--lms-muted);">Feb 20, 2026</span>
+      </div>
+      <p style="font-size: 0.9rem; color: #64748b; margin: 0 0 1rem 0; line-height: 1.5;">Please be informed that the school will break for mid-terms starting next week Friday. Classes will resume on Wednesday.</p>
+      <div style="font-size: 0.8rem; color: var(--primary); font-weight: 600;"><i class="fas fa-user-tie"></i> From: Headmaster's Office</div>
+    </div>
+  </div>`;
+}
 
 /* ====================== REAL WORK: MANAGE STUDENTS IN SUPABASE ====================== */
 window.saveNewStudent = async function() {
   if (!supabaseClient) { toast('Database connection missing!', 'error'); return; }
-
   const name = document.getElementById('new-std-name').value.trim();
   const age = document.getElementById('new-std-age').value;
   const gender = document.getElementById('new-std-gender').value;
   const parentContact = document.getElementById('new-std-contact').value.trim();
-
   if(!name || !age || !parentContact) { toast('Please fill all fields', 'error'); return; }
-
-  // Count ALL students in DB to get the next ID number properly
   const { count } = await supabaseClient.from('students').select('*', { count: 'exact', head: true });
   const nextNumber = (count || STUDENTS_DB.length) + 1;
   const newId = 'STU' + String(nextNumber).padStart(3, '0');
-  
   const payload = { id: newId, name: name, age: age, gender: gender, parent_contact: parentContact, class: '6B' };
-
   const { data, error } = await supabaseClient.from('students').insert([payload]).select();
-
   if (error) { console.error(error); toast('Failed to add student to DB.', 'error'); return; }
-  
   if (data) STUDENTS_DB.push(data[0]);
-
-  closeModal('add-student-modal');
-  renderPage('t-class');
-  toast(`${name} added successfully! ID: ${newId}`);
+  closeModal('add-student-modal'); renderPage('t-class'); toast(`${name} added successfully! ID: ${newId}`);
 };
 
 window.deleteStudent = async function(id) {
   if (!supabaseClient) return;
   const student = STUDENTS_DB.find(s => s.id === id);
-  
   if(confirm(`Are you absolutely sure you want to remove ${student.name} from the database?`)) {
     const { error } = await supabaseClient.from('students').delete().eq('id', id);
-    
     if (error) { console.error(error); toast('Failed to remove student.', 'error'); return; }
-
     STUDENTS_DB = STUDENTS_DB.filter(s => s.id !== id);
-    renderPage('t-class');
-    toast('Student removed successfully.', 'error');
+    renderPage('t-class'); toast('Student removed successfully.', 'error');
   }
 };
 
@@ -464,17 +598,12 @@ window.saveTransfer = async function() {
   const id = document.getElementById('transfer-modal').dataset.stdId;
   const newClass = document.getElementById('transfer-class-select').value;
   const std = STUDENTS_DB.find(s => s.id === id);
-  
   if(std) {
     const { error } = await supabaseClient.from('students').update({ class: newClass }).eq('id', id);
     if (error) { console.error(error); toast('Failed to transfer student.', 'error'); return; }
-    
-    std.class = newClass; // Update local DB
+    std.class = newClass; 
   }
-  
-  closeModal('transfer-modal');
-  renderPage('t-class'); 
-  toast(`${std.name} has been transferred to ${newClass}`);
+  closeModal('transfer-modal'); renderPage('t-class'); toast(`${std.name} has been transferred to ${newClass}`);
 };
 
 window.filterStudents = function(){
@@ -497,32 +626,17 @@ window.saveReportCard = async function() {
   const id = document.getElementById('build-report-modal').dataset.stdId;
   const conduct = document.getElementById('report-conduct').value;
   const remarks = document.getElementById('report-remarks').value.trim();
-
   if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
-
-  const payload = {
-    id: 'REP' + Date.now(),
-    student_id: id,
-    term: 'Term 2',
-    conduct: conduct,
-    remarks: remarks
-  };
-
+  const payload = { id: 'REP' + Date.now(), student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
   const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
-
   if (error) { console.error(error); toast('Failed to save report card.', 'error'); return; }
-
   if (data) REPORT_CARDS.push(data[0]);
-
-  closeModal('build-report-modal');
-  renderPage('t-grades'); 
-  toast('Report Card Generated & Published! ✅');
+  closeModal('build-report-modal'); renderPage('t-grades'); toast('Report Card Generated & Published! ✅');
 };
 
 window.viewReportCard = function(reportId) {
   const report = REPORT_CARDS.find(r => r.id === reportId);
   const printArea = document.getElementById('print-area');
-
   printArea.innerHTML = `
     <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff;">
       <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
@@ -530,45 +644,28 @@ window.viewReportCard = function(reportId) {
         <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
         <h3 style="margin-top:1rem; color:var(--accent);">OFFICIAL END OF TERM REPORT</h3>
       </div>
-      
       <div style="display:flex; justify-content:space-between; margin-bottom: 2rem; font-size:.95rem;">
-        <div>
-          <p><strong>Student Name:</strong> ${currentUser.name}</p>
-          <p><strong>Student ID:</strong> ${currentUser.id}</p>
-        </div>
-        <div style="text-align:right;">
-          <p><strong>Class:</strong> ${currentUser.class}</p>
-          <p><strong>Term:</strong> ${report.term} 2025/26</p>
-        </div>
+        <div><p><strong>Student Name:</strong> ${currentUser.name}</p><p><strong>Student ID:</strong> ${currentUser.id}</p></div>
+        <div style="text-align:right;"><p><strong>Class:</strong> ${currentUser.class}</p><p><strong>Term:</strong> ${report.term} 2025/26</p></div>
       </div>
-
       <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
         <tr style="background:var(--lms-surface);">
           <th style="padding:10px; border:1px solid #ccc; text-align:left;">Subject</th>
           <th style="padding:10px; border:1px solid #ccc; text-align:center;">Score</th>
           <th style="padding:10px; border:1px solid #ccc; text-align:center;">Grade</th>
         </tr>
-        ${GRADES.slice(0,5).map(g => `
-          <tr>
-            <td style="padding:10px; border:1px solid #ccc;">${g.subject}</td>
-            <td style="padding:10px; border:1px solid #ccc; text-align:center;">${g.total}</td>
-            <td style="padding:10px; border:1px solid #ccc; text-align:center;"><strong>${g.grade}</strong></td>
-          </tr>
-        `).join('')}
+        ${GRADES.slice(0,5).map(g => `<tr><td style="padding:10px; border:1px solid #ccc;">${g.subject}</td><td style="padding:10px; border:1px solid #ccc; text-align:center;">${g.total}</td><td style="padding:10px; border:1px solid #ccc; text-align:center;"><strong>${g.grade}</strong></td></tr>`).join('')}
       </table>
-
       <div style="background: #f9f9f9; padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem;">
         <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ${report.conduct}</p>
         <p><strong>Class Teacher's Remarks:</strong> ${report.remarks}</p>
       </div>
-      
       <div style="margin-top: 3rem; display:flex; justify-content:space-between;">
         <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Teacher's Signature</div>
         <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Headmaster's Signature</div>
       </div>
     </div>
   `;
-
   openModal('view-report-modal');
 };
 
@@ -577,7 +674,7 @@ function renderAttList(){
   const el=document.getElementById('att-mark-list');
   if(!el) return;
   const myClass = STUDENTS_DB.filter(s => s.class === '6B');
-  el.innerHTML=myClass.map((s,i)=>` <div class="std-row"> <div class="std-av">${getInitials(s.name)}</div> <div class="std-info"><strong>${s.name}</strong><span>${s.id}</span></div> <div class="ml-auto" style="display:flex;gap:.4rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">P</button> <button onclick="setAtt(${i},'absent')" style="padding:4px 14px;border-radius:999px;font-size:.72rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;':'background:transparent;color:var(--lms-muted);border-color:var(--lms-border);'}">A</button> </div> </div>`).join('');
+  el.innerHTML=myClass.map((s,i)=>` <div class="std-row" style="background:#f8fafc; border:1px solid var(--lms-border); border-radius:10px; padding:0.8rem 1rem; display:flex; align-items:center; gap:1rem;"> <div class="std-av" style="width:36px;height:36px;font-size:.9rem;">${getInitials(s.name)}</div> <div class="std-info" style="flex:1;"><strong>${s.name}</strong><span style="display:block;font-size:0.75rem;color:var(--lms-muted);">${s.id}</span></div> <div class="ml-auto" style="display:flex;gap:.5rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;box-shadow:0 4px 10px rgba(34,197,94,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Present</button> <button onclick="setAtt(${i},'absent')" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;box-shadow:0 4px 10px rgba(239,68,68,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Absent</button> </div> </div>`).join('');
 }
 window.setAtt=function(i,v){attState[i]=v;renderAttList();};
 
