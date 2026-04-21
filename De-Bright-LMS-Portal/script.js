@@ -186,7 +186,7 @@ function buildDashboard(){
     {section:'Learning', links:[
       {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
       {icon:'folder-open',label:'Resources',page:'s-resources'},
-      {icon:'robot',label:'AI Tutor',page:'s-ai'},
+      {icon:'robot',label:'AI Tutor',page:'s-ai'}, 
       {icon:'bullhorn',label:'Notices',page:'s-notices'},
     ]},
   ] : [
@@ -328,21 +328,26 @@ const pages = {
       ASSIGNMENTS.map(a => {
         const submission = SUBMISSIONS.find(s => String(s.assignment_id) === String(a.id) && s.student_id === currentUser.id);
         const isSubmitted = !!submission;
+        const isGraded = isSubmitted && submission.status === 'graded';
         
         return `
-        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid ${isSubmitted ? 'var(--lms-green)' : `var(--lms-${a.color || 'blue'})`}; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='0 4px 15px rgba(0,0,0,0.03)'">
+        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid ${isGraded ? 'var(--lms-gold)' : isSubmitted ? 'var(--lms-green)' : `var(--lms-${a.color || 'blue'})`}; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; transition: all 0.2s ease;">
           <div style="flex: 1; min-width: 250px;">
               <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;">
-                <span class="chip ${isSubmitted ? 'green' : (a.color || 'blue')}">${a.subject}</span>
-                ${isSubmitted ? `<span class="chip green" style="background:#dcfce7; color:#166534;"><i class="fas fa-check"></i> Submitted</span>` : `<span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>`}
+                <span class="chip ${isGraded ? 'gold' : isSubmitted ? 'green' : (a.color || 'blue')}">${a.subject}</span>
+                ${isGraded ? `<span class="chip gold" style="background:#fefce8; color:#854d0e;"><i class="fas fa-award"></i> Graded: ${submission.grade}</span>` : isSubmitted ? `<span class="chip green" style="background:#dcfce7; color:#166534;"><i class="fas fa-check"></i> Submitted</span>` : `<span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>`}
               </div>
               <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
               <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
+              
+              ${isGraded && submission.feedback ? `<div style="margin-top:1rem; background: #fef9c3; padding: 1rem; border-radius: 8px; border-left: 3px solid #eab308;"><strong style="font-size:0.8rem; color:#a16207; display:block; margin-bottom: 4px;"><i class="fas fa-comment-dots"></i> Teacher's Feedback:</strong><span style="font-size:0.9rem; color:var(--text);">${submission.feedback}</span></div>` : ''}
           </div>
           <div>
             ${!isSubmitted ? 
               `<button class="btn-lms-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openSubmitModal('${a.id}')"><i class="fas fa-cloud-upload-alt"></i> Submit Work</button>` 
-              : 
+              : isGraded ?
+              `<button class="btn-gold" style="padding: 0.6rem 1.5rem; border-radius: 8px; border:none; color:#000;" onclick="toast('You scored ${submission.grade} on this assignment!')"><i class="fas fa-star"></i> View Result</button>`
+              :
               `<button class="btn-outline" style="padding: 0.6rem 1.5rem; border-radius: 8px; cursor: default; color: var(--lms-green); border-color: var(--lms-green);"><i class="fas fa-check-double"></i> Under Review</button>`
             }
           </div>
@@ -433,7 +438,7 @@ const pages = {
     <div style="overflow-x: auto;">
       <table class="lms-tbl" style="width: 100%; min-width: 600px;">
         <thead style="background: var(--lms-surface);">
-          <tr><th style="padding: 1rem; text-align:left;">Student</th><th style="text-align:left;">Assignment</th><th>Status</th><th style="text-align:center;">Submitted Work</th></tr>
+          <tr><th style="padding: 1rem; text-align:left;">Student</th><th style="text-align:left;">Assignment Details</th><th>Status</th><th style="text-align:center;">Action</th></tr>
         </thead>
         <tbody>
           ${classSubmissions.length === 0 ? '<tr><td colspan="4" style="text-align:center;padding:3rem;color:var(--lms-muted);">No submissions received yet.</td></tr>' : 
@@ -447,12 +452,23 @@ const pages = {
                     <div><strong style="display:block;font-size:.9rem;">${sub.student_name}</strong><span style="font-size:.75rem;color:var(--lms-muted);">${sub.student_id}</span></div>
                   </div>
                 </td>
-                <td><strong style="font-size:0.9rem;">${asgn ? asgn.title : 'Unknown Assignment'}</strong><div style="font-size:0.75rem; color:var(--lms-muted);">${sub.comments ? `"${sub.comments}"` : ''}</div></td>
+                <td>
+                  <strong style="font-size:0.9rem; display:block; color:var(--primary);">${asgn ? asgn.title : 'Unknown Assignment'}</strong>
+                  ${sub.comments ? `<div style="font-size:0.75rem; color:var(--lms-muted); margin-top:4px;">"<i>${sub.comments}</i>"</div>` : ''}
+                  
+                  <div style="display:flex; gap:0.5rem; margin-top: 8px;">
+                    ${sub.typed_response ? `<button class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;" onclick="viewTypedResponse('${sub.id}')"><i class="fas fa-align-left"></i> Read Text</button>` : ''}
+                    ${sub.file_url ? `<a href="${sub.file_url}" target="_blank" class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;text-decoration:none;"><i class="fas fa-paperclip"></i> File</a>` : ''}
+                    ${sub.link ? `<a href="${sub.link}" target="_blank" class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;text-decoration:none;"><i class="fas fa-link"></i> Link</a>` : ''}
+                  </div>
+                </td>
                 <td style="text-align:center;"><span class="chip ${sub.status==='graded'?'green':'gold'}">${sub.status==='graded'?'Graded':'Needs Grading'}</span></td>
-                <td style="text-align:center; display:flex; justify-content:center; align-items:center; gap:0.5rem; padding: 1rem;">
-                  ${sub.typed_response ? `<button class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;background:var(--lms-gold);color:#000;border:none;cursor:pointer;" onclick="viewTypedResponse('${sub.id}')"><i class="fas fa-align-left"></i> Text</button>` : ''}
-                  ${sub.file_url ? `<a href="${sub.file_url}" target="_blank" class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;text-decoration:none;"><i class="fas fa-file-download"></i> File</a>` : ''}
-                  ${sub.link ? `<a href="${sub.link}" target="_blank" class="btn-outline" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;text-decoration:none;"><i class="fas fa-link"></i> Link</a>` : ''}
+                <td style="text-align:center; padding: 1rem;">
+                  ${sub.status === 'graded' 
+                    ? `<div style="font-size:0.85rem; color:var(--lms-green); font-weight:bold; margin-bottom:4px;"><i class="fas fa-check-circle"></i> Graded: ${sub.grade || ''}</div>
+                       <button class="btn-outline" style="padding:0.3rem 0.6rem;font-size:0.7rem;border-radius:4px;" onclick="openGradeModal('${sub.id}')"><i class="fas fa-edit"></i> Edit Grade</button>` 
+                    : `<button class="btn-lms-primary" style="padding:0.5rem 1rem;font-size:0.8rem;border-radius:6px;width:100%; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openGradeModal('${sub.id}')"><i class="fas fa-marker"></i> Grade Work</button>`
+                  }
                 </td>
               </tr>
             `}).join('')}
@@ -839,7 +855,6 @@ window.doSubmit = async function(subType) {
       fileUrl = publicUrlData.publicUrl;
   }
   
-  // NOTE: Removed the custom ID entirely so Supabase can safely auto-generate its own UUID!
   const payload = {
       assignment_id: asgnId,
       student_id: currentUser.id,
@@ -852,7 +867,6 @@ window.doSubmit = async function(subType) {
       class: currentUser.class
   };
   
-  // We use .select() here to pull the database-generated UUID back to the screen
   const { data, error } = await supabaseClient.from('submissions').insert([payload]).select();
   
   btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
@@ -868,7 +882,7 @@ window.doSubmit = async function(subType) {
   renderPage('s-assignments');
 }
 
-/* Helper to View Typed Responses for Teachers */
+/* ====================== TEACHER GRADING ENGINE ====================== */
 window.viewTypedResponse = function(subId) {
   const sub = SUBMISSIONS.find(s => String(s.id) === String(subId));
   if(!document.getElementById('view-text-modal')) {
@@ -879,6 +893,88 @@ window.viewTypedResponse = function(subId) {
   }
   document.getElementById('view-text-content').textContent = sub.typed_response || 'No text provided.';
   openModal('view-text-modal');
+}
+
+function injectGradeModal() {
+  if(document.getElementById('grade-work-modal')) return;
+  const m = document.createElement('div');
+  m.className = 'lms-modal';
+  m.id = 'grade-work-modal';
+  m.innerHTML = `
+    <div class="lms-modal-box">
+      <div class="modal-h"><h3><i class="fas fa-marker" style="color:var(--accent);margin-right:6px;"></i>Grade Submission</h3><button onclick="closeModal('grade-work-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="grade-sub-id">
+        <div style="background:#f8fafc; padding:1rem; border-radius:8px; margin-bottom:1rem; border:1px solid var(--lms-border);">
+          <strong style="display:block; color:var(--text); font-size:1rem;" id="grade-student-name"></strong>
+          <span style="font-size:0.8rem; color:var(--lms-muted);" id="grade-asgn-title"></span>
+        </div>
+        
+        <div class="lms-form-group">
+          <label>Score / Grade</label>
+          <input type="text" id="grade-score" placeholder="e.g. 85/100, A, or 10/10">
+        </div>
+        
+        <div class="lms-form-group">
+          <label>Teacher's Feedback (Optional)</label>
+          <textarea id="grade-feedback" rows="3" placeholder="Great job! Keep it up..."></textarea>
+        </div>
+        
+        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+          <button class="btn-lms-primary" id="btn-save-grade" style="flex:1;" onclick="saveGrade()"><i class="fas fa-check"></i> Submit Grade</button>
+          <button class="btn-outline" onclick="closeModal('grade-work-modal')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+window.openGradeModal = function(id) {
+  injectGradeModal();
+  const sub = SUBMISSIONS.find(s => String(s.id) === String(id));
+  const asgn = ASSIGNMENTS.find(a => String(a.id) === String(sub.assignment_id));
+  
+  document.getElementById('grade-sub-id').value = id;
+  document.getElementById('grade-student-name').textContent = sub.student_name;
+  document.getElementById('grade-asgn-title').textContent = asgn ? asgn.title : 'Unknown Assignment';
+  document.getElementById('grade-score').value = sub.grade || '';
+  document.getElementById('grade-feedback').value = sub.feedback || '';
+  
+  openModal('grade-work-modal');
+}
+
+window.saveGrade = async function() {
+  if (!supabaseClient) return toast('Database connection missing!', 'error');
+  
+  const btn = document.getElementById('btn-save-grade');
+  const subId = document.getElementById('grade-sub-id').value;
+  const score = document.getElementById('grade-score').value.trim();
+  const feedback = document.getElementById('grade-feedback').value.trim();
+  
+  if(!score) return toast('Please enter a grade or score.', 'error');
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  btn.disabled = true;
+  
+  const payload = { status: 'graded', grade: score, feedback: feedback };
+  
+  const { error } = await supabaseClient.from('submissions').update(payload).eq('id', subId);
+  
+  btn.innerHTML = '<i class="fas fa-check"></i> Submit Grade'; btn.disabled = false;
+  
+  if(error) return toast('DB Error: ' + error.message, 'error');
+  
+  const idx = SUBMISSIONS.findIndex(s => String(s.id) === String(subId));
+  if(idx !== -1) { 
+     SUBMISSIONS[idx].status = 'graded';
+     SUBMISSIONS[idx].grade = score;
+     SUBMISSIONS[idx].feedback = feedback;
+  }
+  
+  closeModal('grade-work-modal');
+  toast('Submission Graded! ✅');
+  renderPage('t-submissions');
 }
 
 /* ====================== REAL WORK: MANAGE STUDENTS ====================== */
@@ -952,7 +1048,6 @@ window.saveReportCard = async function() {
   const remarks = document.getElementById('report-remarks').value.trim();
   if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
   
-  // NOTE: Removed the custom ID here as well to protect the database!
   const payload = { student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
   const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
   
