@@ -1,6 +1,6 @@
 // File: api/chat.js
 
-export default async function handler(req, res) {
+module.exports = async function(req, res) {
   // We only want to accept POST requests to this secure route
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // process.env grabs the key securely from Vercel's servers, hiding it from the browser!
+        // process.env grabs the key securely from Vercel's servers!
         'x-api-key': process.env.ANTHROPIC_API_KEY, 
         'anthropic-version': '2023-06-01'
       },
@@ -40,4 +40,4 @@ export default async function handler(req, res) {
     console.error('Chat API Error:', error);
     res.status(500).json({ error: 'Failed to generate response' });
   }
-}
+};
