@@ -28,10 +28,6 @@ const GRADES = [
   {subject:'English Language',classScore:'32/40',examScore:'45/60',total:77,grade:'B',remark:'Good'},
   {subject:'Science',classScore:'35/40',examScore:'48/60',total:83,grade:'A',remark:'Excellent'},
   {subject:'Social Studies',classScore:'30/40',examScore:'40/60',total:70,grade:'B',remark:'Good'},
-  {subject:'Creative Arts',classScore:'36/40',examScore:'50/60',total:86,grade:'A',remark:'Excellent'},
-  {subject:'RME',classScore:'28/40',examScore:'38/60',total:66,grade:'C',remark:'Average'},
-  {subject:'French',classScore:'25/40',examScore:'35/60',total:60,grade:'C',remark:'Average'},
-  {subject:'ICT',classScore:'39/40',examScore:'55/60',total:94,grade:'A',remark:'Excellent'},
 ];
 
 const TIMETABLE = [
@@ -94,7 +90,7 @@ window.doLogin = async function(){
 
     if (fetchedUser) {
       currentUser = fetchedUser;
-      localStorage.setItem('lms_user', JSON.stringify(currentUser)); // SAVE LOGIN STATE
+      localStorage.setItem('lms_user', JSON.stringify(currentUser));
       await fetchAllData();
       
       btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
@@ -143,8 +139,7 @@ function mapAssignment(item){
   return {
     id:item.id, title:item.title, subject:item.subject,
     desc:item.description, due:item.due, status:item.status||'open',
-    color:item.color||'blue', type:item.assignment_type||'standard',
-    content:item.content, created_at:item.created_at
+    color:item.color||'blue', attachment_url:item.attachment_url, created_at:item.created_at
   };
 }
 
@@ -154,7 +149,7 @@ function showErr(msg){
 }
 
 function doLogout(){
-  localStorage.removeItem('lms_user'); // CLEAR LOGIN STATE
+  localStorage.removeItem('lms_user'); 
   document.getElementById('lms-dashboard').classList.remove('active');
   document.getElementById('login-section').style.display='';
   document.querySelector('.navbar').style.display='';
@@ -174,7 +169,7 @@ function buildDashboard(){
   document.getElementById('sb-role-label').textContent = u.role==='student'?'Student Portal':'Teacher Portal';
 
   const nav = document.getElementById('sidebar-nav');
-  const pending = ASSIGNMENTS.filter(a=>(a.status==='open'||a.status==='pending')).length;
+  const pending = ASSIGNMENTS.filter(a=>!SUBMISSIONS.some(s => String(s.assignment_id) === String(a.id) && s.student_id === u.id)).length;
 
   const items = u.role==='student' ? [
     {section:'Overview', links:[
@@ -190,7 +185,6 @@ function buildDashboard(){
     {section:'Learning', links:[
       {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
       {icon:'folder-open',label:'Resources',page:'s-resources'},
-      {icon:'robot',label:'AI Tutor',page:'s-ai'},
       {icon:'bullhorn',label:'Notices',page:'s-notices'},
     ]},
   ] : [
@@ -200,7 +194,7 @@ function buildDashboard(){
     ]},
     {section:'Academics', links:[
       {icon:'tasks',label:'Assignments',page:'t-assignments'},
-      {icon:'inbox',label:'Submissions',page:'t-submissions'},
+      {icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && s.class===u.class).length||null},
       {icon:'chart-bar',label:'Grade Book',page:'t-grades'},
       {icon:'clipboard-list',label:'Attendance',page:'t-attendance'},
     ]},
@@ -263,7 +257,6 @@ const pages = {
       <div class="wb-text">
         <div class="wb-tag" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📚 Term 2 — 2025/26</div>
         <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
-        <p style="margin-top: 0.5rem; opacity: 0.9; font-size: 0.9rem;">You have ${ASSIGNMENTS.filter(a=>a.status==='open').length} assignments due this week.</p>
       </div>
       <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-graduation-cap"></i></div>
     </div>
@@ -323,29 +316,37 @@ const pages = {
   </div>`,
 
 's-assignments': () => {
-  const pending = ASSIGNMENTS.filter(a => a.status === 'open' || a.status === 'pending').length;
   return `
   <div class="page-header" style="margin-bottom: 2rem;">
     <h2>Assignments</h2>
-    <span style="color:var(--lms-muted);"><strong style="color:var(--lms-red);">${pending}</strong> pending tasks</span>
+    <span style="color:var(--lms-muted);">Your pending and submitted tasks</span>
   </div>
   <div style="display: flex; flex-direction: column; gap: 1rem;">
     ${ASSIGNMENTS.length === 0 ? '<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--lms-green);margin-bottom:1rem;"></i><p>You are all caught up!</p></div>' : 
-      ASSIGNMENTS.map(a => `
-        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--lms-${a.color || 'blue'}); box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='0 4px 15px rgba(0,0,0,0.03)'">
+      ASSIGNMENTS.map(a => {
+        const submission = SUBMISSIONS.find(s => String(s.assignment_id) === String(a.id) && s.student_id === currentUser.id);
+        const isSubmitted = !!submission;
+        
+        return `
+        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid ${isSubmitted ? 'var(--lms-green)' : `var(--lms-${a.color || 'blue'})`}; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 8px 25px rgba(0,0,0,0.08)'" onmouseout="this.style.boxShadow='0 4px 15px rgba(0,0,0,0.03)'">
           <div style="flex: 1; min-width: 250px;">
               <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;">
-                <span class="chip ${a.color || 'blue'}">${a.subject}</span>
-                <span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>
+                <span class="chip ${isSubmitted ? 'green' : (a.color || 'blue')}">${a.subject}</span>
+                ${isSubmitted ? `<span class="chip green" style="background:#dcfce7; color:#166534;"><i class="fas fa-check"></i> Submitted</span>` : `<span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>`}
               </div>
               <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
               <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
+              ${a.attachment_url ? `<div style="margin-top:0.8rem;"><a href="${a.attachment_url}" target="_blank" style="font-size:0.85rem; color:var(--primary); text-decoration:none; background: var(--lms-surface); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--lms-border);"><i class="fas fa-paperclip"></i> View Teacher's Attachment</a></div>` : ''}
           </div>
           <div>
-            <button class="btn-lms-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openModal('submit-modal')"><i class="fas fa-cloud-upload-alt"></i> Submit Work</button>
+            ${!isSubmitted ? 
+              `<button class="btn-lms-primary" style="padding: 0.6rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openSubmitModal('${a.id}')"><i class="fas fa-cloud-upload-alt"></i> Submit Work</button>` 
+              : 
+              `<button class="btn-outline" style="padding: 0.6rem 1.5rem; border-radius: 8px; cursor: default; color: var(--lms-green); border-color: var(--lms-green);"><i class="fas fa-check-double"></i> Under Review</button>`
+            }
           </div>
         </div>
-      `).join('')
+      `}).join('')
     }
   </div>`
 },
@@ -355,7 +356,6 @@ const pages = {
     <div class="wb-text">
       <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📋 Class Teacher — ${currentUser.class}</div>
       <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Good day, ${currentUser.name.split(' ')[1]||currentUser.name}! 👩‍🏫</h2>
-      <p style="margin-top: 0.5rem; opacity: 0.9; font-size: 0.9rem;">Your class has 3 new submissions awaiting grading.</p>
     </div>
     <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-chalkboard-teacher"></i></div>
   </div>
@@ -370,7 +370,7 @@ const pages = {
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-red);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #fef2f2; color: var(--lms-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-inbox"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">To Grade</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">3</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Submissions</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${SUBMISSIONS.filter(s=>s.class===currentUser.class).length}</div></div>
     </div>
   </div>`,
 
@@ -393,6 +393,7 @@ const pages = {
               </div>
               <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
               <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
+              ${a.attachment_url ? `<div style="margin-top:0.6rem;"><a href="${a.attachment_url}" target="_blank" style="font-size:0.8rem; color:var(--primary); text-decoration:none;"><i class="fas fa-file-download"></i> Attached File</a></div>` : ''}
           </div>
           <div style="display: flex; gap: 0.5rem;">
             <button class="btn-outline" style="padding: 0.5rem 1rem; border-radius: 8px;" onclick="openAssignmentModal('${a.id}')"><i class="fas fa-edit"></i> Edit</button>
@@ -402,6 +403,42 @@ const pages = {
       `).join('')
     }
   </div>`,
+
+'t-submissions':()=>{
+  const classSubmissions = SUBMISSIONS.filter(s => s.class === currentUser.class);
+  return `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Submissions Inbox</h2><span style="color:var(--lms-muted);">Review and grade student work for ${currentUser.class}</span></div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+        <thead style="background: var(--lms-surface);">
+          <tr><th style="padding: 1rem; text-align:left;">Student</th><th style="text-align:left;">Assignment</th><th>Status</th><th style="text-align:center;">Submitted Work</th></tr>
+        </thead>
+        <tbody>
+          ${classSubmissions.length === 0 ? '<tr><td colspan="4" style="text-align:center;padding:3rem;color:var(--lms-muted);">No submissions received yet.</td></tr>' : 
+            classSubmissions.map((sub) => {
+              const asgn = ASSIGNMENTS.find(a => String(a.id) === String(sub.assignment_id));
+              return `
+              <tr style="border-bottom: 1px solid var(--lms-border);">
+                <td style="padding: 1rem;">
+                  <div style="display:flex;align-items:center;gap:.8rem;">
+                    <div class="std-av" style="width:32px;height:32px;font-size:.8rem;">${getInitials(sub.student_name)}</div>
+                    <div><strong style="display:block;font-size:.9rem;">${sub.student_name}</strong><span style="font-size:.75rem;color:var(--lms-muted);">${sub.student_id}</span></div>
+                  </div>
+                </td>
+                <td><strong style="font-size:0.9rem;">${asgn ? asgn.title : 'Unknown Assignment'}</strong><div style="font-size:0.75rem; color:var(--lms-muted);">${sub.comments ? `"${sub.comments}"` : ''}</div></td>
+                <td style="text-align:center;"><span class="chip ${sub.status==='graded'?'green':'gold'}">${sub.status==='graded'?'Graded':'Needs Grading'}</span></td>
+                <td style="text-align:center; display:flex; justify-content:center; gap:0.5rem; padding: 1rem;">
+                  ${sub.file_url ? `<a href="${sub.file_url}" target="_blank" class="btn-lms-primary" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;text-decoration:none;"><i class="fas fa-file-download"></i> File</a>` : ''}
+                  ${sub.link ? `<a href="${sub.link}" target="_blank" class="btn-outline" style="padding:0.4rem 0.8rem;font-size:0.8rem;border-radius:6px;text-decoration:none;"><i class="fas fa-link"></i> Link</a>` : ''}
+                </td>
+              </tr>
+            `}).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`
+},
 
 's-grades':()=>{
   const myReports = REPORT_CARDS.filter(r => r.student_id === currentUser.id);
@@ -530,7 +567,6 @@ const pages = {
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
 's-ai':()=>`<div class="page-header"><h2>AI Tutor</h2></div>`,
 's-quiz':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Active Quizzes</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-clipboard-check" style="font-size:3rem;color:var(--lms-gold);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Active Quizzes</h3></div>`,
-'t-submissions':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Submissions Inbox</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-inbox" style="font-size:3rem;color:var(--lms-red);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Submissions</h3></div>`,
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
 't-timetable': () => pages['s-timetable']()
 };
@@ -551,7 +587,7 @@ function buildNotices(isTeacher = false) {
   </div>`;
 }
 
-/* ====================== ASSIGNMENTS CRUD (CREATE, EDIT, DELETE) ====================== */
+/* ====================== ASSIGNMENTS (WITH ATTACHMENTS) ====================== */
 function injectAssignmentModal() {
   if(document.getElementById('assignment-modal')) return;
   const m = document.createElement('div');
@@ -568,8 +604,14 @@ function injectAssignmentModal() {
           <div class="lms-form-group"><label>Due Date</label><input type="date" id="asgn-due"></div>
         </div>
         <div class="lms-form-group"><label>Description</label><textarea id="asgn-desc" rows="3" placeholder="Instructions for students..."></textarea></div>
+        
+        <div class="lms-form-group">
+          <label>Attach File (Optional)</label>
+          <input type="file" id="asgn-file" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
+        </div>
+
         <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
-          <button class="btn-lms-primary" style="flex:1;" onclick="saveAssignment()">Save Assignment</button>
+          <button class="btn-lms-primary" id="btn-save-asgn" style="flex:1;" onclick="saveAssignment()">Save Assignment</button>
           <button class="btn-outline" onclick="closeModal('assignment-modal')">Cancel</button>
         </div>
       </div>
@@ -585,16 +627,18 @@ window.openAssignmentModal = function(id = null) {
   const d = document.getElementById('asgn-due');
   const desc = document.getElementById('asgn-desc');
   const idInput = document.getElementById('asgn-id');
+  const fileInput = document.getElementById('asgn-file');
   const mTitle = document.getElementById('asgn-modal-title');
   
   if(id) {
     const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
     if (a) {
       t.value = a.title; s.value = a.subject; d.value = a.due; desc.value = a.desc; idInput.value = a.id;
+      fileInput.value = '';
       mTitle.textContent = "Edit Assignment";
     }
   } else {
-    t.value = ''; d.value = ''; desc.value = ''; idInput.value = '';
+    t.value = ''; d.value = ''; desc.value = ''; idInput.value = ''; fileInput.value = '';
     mTitle.textContent = "Create Assignment";
   }
   openModal('assignment-modal');
@@ -608,26 +652,50 @@ window.saveAssignment = async function() {
   const subject = document.getElementById('asgn-subject').value;
   const due = document.getElementById('asgn-due').value;
   const desc = document.getElementById('asgn-desc').value.trim();
+  const fileInput = document.getElementById('asgn-file');
+  const btn = document.getElementById('btn-save-asgn');
   
   if(!title || !due) return toast('Please provide a title and due date', 'error');
   
+  let attachmentUrl = id ? ASSIGNMENTS.find(x => String(x.id) === String(id))?.attachment_url : null;
+
+  // Handle Supabase File Upload if teacher selected a file
+  if(fileInput.files.length > 0) {
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading File...';
+    btn.disabled = true;
+    const file = fileInput.files[0];
+    const filePath = `assignments/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+    
+    const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
+    if(uploadError) {
+      btn.innerHTML = 'Save Assignment'; btn.disabled = false;
+      return toast('File upload failed: ' + uploadError.message, 'error');
+    }
+    const { data: publicUrlData } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
+    attachmentUrl = publicUrlData.publicUrl;
+  }
+  
   const payload = { title: title, subject: subject, due: due, description: desc }; 
+  if (attachmentUrl) payload.attachment_url = attachmentUrl; // ONLY update if a file exists
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
   
   if(id) {
     const { error } = await supabaseClient.from('assignments').update(payload).eq('id', id);
-    if(error) { console.error(error); return toast('Error: ' + error.message, 'error'); }
+    if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('Error: ' + error.message, 'error'); }
     
     const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(id));
-    if(idx !== -1) { ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], title, subject, due, desc }; }
+    if(idx !== -1) { ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], ...payload }; }
     toast('Assignment updated successfully!');
   } else {
     const { data, error } = await supabaseClient.from('assignments').insert([payload]).select();
-    if(error) { console.error(error); return toast('Error: ' + error.message, 'error'); }
+    if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('Error: ' + error.message, 'error'); }
     
     if (data && data.length > 0) { ASSIGNMENTS.unshift(mapAssignment(data[0])); }
     toast('Assignment created successfully!');
   }
   
+  btn.innerHTML = 'Save Assignment'; btn.disabled = false;
   closeModal('assignment-modal');
   renderPage('t-assignments');
 };
@@ -635,14 +703,119 @@ window.saveAssignment = async function() {
 window.deleteAssignment = async function(id) {
   if (!supabaseClient) return;
   if(!confirm('Are you sure you want to permanently delete this assignment?')) return;
-  
   const { error } = await supabaseClient.from('assignments').delete().eq('id', id);
   if(error) { console.error(error); return toast('Failed to delete assignment', 'error'); }
-  
   ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(id));
   renderPage('t-assignments');
   toast('Assignment deleted successfully', 'error'); 
 };
+
+
+/* ====================== SUBMISSIONS (STUDENTS SUBMITTING WORK) ====================== */
+function injectSubmitModal() {
+  if(document.getElementById('dynamic-submit-modal')) return;
+  const m = document.createElement('div');
+  m.className = 'lms-modal';
+  m.id = 'dynamic-submit-modal';
+  m.innerHTML = `
+    <div class="lms-modal-box">
+      <div class="modal-h"><h3><i class="fas fa-paper-plane" style="color:var(--primary);margin-right:6px;"></i>Submit Work</h3><button onclick="closeModal('dynamic-submit-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="submit-asgn-id">
+        <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--lms-muted);">Submitting for: <strong id="submit-asgn-title" style="color: var(--text);"></strong></p>
+        
+        <div class="lms-form-group">
+          <label>1. Upload Document/File</label>
+          <input type="file" id="submit-file" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
+        </div>
+        
+        <div style="text-align: center; margin: 15px 0; color: var(--lms-muted); font-size: 0.8rem; font-weight: 600;">— OR —</div>
+        
+        <div class="lms-form-group">
+          <label>2. Paste Link (Google Drive, Docs, etc.)</label>
+          <input type="url" id="submit-link" placeholder="https://...">
+        </div>
+
+        <div class="lms-form-group">
+          <label>Student Comments (Optional)</label>
+          <textarea id="submit-comment" rows="2" placeholder="Any notes for your teacher?"></textarea>
+        </div>
+        
+        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+          <button class="btn-lms-primary" id="btn-do-submit" style="flex:1;" onclick="doSubmit()"><i class="fas fa-check"></i> Finalize Submission</button>
+          <button class="btn-outline" onclick="closeModal('dynamic-submit-modal')">Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+window.openSubmitModal = function(id) {
+  injectSubmitModal();
+  const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
+  document.getElementById('submit-asgn-id').value = id;
+  document.getElementById('submit-asgn-title').textContent = a.title;
+  document.getElementById('submit-file').value = '';
+  document.getElementById('submit-link').value = '';
+  document.getElementById('submit-comment').value = '';
+  openModal('dynamic-submit-modal');
+}
+
+window.doSubmit = async function() {
+  if (!supabaseClient) return toast('Database connection missing!', 'error');
+  
+  const btn = document.getElementById('btn-do-submit');
+  const asgnId = document.getElementById('submit-asgn-id').value;
+  const link = document.getElementById('submit-link').value.trim();
+  const comment = document.getElementById('submit-comment').value.trim();
+  const fileInput = document.getElementById('submit-file');
+  
+  if(fileInput.files.length === 0 && !link) return toast('Please upload a file or paste a link.', 'error');
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+  btn.disabled = true;
+  
+  let fileUrl = null;
+  
+  // Handle Supabase File Upload if student selected a file
+  if(fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const filePath = `submissions/${currentUser.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+      const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
+      
+      if(uploadError) {
+          btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
+          return toast('File upload failed: ' + uploadError.message, 'error');
+      }
+      
+      const { data: publicUrlData } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
+      fileUrl = publicUrlData.publicUrl;
+  }
+  
+  const payload = {
+      id: 'SUB' + Date.now(),
+      assignment_id: asgnId,
+      student_id: currentUser.id,
+      student_name: currentUser.name,
+      file_url: fileUrl,
+      link: link,
+      comments: comment,
+      status: 'submitted',
+      class: currentUser.class
+  };
+  
+  const { error } = await supabaseClient.from('submissions').insert([payload]);
+  
+  btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
+  
+  if(error) return toast('Error saving submission: ' + error.message, 'error');
+  
+  SUBMISSIONS.unshift(payload);
+  closeModal('dynamic-submit-modal');
+  toast('Work submitted successfully! 🎉');
+  renderPage('s-assignments');
+}
 
 /* ====================== REAL WORK: MANAGE STUDENTS ====================== */
 window.saveNewStudent = async function() {
@@ -770,17 +943,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const y=document.getElementById('year');
   if(y) y.textContent=new Date().getFullYear();
 
-  // Inject proper classes into the HTML transfer dropdown if it exists
   const transferSelect = document.getElementById('transfer-class-select');
   if (transferSelect) transferSelect.innerHTML = SCHOOL_CLASSES.map(c => `<option value="${c}">${c}</option>`).join('');
 
-  // Check for persistent login
   const savedUser = localStorage.getItem('lms_user');
   if (savedUser) {
     currentUser = JSON.parse(savedUser);
     currentRole = currentUser.role;
     
-    // Hide login and show dashboard immediately to prevent blinking
     document.getElementById('login-section').style.display = 'none';
     document.getElementById('lms-dashboard').classList.add('active');
     document.querySelector('.navbar').style.display = 'none';
@@ -788,7 +958,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display = 'none';
     const btt = document.getElementById('backToTop'); if(btt) btt.style.display = 'none';
     
-    // Build an empty skeleton, fetch live DB data, then refresh UI
     buildDashboard(); 
     await fetchAllData();
     buildDashboard();
