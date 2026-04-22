@@ -49,6 +49,7 @@ const TT_COLORS = {
 let currentUser = null, currentRole = 'student', currentPage = null;
 let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
 let STUDENTS_DB = [], REPORT_CARDS = []; 
+let QUIZZES = [], QUIZ_SUBMISSIONS = [];
 let attState = {};
 
 /* ====================== DYNAMIC LOGIN & PERSISTENCE ====================== */
@@ -120,16 +121,20 @@ function launchPortal() {
 async function fetchAllData(){
   if(!supabaseClient) return;
   try {
-    const [asgn, subs, stdRes, repRes] = await Promise.all([
+    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes] = await Promise.all([
       supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('students').select('*').order('name',{ascending:true}), 
-      supabaseClient.from('report_cards').select('*').order('date',{ascending:false}) 
+      supabaseClient.from('report_cards').select('*').order('date',{ascending:false}),
+      supabaseClient.from('quizzes').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('quiz_submissions').select('*').order('created_at',{ascending:false})
     ]);
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
     if(subs.data) SUBMISSIONS = subs.data;
     if(stdRes.data) STUDENTS_DB = stdRes.data;
     if(repRes.data) REPORT_CARDS = repRes.data;
+    if(qzRes.data) QUIZZES = qzRes.data;
+    if(qzSubRes.data) QUIZ_SUBMISSIONS = qzSubRes.data;
   } catch (e) {
     console.error("Supabase Error:", e);
     throw e;
@@ -174,6 +179,7 @@ function buildDashboard(){
 
   const nav = document.getElementById('sidebar-nav');
   const pending = ASSIGNMENTS.filter(a=>!SUBMISSIONS.some(s => String(s.assignment_id) === String(a.id) && s.student_id === u.id)).length;
+  const pendingQuizzes = QUIZZES.filter(q=>q.class === u.class && q.status==='active' && !QUIZ_SUBMISSIONS.some(qs => qs.quiz_id === q.id && qs.student_id === u.id)).length;
 
   const items = u.role==='student' ? [
     {section:'Overview', links:[
@@ -182,12 +188,12 @@ function buildDashboard(){
     ]},
     {section:'Academics', links:[
       {icon:'tasks',label:'Assignments',page:'s-assignments',badge:pending||null},
+      {icon:'question-circle',label:'Quizzes',page:'s-quiz',badge:pendingQuizzes||null},
       {icon:'chart-bar',label:'Grades & Reports',page:'s-grades'},
       {icon:'calendar-alt',label:'Timetable',page:'s-timetable'},
       {icon:'user-check',label:'Attendance',page:'s-attendance'},
     ]},
     {section:'Learning', links:[
-      {icon:'question-circle',label:'Quizzes',page:'s-quiz'},
       {icon:'folder-open',label:'Resources',page:'s-resources'},
       {icon:'robot',label:'AI Tutor',page:'s-ai'}, 
       {icon:'bullhorn',label:'Notices',page:'s-notices'},
@@ -199,6 +205,7 @@ function buildDashboard(){
     ]},
     {section:'Academics', links:[
       {icon:'tasks',label:'Assignments',page:'t-assignments'},
+      {icon:'question-circle',label:'Quizzes',page:'t-quiz'},
       {icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && (s.class===u.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===u.class)).length||null},
       {icon:'chart-bar',label:'Grade Book',page:'t-grades'},
       {icon:'clipboard-list',label:'Attendance',page:'t-attendance'},
@@ -228,16 +235,17 @@ function showPage(page, el){
   currentPage = page;
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book'};
+  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes'};
   document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').replace(/-/g, ' ').toUpperCase();
   renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function openSidebar(){document.getElementById('lms-sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('open');}
-function closeSidebar(){document.getElementById('lms-sidebar').classList.remove('open');document.getElementById('sb-overlay').classList.remove('open');}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target.classList.contains('lms-modal')) e.target.classList.remove('open');});
+function openSidebar(){document.getElementById('lms-sidebar').classList.add('open');document.getElementById('sb-overlay').classList.add('open');}
+function closeSidebar(){document.getElementById('lms-sidebar').classList.remove('open');document.getElementById('sb-overlay').classList.remove('open');}
+
 function toast(msg,type='success'){
   const t=document.getElementById('lms-toast');
   document.getElementById('toast-msg').textContent=msg;
@@ -487,6 +495,70 @@ const pages = {
   </div>`
 },
 
+/* --- TEACHER QUIZ PAGE --- */
+'t-quiz': () => {
+  const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
+  return `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div><h2>Quiz Manager</h2><span style="color:var(--lms-muted);">Manage timed quizzes for ${currentUser.class}</span></div>
+    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="openQuizBuilder()"><i class="fas fa-plus"></i> Create Quiz</button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    ${classQuizzes.length === 0 ? `<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No quizzes created yet.</p></div>` : 
+      classQuizzes.map(q => {
+        const subs = QUIZ_SUBMISSIONS.filter(s => s.quiz_id === q.id);
+        return `
+        <div style="background:#fff; padding:1.5rem; border-radius:12px; border-left:5px solid var(--accent); box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:1rem;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <span class="chip purple">${q.subject}</span>
+              <span style="font-size:0.8rem; color:var(--lms-muted);"><i class="fas fa-stopwatch"></i> ${q.duration} mins</span>
+            </div>
+            <strong style="font-size:1.1rem;">${q.title}</strong>
+            <div style="font-size:0.85rem; color:var(--lms-muted); margin-top:0.5rem;">${q.questions.length} Questions · ${q.reveal_mode === 'instant' ? 'Instant Grading' : 'Manual Grading'}</div>
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-top:auto;">
+            <button class="btn-lms-primary" style="flex:1; padding:0.5rem; border-radius:6px; font-size:0.85rem;" onclick="viewQuizResults('${q.id}')"><i class="fas fa-chart-bar"></i> Results (${subs.length})</button>
+            <button class="btn-danger" style="padding:0.5rem; border-radius:6px;" onclick="deleteQuiz('${q.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `}).join('')}
+  </div>
+  `;
+},
+
+/* --- STUDENT QUIZ PAGE --- */
+'s-quiz': () => {
+  const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class && q.status === 'active');
+  return `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Active Quizzes</h2><span style="color:var(--lms-muted);">Take your timed assessments</span></div>
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    ${classQuizzes.length === 0 ? `<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-clipboard-check" style="font-size:3rem;color:var(--lms-gold);margin-bottom:1rem;"></i><p>No active quizzes at the moment.</p></div>` : 
+      classQuizzes.map(q => {
+        const sub = QUIZ_SUBMISSIONS.find(s => s.quiz_id === q.id && s.student_id === currentUser.id);
+        const isDone = !!sub;
+        return `
+        <div style="background:#fff; padding:1.5rem; border-radius:12px; border-left:5px solid ${isDone ? 'var(--lms-green)' : 'var(--lms-gold)'}; box-shadow:0 4px 15px rgba(0,0,0,0.03); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <div style="margin-bottom:0.4rem;"><span class="chip ${isDone ? 'green' : 'gold'}">${q.subject}</span> <span style="font-size:0.8rem; color:var(--lms-muted); margin-left:0.5rem;"><i class="fas fa-stopwatch"></i> ${q.duration} minutes</span></div>
+            <strong style="font-size:1.15rem; color:var(--text);">${q.title}</strong>
+            <p style="font-size:0.9rem; color:#64748b; margin:0.3rem 0 0 0;">${q.questions.length} Multiple Choice Questions</p>
+          </div>
+          <div>
+            ${!isDone ? 
+              `<button class="btn-lms-primary" style="padding:0.6rem 1.5rem; border-radius:8px; background:var(--accent);" onclick="startQuizPlayer('${q.id}')"><i class="fas fa-play"></i> Start Quiz</button>` 
+            : q.reveal_mode === 'instant' ? 
+              `<div style="text-align:center; padding:0.5rem 1rem; background:#dcfce7; color:#166534; border-radius:8px; font-weight:bold;">Score: ${sub.score} / ${sub.total_questions}</div>`
+            : 
+              `<div style="text-align:center; padding:0.5rem 1rem; background:#f1f5f9; color:#475569; border-radius:8px;"><i class="fas fa-check-double"></i> Submitted</div>`
+            }
+          </div>
+        </div>
+      `}).join('')}
+  </div>
+  `;
+},
+
 's-grades':()=>{
   const myReports = REPORT_CARDS.filter(r => r.student_id === currentUser.id);
   return `
@@ -612,7 +684,6 @@ const pages = {
 't-notices':()=>buildNotices(true),
 's-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>`,
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
-'s-quiz':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Active Quizzes</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-clipboard-check" style="font-size:3rem;color:var(--lms-gold);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Active Quizzes</h3></div>`,
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
 't-timetable': () => pages['s-timetable']()
 };
@@ -632,6 +703,262 @@ function buildNotices(isTeacher = false) {
     </div>
   </div>`;
 }
+
+/* ====================== QUIZ ENGINE (TEACHER) ====================== */
+function injectQuizBuilderModal() {
+  if(document.getElementById('quiz-builder-modal')) return;
+  const m = document.createElement('div');
+  m.className = 'lms-modal'; m.id = 'quiz-builder-modal';
+  m.innerHTML = `
+    <div class="lms-modal-box" style="max-width: 700px; max-height: 90vh; overflow-y: auto;">
+      <div class="modal-h" style="position:sticky; top:0; background:#fff; z-index:10; border-bottom:1px solid #e2e8f0;">
+        <h3><i class="fas fa-question-circle" style="color:var(--accent);margin-right:6px;"></i>Create Quiz</h3>
+        <button onclick="closeModal('quiz-builder-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="lms-form-group"><label>Quiz Title</label><input type="text" id="qb-title" placeholder="e.g. Mid-Term Science Quiz"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.8rem;">
+          <div class="lms-form-group"><label>Subject</label><select id="qb-subject">${SUBJECTS.map(s=>`<option value="${s.name}">${s.name}</option>`).join('')}</select></div>
+          <div class="lms-form-group"><label>Duration (Mins)</label><input type="number" id="qb-duration" value="15" min="1"></div>
+          <div class="lms-form-group"><label>Grades Reveal</label>
+            <select id="qb-reveal">
+              <option value="instant">Instant upon submission</option>
+              <option value="manual">Manual (I will tell them later)</option>
+            </select>
+          </div>
+        </div>
+        <hr style="border:none; border-top:1px dashed var(--lms-border); margin:1.5rem 0;">
+        <h4 style="margin-bottom:1rem; color:var(--text);">Questions</h4>
+        <div id="qb-questions-container"></div>
+        <button class="btn-outline" style="width:100%; padding:0.8rem; border-style:dashed; border-radius:8px;" onclick="addQuizQuestionBlock()"><i class="fas fa-plus"></i> Add Question</button>
+        <div style="margin-top:2rem; display:flex; gap:1rem;">
+          <button class="btn-lms-primary" id="btn-save-quiz" style="flex:1; padding:1rem; font-size:1rem;" onclick="saveQuiz()"><i class="fas fa-save"></i> Publish Quiz</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(m);
+}
+
+window.openQuizBuilder = function() {
+  injectQuizBuilderModal();
+  document.getElementById('qb-title').value = '';
+  document.getElementById('qb-duration').value = '15';
+  document.getElementById('qb-questions-container').innerHTML = '';
+  addQuizQuestionBlock(); // Add one empty question by default
+  openModal('quiz-builder-modal');
+};
+
+window.addQuizQuestionBlock = function() {
+  const container = document.getElementById('qb-questions-container');
+  const index = container.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'qb-q-block';
+  div.style = "background:#f8fafc; padding:1.2rem; border-radius:8px; border:1px solid var(--lms-border); margin-bottom:1rem; position:relative;";
+  div.innerHTML = `
+    <button style="position:absolute; top:10px; right:10px; background:none; border:none; color:var(--lms-red); cursor:pointer;" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+    <div class="lms-form-group"><label>Question ${index}</label><input type="text" class="qb-q-text" placeholder="Type the question here..."></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:0.8rem;">
+      <input type="text" class="qb-opt" data-opt="0" placeholder="Option A">
+      <input type="text" class="qb-opt" data-opt="1" placeholder="Option B">
+      <input type="text" class="qb-opt" data-opt="2" placeholder="Option C">
+      <input type="text" class="qb-opt" data-opt="3" placeholder="Option D">
+    </div>
+    <div class="lms-form-group" style="margin:0;"><label style="font-size:0.8rem;">Correct Answer</label>
+      <select class="qb-ans" style="padding:0.4rem; font-size:0.9rem;">
+        <option value="0">Option A</option><option value="1">Option B</option><option value="2">Option C</option><option value="3">Option D</option>
+      </select>
+    </div>
+  `;
+  container.appendChild(div);
+};
+
+window.saveQuiz = async function() {
+  if(!supabaseClient) return toast('Database connection missing!', 'error');
+  
+  const title = document.getElementById('qb-title').value.trim();
+  const subject = document.getElementById('qb-subject').value;
+  const duration = parseInt(document.getElementById('qb-duration').value) || 15;
+  const reveal = document.getElementById('qb-reveal').value;
+  const qBlocks = document.querySelectorAll('.qb-q-block');
+  const btn = document.getElementById('btn-save-quiz');
+  
+  if(!title) return toast('Please enter a quiz title.', 'error');
+  if(qBlocks.length === 0) return toast('Please add at least one question.', 'error');
+  
+  let questions = [];
+  let valid = true;
+  qBlocks.forEach(block => {
+    const qText = block.querySelector('.qb-q-text').value.trim();
+    const opts = Array.from(block.querySelectorAll('.qb-opt')).map(i => i.value.trim());
+    const ans = parseInt(block.querySelector('.qb-ans').value);
+    if(!qText || opts.some(o => o === '')) valid = false;
+    questions.push({ q: qText, options: opts, answer: ans });
+  });
+  
+  if(!valid) return toast('Please fill in all questions and options completely.', 'error');
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  btn.disabled = true;
+  
+  const payload = { title, subject, duration, reveal_mode: reveal, questions, class: currentUser.class };
+  const { error } = await supabaseClient.from('quizzes').insert([payload]);
+  
+  btn.innerHTML = '<i class="fas fa-save"></i> Publish Quiz'; btn.disabled = false;
+  
+  if(error) return toast('DB Error: ' + error.message, 'error');
+  closeModal('quiz-builder-modal');
+};
+
+window.deleteQuiz = async function(id) {
+  if(!supabaseClient) return;
+  if(confirm('Delete this quiz permanently?')) {
+    const { error } = await supabaseClient.from('quizzes').delete().eq('id', id);
+    if(error) return toast('Delete failed.', 'error');
+  }
+};
+
+window.viewQuizResults = function(quizId) {
+  const quiz = QUIZZES.find(q => q.id === quizId);
+  const subs = QUIZ_SUBMISSIONS.filter(s => s.quiz_id === quizId);
+  
+  if(!document.getElementById('quiz-results-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'quiz-results-modal';
+    document.body.appendChild(m);
+  }
+  
+  const m = document.getElementById('quiz-results-modal');
+  m.innerHTML = `
+    <div class="lms-modal-box" style="max-width: 600px;">
+      <div class="modal-h">
+        <h3><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:6px;"></i>Quiz Results</h3>
+        <button onclick="closeModal('quiz-results-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body">
+        <strong style="display:block; margin-bottom:1rem; font-size:1.1rem;">${quiz.title}</strong>
+        ${subs.length === 0 ? '<p style="color:var(--lms-muted);">No submissions yet.</p>' : `
+          <table class="lms-tbl" style="width:100%;">
+            <thead style="background:var(--lms-surface);"><tr><th style="padding:0.8rem;text-align:left;">Student</th><th>Score</th></tr></thead>
+            <tbody>
+              ${subs.map(s => `<tr><td style="padding:0.8rem;">${s.student_name}</td><td style="text-align:center;"><strong>${s.score} / ${s.total_questions}</strong></td></tr>`).join('')}
+            </tbody>
+          </table>
+        `}
+      </div>
+    </div>
+  `;
+  openModal('quiz-results-modal');
+};
+
+/* ====================== QUIZ ENGINE (STUDENT PLAYER) ====================== */
+let playerTimerInt = null;
+
+function injectQuizPlayer() {
+  if(document.getElementById('quiz-player-overlay')) return;
+  const d = document.createElement('div');
+  d.id = 'quiz-player-overlay';
+  d.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#f1f5f9; z-index:9999; overflow-y:auto;";
+  document.body.appendChild(d);
+}
+
+window.startQuizPlayer = function(quizId) {
+  injectQuizPlayer();
+  const quiz = QUIZZES.find(q => q.id === quizId);
+  if(!quiz) return;
+  
+  const overlay = document.getElementById('quiz-player-overlay');
+  overlay.innerHTML = `
+    <div style="background:#fff; padding:1rem 2rem; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin:0; font-size:1.2rem; color:var(--primary);">${quiz.title}</h2>
+      <div style="background:var(--lms-red); color:#fff; padding:0.5rem 1rem; border-radius:99px; font-family:monospace; font-size:1.2rem; font-weight:bold;" id="qp-timer">00:00</div>
+    </div>
+    <div style="max-width:800px; margin:2rem auto; padding:0 1rem; padding-bottom:100px;">
+      <input type="hidden" id="qp-quiz-id" value="${quiz.id}">
+      ${quiz.questions.map((q, i) => `
+        <div class="qp-q-card" style="background:#fff; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.03); margin-bottom:1.5rem;" data-index="${i}" data-ans="${q.answer}">
+          <h3 style="margin-top:0; font-size:1.1rem; line-height:1.5;"><span style="color:var(--lms-muted); margin-right:8px;">${i+1}.</span> ${q.q}</h3>
+          <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:1.5rem;">
+            ${q.options.map((opt, optIdx) => `
+              <label style="display:flex; align-items:center; gap:1rem; padding:1rem; border:1px solid var(--lms-border); border-radius:8px; cursor:pointer; transition:border 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='var(--lms-border)'">
+                <input type="radio" name="q_${i}" value="${optIdx}" style="width:18px; height:18px; accent-color:var(--primary);" onchange="this.parentElement.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='var(--lms-border)'); this.parentElement.style.borderColor='var(--primary)';">
+                <span style="font-size:1rem;">${opt}</span>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div style="position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:1.5rem; border-top:1px solid var(--lms-border); box-shadow:0 -4px 15px rgba(0,0,0,0.05); display:flex; justify-content:center;">
+      <button class="btn-lms-primary" id="btn-submit-quiz" style="padding:1rem 4rem; font-size:1.1rem; border-radius:99px; box-shadow:0 4px 15px rgba(13,59,102,0.3);" onclick="submitQuiz()"><i class="fas fa-paper-plane"></i> Submit Final Answers</button>
+    </div>
+  `;
+  
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden'; // prevent background scrolling
+  
+  // Timer Logic
+  let timeRemaining = quiz.duration * 60;
+  const timerEl = document.getElementById('qp-timer');
+  
+  clearInterval(playerTimerInt);
+  playerTimerInt = setInterval(() => {
+    timeRemaining--;
+    const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+    const s = (timeRemaining % 60).toString().padStart(2, '0');
+    timerEl.textContent = `${m}:${s}`;
+    
+    if(timeRemaining <= 60) timerEl.style.animation = 'pulse 1s infinite alternate';
+    
+    if(timeRemaining <= 0) {
+      clearInterval(playerTimerInt);
+      toast('Time is up! Auto-submitting quiz.', 'error');
+      submitQuiz(true); // Force submit
+    }
+  }, 1000);
+};
+
+window.submitQuiz = async function(isAuto = false) {
+  if(!isAuto && !confirm('Are you sure you want to submit? You cannot change your answers later.')) return;
+  
+  clearInterval(playerTimerInt);
+  const btn = document.getElementById('btn-submit-quiz');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Grading...';
+  btn.disabled = true;
+  
+  const quizId = document.getElementById('qp-quiz-id').value;
+  const cards = document.querySelectorAll('.qp-q-card');
+  let score = 0;
+  
+  cards.forEach(card => {
+    const correctAns = card.getAttribute('data-ans');
+    const selected = card.querySelector('input[type="radio"]:checked');
+    if(selected && selected.value === correctAns) {
+      score++;
+    }
+  });
+  
+  const payload = {
+    quiz_id: quizId,
+    student_id: currentUser.id,
+    student_name: currentUser.name,
+    class: currentUser.class,
+    score: score,
+    total_questions: cards.length
+  };
+  
+  const { error } = await supabaseClient.from('quiz_submissions').insert([payload]);
+  
+  if(error) {
+    btn.innerHTML = 'Submit Final Answers'; btn.disabled = false;
+    return toast('Submission failed: ' + error.message, 'error');
+  }
+  
+  document.getElementById('quiz-player-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  toast('Quiz submitted successfully! 🎉');
+};
+
 
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
 function injectAssignmentModal() {
@@ -742,14 +1069,10 @@ window.saveAssignment = async function() {
   if(id) {
     const { error } = await supabaseClient.from('assignments').update(payload).eq('id', id);
     if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('DB Error: ' + error.message, 'error'); }
-    
-    // Updates are now handled by realtime listener
     toast('Assignment updated successfully!');
   } else {
     const { error } = await supabaseClient.from('assignments').insert([payload]).select();
     if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('DB Error: ' + error.message, 'error'); }
-    
-    // Inserts are now handled by realtime listener
     toast('Assignment created successfully!');
   }
   
@@ -762,340 +1085,8 @@ window.deleteAssignment = async function(id) {
   if(!confirm('Are you sure you want to permanently delete this assignment?')) return;
   const { error } = await supabaseClient.from('assignments').delete().eq('id', id);
   if(error) { console.error(error); return toast('Failed to delete assignment', 'error'); }
-  
-  // Deletes are now handled by realtime listener
   toast('Assignment deleted successfully', 'error'); 
 };
-
-/* ====================== SUBMISSIONS (STUDENTS SUBMITTING WORK) ====================== */
-function injectSubmitModal() {
-  if(document.getElementById('dynamic-submit-modal')) return;
-  const m = document.createElement('div');
-  m.className = 'lms-modal';
-  m.id = 'dynamic-submit-modal';
-  m.innerHTML = `
-    <div class="lms-modal-box" style="max-width: 600px;">
-      <div class="modal-h"><h3><i class="fas fa-paper-plane" style="color:var(--primary);margin-right:6px;"></i>Submit Work</h3><button onclick="closeModal('dynamic-submit-modal')"><i class="fas fa-times"></i></button></div>
-      <div class="modal-body" id="submit-modal-content"></div>
-    </div>
-  `;
-  document.body.appendChild(m);
-}
-
-window.openSubmitModal = function(id) {
-  injectSubmitModal();
-  const a = ASSIGNMENTS.find(x => String(x.id) === String(id));
-  const subType = a.submission_type || 'any';
-
-  let html = `
-    <input type="hidden" id="submit-asgn-id" value="${id}">
-    <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--lms-border);">
-      <strong style="display:block; margin-bottom:0.5rem; color:var(--primary); font-size:1.1rem;">${a.title}</strong>
-      <p style="font-size:0.9rem; color:var(--text); line-height:1.6; margin-bottom:0.8rem; white-space:pre-wrap;">${a.desc || 'No instructions provided.'}</p>
-      ${a.attachment_url ? `<a href="${a.attachment_url}" target="_blank" class="btn-outline" style="font-size:0.8rem; padding:0.4rem 0.8rem; text-decoration:none;"><i class="fas fa-paperclip"></i> View Attached Material</a>` : ''}
-    </div>
-  `;
-
-  if (subType === 'any' || subType === 'text') {
-    html += `<div class="lms-form-group"><label>Typed Response</label><textarea id="submit-typed" rows="4" placeholder="Type your answer here..."></textarea></div>`;
-  }
-  if (subType === 'any') html += `<div style="text-align: center; margin: 10px 0; color: var(--lms-muted); font-size: 0.8rem; font-weight: 600;">— OR —</div>`;
-  
-  if (subType === 'any' || subType === 'file') {
-    html += `<div class="lms-form-group"><label>Upload Document/File</label><input type="file" id="submit-file" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #fff;"></div>`;
-  }
-  if (subType === 'any') html += `<div style="text-align: center; margin: 10px 0; color: var(--lms-muted); font-size: 0.8rem; font-weight: 600;">— OR —</div>`;
-  
-  if (subType === 'any' || subType === 'link') {
-    html += `<div class="lms-form-group"><label>Paste Link</label><input type="url" id="submit-link" placeholder="https://..."></div>`;
-  }
-
-  html += `
-    <div class="lms-form-group" style="margin-top:1rem;"><label>Private Comment to Teacher</label><textarea id="submit-comment" rows="2" placeholder="Any notes?"></textarea></div>
-    <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
-      <button class="btn-lms-primary" id="btn-do-submit" style="flex:1;" onclick="doSubmit('${subType}')"><i class="fas fa-check"></i> Finalize Submission</button>
-      <button class="btn-outline" onclick="closeModal('dynamic-submit-modal')">Cancel</button>
-    </div>
-  `;
-
-  document.getElementById('submit-modal-content').innerHTML = html;
-  openModal('dynamic-submit-modal');
-}
-
-window.doSubmit = async function(subType) {
-  if (!supabaseClient) return toast('Database connection missing!', 'error');
-  
-  const btn = document.getElementById('btn-do-submit');
-  const asgnId = document.getElementById('submit-asgn-id').value;
-  const commentEl = document.getElementById('submit-comment');
-  const comment = commentEl ? commentEl.value.trim() : '';
-
-  const typedEl = document.getElementById('submit-typed');
-  const linkEl = document.getElementById('submit-link');
-  const fileEl = document.getElementById('submit-file');
-
-  const typedVal = typedEl ? typedEl.value.trim() : '';
-  const linkVal = linkEl ? linkEl.value.trim() : '';
-  const fileCount = fileEl ? fileEl.files.length : 0;
-
-  if(subType === 'text' && !typedVal) return toast('Please type your response.', 'error');
-  if(subType === 'file' && fileCount === 0) return toast('Please attach a file.', 'error');
-  if(subType === 'link' && !linkVal) return toast('Please provide a link.', 'error');
-  if(subType === 'any' && !typedVal && !linkVal && fileCount === 0) return toast('Please provide an answer, link, or file.', 'error');
-  
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-  btn.disabled = true;
-  
-  let fileUrl = null;
-  
-  if(fileCount > 0) {
-      const file = fileEl.files[0];
-      const filePath = `submissions/${currentUser.id}_${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
-      const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
-      
-      if(uploadError) {
-          btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
-          return toast('File upload failed: ' + uploadError.message, 'error');
-      }
-      
-      const { data: publicUrlData } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
-      fileUrl = publicUrlData.publicUrl;
-  }
-  
-  const payload = {
-      assignment_id: asgnId,
-      student_id: currentUser.id,
-      student_name: currentUser.name,
-      file_url: fileUrl,
-      link: linkVal,
-      typed_response: typedVal,
-      comments: comment,
-      status: 'submitted',
-      class: currentUser.class
-  };
-  
-  const { error } = await supabaseClient.from('submissions').insert([payload]).select();
-  
-  btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
-  
-  if(error) return toast('DB Error: ' + error.message, 'error');
-  
-  // Inserts are now handled by realtime listener
-  closeModal('dynamic-submit-modal');
-  toast('Work submitted successfully! 🎉');
-}
-
-/* ====================== TEACHER GRADING ENGINE ====================== */
-window.viewTypedResponse = function(subId) {
-  const sub = SUBMISSIONS.find(s => String(s.id) === String(subId));
-  if(!document.getElementById('view-text-modal')) {
-    const m = document.createElement('div');
-    m.className = 'lms-modal'; m.id = 'view-text-modal';
-    m.innerHTML = `<div class="lms-modal-box"><div class="modal-h"><h3>Typed Response</h3><button onclick="closeModal('view-text-modal')"><i class="fas fa-times"></i></button></div><div class="modal-body"><div style="background:#f8fafc;padding:1.5rem;border-radius:8px;border:1px solid var(--lms-border);white-space:pre-wrap;font-family:var(--font-lms);font-size:0.95rem;color:var(--text);line-height:1.6;" id="view-text-content"></div></div></div>`;
-    document.body.appendChild(m);
-  }
-  document.getElementById('view-text-content').textContent = sub.typed_response || 'No text provided.';
-  openModal('view-text-modal');
-}
-
-function injectGradeModal() {
-  if(document.getElementById('grade-work-modal')) return;
-  const m = document.createElement('div');
-  m.className = 'lms-modal';
-  m.id = 'grade-work-modal';
-  m.innerHTML = `
-    <div class="lms-modal-box">
-      <div class="modal-h"><h3><i class="fas fa-marker" style="color:var(--accent);margin-right:6px;"></i>Grade Submission</h3><button onclick="closeModal('grade-work-modal')"><i class="fas fa-times"></i></button></div>
-      <div class="modal-body">
-        <input type="hidden" id="grade-sub-id">
-        <div style="background:#f8fafc; padding:1rem; border-radius:8px; margin-bottom:1rem; border:1px solid var(--lms-border);">
-          <strong style="display:block; color:var(--text); font-size:1rem;" id="grade-student-name"></strong>
-          <span style="font-size:0.8rem; color:var(--lms-muted);" id="grade-asgn-title"></span>
-        </div>
-        
-        <div class="lms-form-group">
-          <label>Score / Grade</label>
-          <input type="text" id="grade-score" placeholder="e.g. 85/100, A, or 10/10">
-        </div>
-        
-        <div class="lms-form-group">
-          <label>Teacher's Feedback (Optional)</label>
-          <textarea id="grade-feedback" rows="3" placeholder="Great job! Keep it up..."></textarea>
-        </div>
-        
-        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
-          <button class="btn-lms-primary" id="btn-save-grade" style="flex:1;" onclick="saveGrade()"><i class="fas fa-check"></i> Submit Grade</button>
-          <button class="btn-outline" onclick="closeModal('grade-work-modal')">Cancel</button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-}
-
-window.openGradeModal = function(id) {
-  injectGradeModal();
-  const sub = SUBMISSIONS.find(s => String(s.id) === String(id));
-  const asgn = ASSIGNMENTS.find(a => String(a.id) === String(sub.assignment_id));
-  
-  document.getElementById('grade-sub-id').value = id;
-  document.getElementById('grade-student-name').textContent = sub.student_name;
-  document.getElementById('grade-asgn-title').textContent = asgn ? asgn.title : 'Unknown Assignment';
-  document.getElementById('grade-score').value = sub.grade || '';
-  document.getElementById('grade-feedback').value = sub.feedback || '';
-  
-  openModal('grade-work-modal');
-}
-
-window.saveGrade = async function() {
-  if (!supabaseClient) return toast('Database connection missing!', 'error');
-  
-  const btn = document.getElementById('btn-save-grade');
-  const subId = document.getElementById('grade-sub-id').value;
-  const score = document.getElementById('grade-score').value.trim();
-  const feedback = document.getElementById('grade-feedback').value.trim();
-  
-  if(!score) return toast('Please enter a grade or score.', 'error');
-  
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-  btn.disabled = true;
-  
-  const payload = { status: 'graded', grade: score, feedback: feedback };
-  
-  const { error } = await supabaseClient.from('submissions').update(payload).eq('id', subId);
-  
-  btn.innerHTML = '<i class="fas fa-check"></i> Submit Grade'; btn.disabled = false;
-  
-  if(error) return toast('DB Error: ' + error.message, 'error');
-  
-  // Updates are now handled by realtime listener
-  closeModal('grade-work-modal');
-  toast('Submission Graded! ✅');
-}
-
-/* ====================== REAL WORK: MANAGE STUDENTS ====================== */
-window.saveNewStudent = async function() {
-  if (!supabaseClient) { toast('Database connection missing!', 'error'); return; }
-  const name = document.getElementById('new-std-name').value.trim();
-  const age = document.getElementById('new-std-age').value;
-  const gender = document.getElementById('new-std-gender').value;
-  const parentContact = document.getElementById('new-std-contact').value.trim();
-  if(!name || !age || !parentContact) { toast('Please fill all fields', 'error'); return; }
-  const { count } = await supabaseClient.from('students').select('*', { count: 'exact', head: true });
-  const nextNumber = (count || STUDENTS_DB.length) + 1;
-  const newId = 'STU' + String(nextNumber).padStart(3, '0');
-  const payload = { id: newId, name: name, age: age, gender: gender, parent_contact: parentContact, class: currentUser.class };
-  const { data, error } = await supabaseClient.from('students').insert([payload]).select();
-  if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
-  if (data) STUDENTS_DB.push(data[0]);
-  closeModal('add-student-modal'); renderPage('t-class'); toast(`${name} added successfully! ID: ${newId}`);
-};
-
-window.deleteStudent = async function(id) {
-  if (!supabaseClient) return;
-  const student = STUDENTS_DB.find(s => s.id === id);
-  if(confirm(`Are you absolutely sure you want to remove ${student.name} from the database?`)) {
-    const { error } = await supabaseClient.from('students').delete().eq('id', id);
-    if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
-    STUDENTS_DB = STUDENTS_DB.filter(s => s.id !== id);
-    renderPage('t-class'); toast('Student removed successfully.', 'error');
-  }
-};
-
-window.openTransferModal = function(id) {
-  const std = STUDENTS_DB.find(s => s.id === id);
-  document.getElementById('transfer-std-name').textContent = std.name;
-  document.getElementById('transfer-modal').dataset.stdId = id;
-  openModal('transfer-modal');
-};
-
-window.saveTransfer = async function() {
-  if (!supabaseClient) return;
-  const id = document.getElementById('transfer-modal').dataset.stdId;
-  const newClass = document.getElementById('transfer-class-select').value;
-  const std = STUDENTS_DB.find(s => s.id === id);
-  if(std) {
-    const { error } = await supabaseClient.from('students').update({ class: newClass }).eq('id', id);
-    if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
-    std.class = newClass; 
-  }
-  closeModal('transfer-modal'); renderPage('t-class'); toast(`${std.name} has been transferred to ${newClass}`);
-};
-
-window.filterStudents = function(){
-  const q = document.getElementById('student-search').value.toLowerCase();
-  document.querySelectorAll('#student-list .std-row').forEach(row=>{
-    row.style.display = row.dataset.name.includes(q) ? '' : 'none';
-  });
-};
-
-/* ====================== REAL WORK: REPORT CARDS ====================== */
-window.openReportModal = function(id) {
-  const std = STUDENTS_DB.find(s => s.id === id);
-  document.getElementById('report-std-name').textContent = std.name;
-  document.getElementById('build-report-modal').dataset.stdId = id;
-  openModal('build-report-modal');
-};
-
-window.saveReportCard = async function() {
-  if (!supabaseClient) return;
-  const id = document.getElementById('build-report-modal').dataset.stdId;
-  const conduct = document.getElementById('report-conduct').value;
-  const remarks = document.getElementById('report-remarks').value.trim();
-  if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
-  
-  const payload = { student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
-  const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
-  
-  if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
-  
-  if (data && data.length > 0) REPORT_CARDS.push(data[0]);
-  closeModal('build-report-modal'); renderPage('t-grades'); toast('Report Card Generated & Published! ✅');
-};
-
-window.viewReportCard = function(reportId) {
-  const report = REPORT_CARDS.find(r => r.id === reportId);
-  const printArea = document.getElementById('print-area');
-  printArea.innerHTML = `
-    <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff;">
-      <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
-        <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
-        <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
-        <h3 style="margin-top:1rem; color:var(--accent);">OFFICIAL END OF TERM REPORT</h3>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom: 2rem; font-size:.95rem;">
-        <div><p><strong>Student Name:</strong> ${currentUser.name}</p><p><strong>Student ID:</strong> ${currentUser.id}</p></div>
-        <div style="text-align:right;"><p><strong>Class:</strong> ${currentUser.class}</p><p><strong>Term:</strong> ${report.term} 2025/26</p></div>
-      </div>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
-        <tr style="background:var(--lms-surface);">
-          <th style="padding:10px; border:1px solid #ccc; text-align:left;">Subject</th>
-          <th style="padding:10px; border:1px solid #ccc; text-align:center;">Score</th>
-          <th style="padding:10px; border:1px solid #ccc; text-align:center;">Grade</th>
-        </tr>
-        ${GRADES.slice(0,5).map(g => `<tr><td style="padding:10px; border:1px solid #ccc;">${g.subject}</td><td style="padding:10px; border:1px solid #ccc; text-align:center;">${g.total}</td><td style="padding:10px; border:1px solid #ccc; text-align:center;"><strong>${g.grade}</strong></td></tr>`).join('')}
-      </table>
-      <div style="background: #f9f9f9; padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem;">
-        <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ${report.conduct}</p>
-        <p><strong>Class Teacher's Remarks:</strong> ${report.remarks}</p>
-      </div>
-      <div style="margin-top: 3rem; display:flex; justify-content:space-between;">
-        <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Teacher's Signature</div>
-        <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Headmaster's Signature</div>
-      </div>
-    </div>
-  `;
-  openModal('view-report-modal');
-};
-
-/* ====================== ATTENDANCE ====================== */
-function renderAttList(){
-  const el=document.getElementById('att-mark-list');
-  if(!el) return;
-  const myClass = STUDENTS_DB.filter(s => s.class === currentUser.class);
-  el.innerHTML=myClass.map((s,i)=>` <div class="std-row" style="background:#f8fafc; border:1px solid var(--lms-border); border-radius:10px; padding:0.8rem 1rem; display:flex; align-items:center; gap:1rem;"> <div class="std-av" style="width:36px;height:36px;font-size:.9rem;">${getInitials(s.name)}</div> <div class="std-info" style="flex:1;"><strong>${s.name}</strong><span style="display:block;font-size:0.75rem;color:var(--lms-muted);">${s.id}</span></div> <div class="ml-auto" style="display:flex;gap:.5rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;box-shadow:0 4px 10px rgba(34,197,94,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Present</button> <button onclick="setAtt(${i},'absent')" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;box-shadow:0 4px 10px rgba(239,68,68,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Absent</button> </div> </div>`).join('');
-}
-window.setAtt=function(i,v){attState[i]=v;renderAttList();};
 
 /* ====================== REAL-TIME LISTENERS ====================== */
 let realtimeChannel = null;
@@ -1108,30 +1099,30 @@ function setupRealtimeListeners() {
   realtimeChannel = supabaseClient.channel('lms-realtime-channel')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, payload => {
       const { eventType, new: newRec, old: oldRec } = payload;
-      
-      if (eventType === 'INSERT') {
-        SUBMISSIONS.unshift(newRec);
-        if(currentUser.role === 'teacher') toast('New submission received! 📥');
-      } else if (eventType === 'UPDATE') {
-        const idx = SUBMISSIONS.findIndex(s => String(s.id) === String(newRec.id));
-        if (idx !== -1) SUBMISSIONS[idx] = newRec;
-      } else if (eventType === 'DELETE') {
-        SUBMISSIONS = SUBMISSIONS.filter(s => String(s.id) !== String(oldRec.id));
-      }
+      if (eventType === 'INSERT') { SUBMISSIONS.unshift(newRec); if(currentUser.role === 'teacher') toast('New submission received! 📥'); } 
+      else if (eventType === 'UPDATE') { const idx = SUBMISSIONS.findIndex(s => String(s.id) === String(newRec.id)); if (idx !== -1) SUBMISSIONS[idx] = newRec; } 
+      else if (eventType === 'DELETE') { SUBMISSIONS = SUBMISSIONS.filter(s => String(s.id) !== String(oldRec.id)); }
       refreshUI();
     })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, payload => {
       const { eventType, new: newRec, old: oldRec } = payload;
-      
-      if (eventType === 'INSERT') {
-        ASSIGNMENTS.unshift(mapAssignment(newRec));
-        if(currentUser.role === 'student') toast('New assignment posted! 📚');
-      } else if (eventType === 'UPDATE') {
-        const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(newRec.id));
-        if (idx !== -1) ASSIGNMENTS[idx] = mapAssignment(newRec);
-      } else if (eventType === 'DELETE') {
-        ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(oldRec.id));
-      }
+      if (eventType === 'INSERT') { ASSIGNMENTS.unshift(mapAssignment(newRec)); if(currentUser.role === 'student') toast('New assignment posted! 📚'); } 
+      else if (eventType === 'UPDATE') { const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(newRec.id)); if (idx !== -1) ASSIGNMENTS[idx] = mapAssignment(newRec); } 
+      else if (eventType === 'DELETE') { ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(oldRec.id)); }
+      refreshUI();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, payload => {
+      const { eventType, new: newRec, old: oldRec } = payload;
+      if (eventType === 'INSERT') { QUIZZES.unshift(newRec); if(currentUser.role === 'student') toast('New Quiz Published! ⏱️'); } 
+      else if (eventType === 'UPDATE') { const idx = QUIZZES.findIndex(q => q.id === newRec.id); if (idx !== -1) QUIZZES[idx] = newRec; } 
+      else if (eventType === 'DELETE') { QUIZZES = QUIZZES.filter(q => q.id !== oldRec.id); }
+      refreshUI();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'quiz_submissions' }, payload => {
+      const { eventType, new: newRec, old: oldRec } = payload;
+      if (eventType === 'INSERT') { QUIZ_SUBMISSIONS.unshift(newRec); } 
+      else if (eventType === 'UPDATE') { const idx = QUIZ_SUBMISSIONS.findIndex(q => q.id === newRec.id); if (idx !== -1) QUIZ_SUBMISSIONS[idx] = newRec; } 
+      else if (eventType === 'DELETE') { QUIZ_SUBMISSIONS = QUIZ_SUBMISSIONS.filter(q => q.id !== oldRec.id); }
       refreshUI();
     })
     .subscribe();
