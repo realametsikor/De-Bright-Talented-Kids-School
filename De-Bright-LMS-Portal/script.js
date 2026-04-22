@@ -46,7 +46,7 @@ const TT_COLORS = {
 };
 
 /* ====================== LIVE DB STATE ====================== */
-let currentUser = null, currentRole = 'student';
+let currentUser = null, currentRole = 'student', currentPage = null;
 let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
 let STUDENTS_DB = [], REPORT_CARDS = []; 
 let attState = {};
@@ -92,6 +92,7 @@ window.doLogin = async function(){
       currentUser = fetchedUser;
       localStorage.setItem('lms_user', JSON.stringify(currentUser));
       await fetchAllData();
+      setupRealtimeListeners();
       
       btnText.innerHTML = '<i class="fas fa-check-circle"></i> Welcome!';
       setTimeout(()=>{
@@ -151,6 +152,8 @@ function showErr(msg){
 
 function doLogout(){
   localStorage.removeItem('lms_user'); 
+  if(realtimeChannel && supabaseClient) { supabaseClient.removeChannel(realtimeChannel); }
+  currentPage = null;
   document.getElementById('lms-dashboard').classList.remove('active');
   document.getElementById('login-section').style.display='';
   document.querySelector('.navbar').style.display='';
@@ -196,7 +199,7 @@ function buildDashboard(){
     ]},
     {section:'Academics', links:[
       {icon:'tasks',label:'Assignments',page:'t-assignments'},
-      {icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && s.class===u.class).length||null},
+      {icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && (s.class===u.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===u.class)).length||null},
       {icon:'chart-bar',label:'Grade Book',page:'t-grades'},
       {icon:'clipboard-list',label:'Attendance',page:'t-attendance'},
     ]},
@@ -207,16 +210,22 @@ function buildDashboard(){
     ]},
   ];
 
+  const currentDisplayPage = currentPage || (u.role==='student'?'s-dashboard':'t-dashboard');
+
   nav.innerHTML = items.map(s=>` <div class="sb-section">${s.section}</div> ${s.links.map(l=>`
-  <div class="sb-item${l.page===(u.role==='student'?'s-dashboard':'t-dashboard')?' active':''}" onclick="showPage('${l.page}',this)">
+  <div class="sb-item${l.page===currentDisplayPage?' active':''}" onclick="showPage('${l.page}',this)">
   <i class="fas fa-${l.icon}"></i> ${l.label}
   ${l.badge?`<span class="sb-badge">${l.badge}</span>`:''}
   </div>`).join('')} `).join('');
 
-  renderPage(u.role==='student'?'s-dashboard':'t-dashboard');
+  if (!currentPage) {
+    currentPage = currentDisplayPage;
+    renderPage(currentPage);
+  }
 }
 
 function showPage(page, el){
+  currentPage = page;
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
   const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book'};
@@ -396,7 +405,7 @@ const pages = {
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-red);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #fef2f2; color: var(--lms-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-inbox"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Submissions</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${SUBMISSIONS.filter(s=>s.class===currentUser.class).length}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Submissions</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${SUBMISSIONS.filter(s=>s.class===currentUser.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===currentUser.class).length}</div></div>
     </div>
   </div>`,
 
@@ -431,7 +440,7 @@ const pages = {
   </div>`,
 
 't-submissions':()=>{
-  const classSubmissions = SUBMISSIONS.filter(s => s.class === currentUser.class);
+  const classSubmissions = SUBMISSIONS.filter(s => s.class === currentUser.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class === currentUser.class);
   return `
   <div class="page-header" style="margin-bottom: 2rem;"><h2>Submissions Inbox</h2><span style="color:var(--lms-muted);">Review and grade student work for ${currentUser.class}</span></div>
   <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
@@ -734,20 +743,18 @@ window.saveAssignment = async function() {
     const { error } = await supabaseClient.from('assignments').update(payload).eq('id', id);
     if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('DB Error: ' + error.message, 'error'); }
     
-    const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(id));
-    if(idx !== -1) { ASSIGNMENTS[idx] = { ...ASSIGNMENTS[idx], ...payload }; }
+    // Updates are now handled by realtime listener
     toast('Assignment updated successfully!');
   } else {
-    const { data, error } = await supabaseClient.from('assignments').insert([payload]).select();
+    const { error } = await supabaseClient.from('assignments').insert([payload]).select();
     if(error) { btn.innerHTML = 'Save Assignment'; btn.disabled = false; return toast('DB Error: ' + error.message, 'error'); }
     
-    if (data && data.length > 0) { ASSIGNMENTS.unshift(mapAssignment(data[0])); }
+    // Inserts are now handled by realtime listener
     toast('Assignment created successfully!');
   }
   
   btn.innerHTML = 'Save Assignment'; btn.disabled = false;
   closeModal('assignment-modal');
-  renderPage('t-assignments');
 };
 
 window.deleteAssignment = async function(id) {
@@ -755,8 +762,8 @@ window.deleteAssignment = async function(id) {
   if(!confirm('Are you sure you want to permanently delete this assignment?')) return;
   const { error } = await supabaseClient.from('assignments').delete().eq('id', id);
   if(error) { console.error(error); return toast('Failed to delete assignment', 'error'); }
-  ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(id));
-  renderPage('t-assignments');
+  
+  // Deletes are now handled by realtime listener
   toast('Assignment deleted successfully', 'error'); 
 };
 
@@ -867,19 +874,15 @@ window.doSubmit = async function(subType) {
       class: currentUser.class
   };
   
-  const { data, error } = await supabaseClient.from('submissions').insert([payload]).select();
+  const { error } = await supabaseClient.from('submissions').insert([payload]).select();
   
   btn.innerHTML = '<i class="fas fa-check"></i> Finalize Submission'; btn.disabled = false;
   
   if(error) return toast('DB Error: ' + error.message, 'error');
   
-  if (data && data.length > 0) {
-      SUBMISSIONS.unshift(data[0]);
-  }
-  
+  // Inserts are now handled by realtime listener
   closeModal('dynamic-submit-modal');
   toast('Work submitted successfully! 🎉');
-  renderPage('s-assignments');
 }
 
 /* ====================== TEACHER GRADING ENGINE ====================== */
@@ -965,16 +968,9 @@ window.saveGrade = async function() {
   
   if(error) return toast('DB Error: ' + error.message, 'error');
   
-  const idx = SUBMISSIONS.findIndex(s => String(s.id) === String(subId));
-  if(idx !== -1) { 
-     SUBMISSIONS[idx].status = 'graded';
-     SUBMISSIONS[idx].grade = score;
-     SUBMISSIONS[idx].feedback = feedback;
-  }
-  
+  // Updates are now handled by realtime listener
   closeModal('grade-work-modal');
   toast('Submission Graded! ✅');
-  renderPage('t-submissions');
 }
 
 /* ====================== REAL WORK: MANAGE STUDENTS ====================== */
@@ -1101,6 +1097,51 @@ function renderAttList(){
 }
 window.setAtt=function(i,v){attState[i]=v;renderAttList();};
 
+/* ====================== REAL-TIME LISTENERS ====================== */
+let realtimeChannel = null;
+
+function setupRealtimeListeners() {
+  if (!supabaseClient) return;
+
+  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
+
+  realtimeChannel = supabaseClient.channel('lms-realtime-channel')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, payload => {
+      const { eventType, new: newRec, old: oldRec } = payload;
+      
+      if (eventType === 'INSERT') {
+        SUBMISSIONS.unshift(newRec);
+        if(currentUser.role === 'teacher') toast('New submission received! 📥');
+      } else if (eventType === 'UPDATE') {
+        const idx = SUBMISSIONS.findIndex(s => String(s.id) === String(newRec.id));
+        if (idx !== -1) SUBMISSIONS[idx] = newRec;
+      } else if (eventType === 'DELETE') {
+        SUBMISSIONS = SUBMISSIONS.filter(s => String(s.id) !== String(oldRec.id));
+      }
+      refreshUI();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, payload => {
+      const { eventType, new: newRec, old: oldRec } = payload;
+      
+      if (eventType === 'INSERT') {
+        ASSIGNMENTS.unshift(mapAssignment(newRec));
+        if(currentUser.role === 'student') toast('New assignment posted! 📚');
+      } else if (eventType === 'UPDATE') {
+        const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(newRec.id));
+        if (idx !== -1) ASSIGNMENTS[idx] = mapAssignment(newRec);
+      } else if (eventType === 'DELETE') {
+        ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(oldRec.id));
+      }
+      refreshUI();
+    })
+    .subscribe();
+}
+
+function refreshUI() {
+  buildDashboard(); 
+  if (currentPage) renderPage(currentPage);
+}
+
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded', async () => {
   const y=document.getElementById('year');
@@ -1121,8 +1162,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display = 'none';
     const btt = document.getElementById('backToTop'); if(btt) btt.style.display = 'none';
     
-    buildDashboard(); 
     await fetchAllData();
+    setupRealtimeListeners(); 
     buildDashboard();
   }
 });
