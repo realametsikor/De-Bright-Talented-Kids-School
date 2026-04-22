@@ -858,7 +858,7 @@ function injectQuizPlayer() {
   if(document.getElementById('quiz-player-overlay')) return;
   const d = document.createElement('div');
   d.id = 'quiz-player-overlay';
-  d.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#f1f5f9; z-index:9999; overflow-y:auto;";
+  d.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#f8fafc; z-index:9999; overflow-y:auto;";
   document.body.appendChild(d);
 }
 
@@ -867,37 +867,58 @@ window.startQuizPlayer = function(quizId) {
   const quiz = QUIZZES.find(q => q.id === quizId);
   if(!quiz) return;
   
+  // Track the current question state
+  window.currentQuizQuestionIndex = 0;
+  window.currentQuizData = quiz;
+  
   const overlay = document.getElementById('quiz-player-overlay');
   overlay.innerHTML = `
     <div style="background:#fff; padding:1rem 2rem; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;">
       <h2 style="margin:0; font-size:1.2rem; color:var(--primary);">${quiz.title}</h2>
-      <div style="background:var(--lms-red); color:#fff; padding:0.5rem 1rem; border-radius:99px; font-family:monospace; font-size:1.2rem; font-weight:bold;" id="qp-timer">00:00</div>
+      <div style="background:var(--lms-red); color:#fff; padding:0.5rem 1.2rem; border-radius:99px; font-family:monospace; font-size:1.2rem; font-weight:bold; box-shadow:0 4px 10px rgba(220, 38, 38, 0.2);" id="qp-timer">00:00</div>
     </div>
+    
+    <div style="max-width:800px; margin:1.5rem auto 0; padding:0 1rem;">
+      <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--lms-muted); margin-bottom:0.5rem; font-weight:600;">
+        <span>Quiz Progress</span>
+        <span id="qp-progress-text">Question 1 of ${quiz.questions.length}</span>
+      </div>
+      ${renderProgressBar(100/quiz.questions.length, 'var(--accent)')}
+    </div>
+
     <div style="max-width:800px; margin:2rem auto; padding:0 1rem; padding-bottom:100px;">
       <input type="hidden" id="qp-quiz-id" value="${quiz.id}">
       ${quiz.questions.map((q, i) => `
-        <div class="qp-q-card" style="background:#fff; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.03); margin-bottom:1.5rem;" data-index="${i}" data-ans="${q.answer}">
-          <h3 style="margin-top:0; font-size:1.1rem; line-height:1.5;"><span style="color:var(--lms-muted); margin-right:8px;">${i+1}.</span> ${q.q}</h3>
+        <div class="qp-q-card" id="qp-card-${i}" style="background:#fff; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:${i === 0 ? 'block' : 'none'}; border: 1px solid var(--lms-border);" data-index="${i}" data-ans="${q.answer}">
+          <h3 style="margin-top:0; font-size:1.2rem; line-height:1.6; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:800;">${i+1}.</span> ${q.q}</h3>
+          
           <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:1.5rem;">
             ${q.options.map((opt, optIdx) => `
-              <label style="display:flex; align-items:center; gap:1rem; padding:1rem; border:1px solid var(--lms-border); border-radius:8px; cursor:pointer; transition:border 0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='var(--lms-border)'">
-                <input type="radio" name="q_${i}" value="${optIdx}" style="width:18px; height:18px; accent-color:var(--primary);" onchange="this.parentElement.parentElement.querySelectorAll('label').forEach(l=>l.style.borderColor='var(--lms-border)'); this.parentElement.style.borderColor='var(--primary)';">
-                <span style="font-size:1rem;">${opt}</span>
+              <label style="display:flex; align-items:center; gap:1rem; padding:1.2rem; border:2px solid var(--lms-border); border-radius:10px; cursor:pointer; transition:all 0.2s; background:#f8fafc;" onmouseover="if(!this.querySelector('input').checked) this.style.borderColor='var(--primary)'" onmouseout="if(!this.querySelector('input').checked) this.style.borderColor='var(--lms-border)'">
+                <input type="radio" name="q_${i}" value="${optIdx}" style="width:20px; height:20px; accent-color:var(--primary); cursor:pointer;" onchange="this.parentElement.parentElement.querySelectorAll('label').forEach(l=>{l.style.borderColor='var(--lms-border)'; l.style.background='#f8fafc';}); this.parentElement.style.borderColor='var(--primary)'; this.parentElement.style.background='#eff6ff';">
+                <span style="font-size:1.05rem; color:var(--text);">${opt}</span>
               </label>
             `).join('')}
           </div>
         </div>
       `).join('')}
     </div>
-    <div style="position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:1.5rem; border-top:1px solid var(--lms-border); box-shadow:0 -4px 15px rgba(0,0,0,0.05); display:flex; justify-content:center;">
-      <button class="btn-lms-primary" id="btn-submit-quiz" style="padding:1rem 4rem; font-size:1.1rem; border-radius:99px; box-shadow:0 4px 15px rgba(13,59,102,0.3);" onclick="submitQuiz()"><i class="fas fa-paper-plane"></i> Submit Final Answers</button>
+    
+    <div style="position:fixed; bottom:0; left:0; width:100%; background:#fff; padding:1rem 2rem; border-top:1px solid var(--lms-border); box-shadow:0 -4px 20px rgba(0,0,0,0.06); z-index:20;">
+      <div style="max-width:800px; margin:0 auto; display:flex; justify-content:space-between; align-items:center;">
+        <button class="btn-outline" id="btn-prev-q" style="padding:0.8rem 2rem; border-radius:99px; visibility:hidden; font-weight:600;" onclick="navigateQuiz(-1)"><i class="fas fa-arrow-left"></i> Previous</button>
+        
+        <button class="btn-lms-primary" id="btn-next-q" style="padding:0.8rem 3rem; border-radius:99px; font-weight:600; box-shadow:0 4px 15px rgba(13,59,102,0.3); ${quiz.questions.length === 1 ? 'display:none;' : ''}" onclick="navigateQuiz(1)">Next <i class="fas fa-arrow-right"></i></button>
+        
+        <button class="btn-lms-primary" id="btn-submit-quiz" style="padding:0.8rem 3rem; font-weight:600; border-radius:99px; background:#16a34a; border-color:#16a34a; box-shadow:0 4px 15px rgba(22, 163, 74, 0.3); ${quiz.questions.length > 1 ? 'display:none;' : ''}" onclick="submitQuiz()"><i class="fas fa-check-double"></i> Submit Answers</button>
+      </div>
     </div>
   `;
   
   overlay.style.display = 'block';
   document.body.style.overflow = 'hidden'; // prevent background scrolling
   
-  // Timer Logic
+  // Timer Logic & Notifications
   let timeRemaining = quiz.duration * 60;
   const timerEl = document.getElementById('qp-timer');
   
@@ -908,14 +929,50 @@ window.startQuizPlayer = function(quizId) {
     const s = (timeRemaining % 60).toString().padStart(2, '0');
     timerEl.textContent = `${m}:${s}`;
     
-    if(timeRemaining <= 60) timerEl.style.animation = 'pulse 1s infinite alternate';
+    // Time warnings
+    if(timeRemaining === 300) {
+        toast('⚠️ 5 minutes remaining!', 'error');
+    }
+    if(timeRemaining === 60) {
+        toast('⚠️ 1 minute remaining! Wrap up your answers.', 'error');
+        timerEl.style.animation = 'pulse 1s infinite alternate';
+    }
     
     if(timeRemaining <= 0) {
       clearInterval(playerTimerInt);
       toast('Time is up! Auto-submitting quiz.', 'error');
-      submitQuiz(true); // Force submit
+      submitQuiz(true); // Force auto-submit
     }
   }, 1000);
+};
+
+window.navigateQuiz = function(dir) {
+  const totalQ = window.currentQuizData.questions.length;
+  
+  // Hide current question
+  document.getElementById(`qp-card-${window.currentQuizQuestionIndex}`).style.display = 'none';
+  
+  // Update index
+  window.currentQuizQuestionIndex += dir;
+  
+  // Show new question
+  document.getElementById(`qp-card-${window.currentQuizQuestionIndex}`).style.display = 'block';
+  
+  // Manage button visibility
+  document.getElementById('btn-prev-q').style.visibility = window.currentQuizQuestionIndex === 0 ? 'hidden' : 'visible';
+  
+  if(window.currentQuizQuestionIndex === totalQ - 1) {
+    document.getElementById('btn-next-q').style.display = 'none';
+    document.getElementById('btn-submit-quiz').style.display = 'block';
+  } else {
+    document.getElementById('btn-next-q').style.display = 'block';
+    document.getElementById('btn-submit-quiz').style.display = 'none';
+  }
+
+  // Update Progress Bar
+  document.getElementById('qp-progress-text').textContent = `Question ${window.currentQuizQuestionIndex + 1} of ${totalQ}`;
+  const pct = ((window.currentQuizQuestionIndex + 1) / totalQ) * 100;
+  document.querySelector('#quiz-player-overlay .fill').style.width = pct + '%';
 };
 
 window.submitQuiz = async function(isAuto = false) {
@@ -950,7 +1007,7 @@ window.submitQuiz = async function(isAuto = false) {
   const { error } = await supabaseClient.from('quiz_submissions').insert([payload]);
   
   if(error) {
-    btn.innerHTML = 'Submit Final Answers'; btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check-double"></i> Submit Answers'; btn.disabled = false;
     return toast('Submission failed: ' + error.message, 'error');
   }
   
@@ -958,7 +1015,6 @@ window.submitQuiz = async function(isAuto = false) {
   document.body.style.overflow = '';
   toast('Quiz submitted successfully! 🎉');
 };
-
 
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
 function injectAssignmentModal() {
