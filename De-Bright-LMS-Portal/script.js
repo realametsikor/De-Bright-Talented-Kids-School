@@ -46,7 +46,7 @@ let TIMETABLE = [
   ['LUNCH','LUNCH','LUNCH','LUNCH','LUNCH'],
   ['ICT','Science','RME','French','Science']
 ];
-const TT_TIMES = ['7:30–8:20','8:20–9:10','9:10–10:00','10:00–10:30','10:30–11:20','11:20–12:10'];
+let TT_TIMES = ['07:30 AM','08:20 AM','09:10 AM','10:00 AM','10:30 AM','11:20 AM'];
 const TT_COLORS = {
   'Maths':'filled-gold','English':'filled-blue','Science':'filled-green',
   'ICT':'filled-green','French':'filled-purple','Social Studies':'filled-purple',
@@ -271,8 +271,17 @@ function fmtDate(d){try{return new Date(d).toLocaleDateString('en-GB',{day:'nume
 /* ====================== TIMETABLE FUNCTIONS ====================== */
 window.saveTimetable = function() {
   const selects = document.querySelectorAll('.tt-select');
+  const timeInputs = document.querySelectorAll('.tt-time-input');
+  
   const newTimetable = Array.from({length: TT_TIMES.length}, () => Array(5).fill('-'));
+  const newTimes = Array(TT_TIMES.length).fill('');
 
+  // Update Times array
+  timeInputs.forEach(inp => {
+    newTimes[parseInt(inp.getAttribute('data-row'))] = inp.value.trim();
+  });
+
+  // Update Subjects array
   selects.forEach(sel => {
     const r = parseInt(sel.getAttribute('data-row'));
     const c = parseInt(sel.getAttribute('data-col'));
@@ -280,9 +289,10 @@ window.saveTimetable = function() {
   });
 
   TIMETABLE = newTimetable;
+  TT_TIMES = newTimes;
   
   if(supabaseClient && currentUser.role === 'teacher') {
-      supabaseClient.from('classes').update({ timetable_data: TIMETABLE }).eq('name', currentUser.class).then(() => {});
+      supabaseClient.from('classes').update({ timetable_data: TIMETABLE, timetable_times: TT_TIMES }).eq('name', currentUser.class).then(() => {});
   }
 
   toast('Timetable updated successfully! ✅');
@@ -297,6 +307,25 @@ window.viewPrintableTimetable = function() {
     document.body.appendChild(m);
   }
   const m = document.getElementById('view-timetable-modal');
+  
+  let tbodyHTML = '';
+  TT_TIMES.forEach((time, i) => {
+    const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
+    const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
+    let rowContent = '';
+    
+    if(isAllBreak || isAllLunch) {
+      const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
+      rowContent = '<td colspan="5" style="padding:10px; border:1px solid #ccc; background:rgba(249,249,249,0.7); font-weight:bold; letter-spacing:2px; color:#555;">' + label + '</td>';
+    } else {
+      rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
+        const sub = TIMETABLE[i]?.[j] || '-';
+        return '<td style="padding:10px; border:1px solid #ccc;">' + sub + '</td>';
+      }).join('');
+    }
+    tbodyHTML += '<tr><td style="padding:10px; border:1px solid #ccc; font-weight:bold;">' + time + '</td>' + rowContent + '</tr>';
+  });
+
   m.innerHTML = `
     <style>
       @media print {
@@ -305,6 +334,22 @@ window.viewPrintableTimetable = function() {
         #tt-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
         .lms-modal-box { box-shadow: none; border: none; }
         #view-timetable-modal .modal-h, #view-timetable-modal .print-footer-actions { display: none !important; }
+        
+        /* Watermark for Print */
+        #tt-print-area::before {
+          content: "";
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 500px;
+          height: 500px;
+          background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
+          background-size: contain;
+          opacity: 0.08;
+          z-index: -1;
+          pointer-events: none;
+        }
       }
     </style>
     <div class="lms-modal-box" style="max-width:800px;">
@@ -312,15 +357,18 @@ window.viewPrintableTimetable = function() {
         <h3><i class="fas fa-calendar-alt" style="color:var(--accent);margin-right:6px;"></i>Official Timetable</h3>
         <button onclick="closeModal('view-timetable-modal')"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000;">
-        <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+      <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000; position:relative; z-index:1;">
+        
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:400px; height:400px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.05; z-index:-1; pointer-events:none;"></div>
+        
+        <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
           <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
           <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
-          <h3 style="margin-top:1rem; color:var(--accent);">CLASS ${currentUser.class || ''} TIMETABLE</h3>
+          <h3 style="margin-top:1rem; color:var(--accent);">CLASS ` + (currentUser.class || '') + ` TIMETABLE</h3>
         </div>
-        <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; text-align:center;">
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; text-align:center; background:transparent; position:relative; z-index:2;">
           <thead>
-            <tr style="background:var(--lms-surface);">
+            <tr style="background:rgba(240,244,248,0.8);">
               <th style="padding:10px; border:1px solid #ccc;">Time</th>
               <th style="padding:10px; border:1px solid #ccc;">Mon</th>
               <th style="padding:10px; border:1px solid #ccc;">Tue</th>
@@ -330,21 +378,7 @@ window.viewPrintableTimetable = function() {
             </tr>
           </thead>
           <tbody>
-            ${TT_TIMES.map((time, i) => {
-              const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
-              const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
-              let rowContent = '';
-              if(isAllBreak || isAllLunch) {
-                const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
-                rowContent = `<td colspan="5" style="padding:10px; border:1px solid #ccc; background:#f9f9f9; font-weight:bold; letter-spacing:2px; color:#555;">${label}</td>`;
-              } else {
-                rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
-                  const sub = TIMETABLE[i]?.[j] || '-';
-                  return `<td style="padding:10px; border:1px solid #ccc;">${sub}</td>`;
-                }).join('');
-              }
-              return `<tr><td style="padding:10px; border:1px solid #ccc; font-weight:bold;">${time}</td>${rowContent}</tr>`;
-            }).join('')}
+            ` + tbodyHTML + `
           </tbody>
         </table>
       </div>
@@ -396,7 +430,30 @@ const pages = {
     `).join('')}
   </div>`,
 
-'s-timetable':()=>`
+'s-timetable':() => {
+  let tbodyHTML = '';
+  TT_TIMES.forEach((time, i) => {
+    const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
+    const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
+    let rowContent = '';
+
+    if (isAllBreak || isAllLunch) {
+      const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
+      rowContent = '<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted); text-transform:uppercase;">' + label + '</td>';
+    } else {
+      rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
+        const sub = TIMETABLE[i]?.[j] || '-';
+        const colorClass = TT_COLORS[sub] || 'grey';
+        if(sub === 'BREAK' || sub === 'LUNCH') {
+            return '<td style="padding: 0.5rem;"><span class="chip ' + (sub==='BREAK'?'gold':'green') + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + sub + '</span></td>';
+        }
+        return '<td style="padding: 0.5rem;"><span class="chip ' + colorClass + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + sub + '</span></td>';
+      }).join('');
+    }
+    tbodyHTML += '<tr style="border-bottom: 1px solid var(--lms-border);"><td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">' + time + '</td>' + rowContent + '</tr>';
+  });
+
+  return `
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
     <div><h2>Class Timetable</h2><span style="color:var(--lms-muted);">Term 2 Schedule</span></div>
     <button class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="viewPrintableTimetable()"><i class="fas fa-print"></i> Download PDF</button>
@@ -408,33 +465,12 @@ const pages = {
           <tr><th style="padding: 1rem;">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
         </thead>
         <tbody>
-          ${TT_TIMES.map((time, i) => {
-            const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
-            const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
-            let rowContent = '';
-
-            if (isAllBreak || isAllLunch) {
-              const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
-              rowContent = `<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted); text-transform:uppercase;">${label}</td>`;
-            } else {
-              rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
-                const sub = TIMETABLE[i]?.[j] || '-';
-                const colorClass = TT_COLORS[sub] || 'grey';
-                if(sub === 'BREAK' || sub === 'LUNCH') {
-                    return `<td style="padding: 0.5rem;"><span class="chip ${sub==='BREAK'?'gold':'green'}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">${sub}</span></td>`;
-                }
-                return `<td style="padding: 0.5rem;"><span class="chip ${colorClass}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">${sub}</span></td>`;
-              }).join('');
-            }
-            return `<tr style="border-bottom: 1px solid var(--lms-border);">
-              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">${time}</td>
-              ${rowContent}
-            </tr>`;
-          }).join('')}
+          ` + tbodyHTML + `
         </tbody>
       </table>
     </div>
-  </div>`,
+  </div>`;
+},
 
 's-assignments': () => {
   return `
@@ -789,6 +825,27 @@ const pages = {
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
 't-timetable': () => {
   const ALL_OPTS = ['Maths','English','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH','-'];
+  let tbodyHTML = '';
+  
+  TT_TIMES.forEach((time, i) => {
+    let rowHTML = '';
+    ['Mon','Tue','Wed','Thu','Fri'].forEach((day, j) => {
+      const sub = TIMETABLE[i]?.[j] || '-';
+      let optionsHTML = '';
+      ALL_OPTS.forEach(opt => {
+        const isSelected = sub === opt ? 'selected' : '';
+        const displayOpt = opt === 'BREAK' ? 'Morning Break' : opt === 'LUNCH' ? 'Lunch Break' : opt;
+        optionsHTML += '<option value="' + opt + '" ' + isSelected + '>' + displayOpt + '</option>';
+      });
+      rowHTML += '<td style="padding: 0.5rem;"><select class="tt-select" data-row="' + i + '" data-col="' + j + '" style="width:100%; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; background:#fff; cursor:pointer;" onchange="this.style.borderColor=\'var(--primary)\'">' + optionsHTML + '</select></td>';
+    });
+
+    tbodyHTML += '<tr style="border-bottom: 1px solid var(--lms-border); transition: background 0.2s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'transparent\'">';
+    tbodyHTML += '<td style="padding: 0.5rem;"><input type="text" class="tt-time-input" data-row="' + i + '" value="' + time + '" style="width:100px; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; text-align:center; font-weight:bold; color:var(--primary);"></td>';
+    tbodyHTML += rowHTML;
+    tbodyHTML += '</tr>';
+  });
+
   return `
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
     <div><h2>Timetable Manager</h2><span style="color:var(--lms-muted);">Edit schedule for ${currentUser.class}</span></div>
@@ -804,20 +861,7 @@ const pages = {
           <tr><th style="padding: 1rem;">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
         </thead>
         <tbody id="tt-edit-body">
-          ${TT_TIMES.map((time, i) => `
-            <tr style="border-bottom: 1px solid var(--lms-border); transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
-              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">${time}</td>
-              ${['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
-                const sub = TIMETABLE[i]?.[j] || '-';
-                return `
-                <td style="padding: 0.5rem;">
-                  <select class="tt-select" data-row="${i}" data-col="${j}" style="width:100%; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; background:#fff; cursor:pointer;" onchange="this.style.borderColor='var(--primary)'">
-                    ${ALL_OPTS.map(opt => `<option value="${opt}" ${sub === opt ? 'selected' : ''}>${opt === 'BREAK' ? 'Morning Break' : opt === 'LUNCH' ? 'Lunch Break' : opt}</option>`).join('')}
-                  </select>
-                </td>`;
-              }).join('')}
-            </tr>
-          `).join('')}
+          ` + tbodyHTML + `
         </tbody>
       </table>
     </div>
@@ -1265,30 +1309,56 @@ window.viewReportCard = function(reportId) {
   const header = modal.querySelector('.modal-h h3');
   if (header) header.innerHTML = `<i class="fas fa-award" style="color:var(--accent);margin-right:6px;"></i>Official Report Card`;
 
+  let gradesHTML = '';
+  GRADES.slice(0,5).forEach(g => {
+      gradesHTML += '<tr><td style="padding:10px; border:1px solid #ccc;">' + g.subject + '</td><td style="padding:10px; border:1px solid #ccc; text-align:center;">' + g.total + '</td><td style="padding:10px; border:1px solid #ccc; text-align:center;"><strong>' + g.grade + '</strong></td></tr>';
+  });
+
   printArea.innerHTML = `
-    <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff;">
-      <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+    <style>
+      @media print {
+        #print-area::before {
+          content: "";
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 500px;
+          height: 500px;
+          background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
+          background-size: contain;
+          opacity: 0.08;
+          z-index: -1;
+          pointer-events: none;
+        }
+      }
+    </style>
+    <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff; position:relative; z-index:1;">
+      
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:400px; height:400px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.05; z-index:-1; pointer-events:none;"></div>
+
+      <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
         <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
         <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
         <h3 style="margin-top:1rem; color:var(--accent);">OFFICIAL END OF TERM REPORT</h3>
       </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom: 2rem; font-size:.95rem;">
-        <div><p><strong>Student Name:</strong> ${currentUser.name}</p><p><strong>Student ID:</strong> ${currentUser.id}</p></div>
-        <div style="text-align:right;"><p><strong>Class:</strong> ${currentUser.class}</p><p><strong>Term:</strong> ${report.term} 2025/26</p></div>
+      <div style="display:flex; justify-content:space-between; margin-bottom: 2rem; font-size:.95rem; position:relative; z-index:2;">
+        <div><p><strong>Student Name:</strong> ` + currentUser.name + `</p><p><strong>Student ID:</strong> ` + currentUser.id + `</p></div>
+        <div style="text-align:right;"><p><strong>Class:</strong> ` + currentUser.class + `</p><p><strong>Term:</strong> ` + report.term + ` 2025/26</p></div>
       </div>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem;">
-        <tr style="background:var(--lms-surface);">
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; background:transparent; position:relative; z-index:2;">
+        <tr style="background:rgba(240,244,248,0.8);">
           <th style="padding:10px; border:1px solid #ccc; text-align:left;">Subject</th>
           <th style="padding:10px; border:1px solid #ccc; text-align:center;">Score</th>
           <th style="padding:10px; border:1px solid #ccc; text-align:center;">Grade</th>
         </tr>
-        ${GRADES.slice(0,5).map(g => `<tr><td style="padding:10px; border:1px solid #ccc;">${g.subject}</td><td style="padding:10px; border:1px solid #ccc; text-align:center;">${g.total}</td><td style="padding:10px; border:1px solid #ccc; text-align:center;"><strong>${g.grade}</strong></td></tr>`).join('')}
+        ` + gradesHTML + `
       </table>
-      <div style="background: #f9f9f9; padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem;">
-        <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ${report.conduct}</p>
-        <p><strong>Class Teacher's Remarks:</strong> ${report.remarks}</p>
+      <div style="background: rgba(249,249,249,0.8); padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem; position:relative; z-index:2;">
+        <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ` + report.conduct + `</p>
+        <p><strong>Class Teacher's Remarks:</strong> ` + report.remarks + `</p>
       </div>
-      <div style="margin-top: 3rem; display:flex; justify-content:space-between;">
+      <div style="margin-top: 3rem; display:flex; justify-content:space-between; position:relative; z-index:2;">
         <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Teacher's Signature</div>
         <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Headmaster's Signature</div>
       </div>
@@ -1683,7 +1753,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   if(y) y.textContent=new Date().getFullYear();
 
   const transferSelect = document.getElementById('transfer-class-select');
-  if (transferSelect) transferSelect.innerHTML = SCHOOL_CLASSES.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (transferSelect) transferSelect.innerHTML = SCHOOL_CLASSES.map(c => '<option value="' + c + '">' + c + '</option>').join('');
 
   const savedUser = localStorage.getItem('lms_user');
   if (savedUser) {
