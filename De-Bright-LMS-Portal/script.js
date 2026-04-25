@@ -65,7 +65,8 @@ window.setRole = function(r){
 };
 
 window.doLogin = async function(){
-  const idInput = document.getElementById('login-id').value.trim().toUpperCase();
+  const idInputRaw = document.getElementById('login-id').value.trim();
+  const idInput = idInputRaw.toLowerCase();
   const pwInput = document.getElementById('login-pass').value;
   const errorBox = document.getElementById('login-error');
   const btnText = document.getElementById('login-btn-text');
@@ -75,23 +76,45 @@ window.doLogin = async function(){
   errorBox.style.display = 'none';
   btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating…';
 
-  let fetchedUser = null;
-
   try {
-    if (currentRole === 'teacher') {
-      if (idInput === 'TCH001' && pwInput === 'teacher123') {
-        fetchedUser = { role: 'teacher', name: 'Abena Boateng', initials: 'AB', class: 'Primary 6', id: 'TCH001' };
-      } else { showErr('Invalid teacher credentials.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
-    } else {
-      if (!supabaseClient) throw new Error("Supabase not initialized");
-      const { data, error } = await supabaseClient.from('students').select('*').eq('id', idInput).single();
-      
-      if (error || !data) { showErr('Student ID not found.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
-      if (pwInput !== 'student123') { showErr('Incorrect password.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
+    // 1. Format the ID into a dummy email for Supabase Auth
+    const authEmail = `${idInput}@debright.edu`;
 
+    // 2. Authenticate officially with Supabase Auth
+    if (!supabaseClient) throw new Error("Supabase not initialized");
+    
+    const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
+      email: authEmail,
+      password: pwInput
+    });
+
+    if (authError) {
+      showErr('Invalid ID or Password.'); 
+      btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
+      return; 
+    }
+
+    let fetchedUser = null;
+
+    // 3. Load user profile data based on role
+    if (currentRole === 'teacher') {
+      fetchedUser = { role: 'teacher', name: 'Abena Boateng', initials: 'AB', class: 'Primary 6', id: idInputRaw.toUpperCase() };
+    } else {
+      // Fetch the specific student details from your database securely
+      const { data, error } = await supabaseClient.from('students')
+        .select('*')
+        .eq('id', idInputRaw.toUpperCase())
+        .single();
+      
+      if (error || !data) { 
+        showErr('Student profile not found in database.'); 
+        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
+        return; 
+      }
       fetchedUser = { role: 'student', name: data.name, initials: getInitials(data.name), class: data.class, id: data.id };
     }
 
+    // 4. Proceed to Dashboard
     if (fetchedUser) {
       currentUser = fetchedUser;
       localStorage.setItem('lms_user', JSON.stringify(currentUser));
@@ -109,6 +132,23 @@ window.doLogin = async function(){
     showErr(`System Error: ${error.message || 'Check console for details'}`); 
     btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In';
   }
+};
+
+window.doLogout = async function(){
+  // Officially sign out of Supabase to kill the secure session
+  if(supabaseClient) { await supabaseClient.auth.signOut(); }
+  
+  localStorage.removeItem('lms_user'); 
+  if(realtimeChannel && supabaseClient) { supabaseClient.removeChannel(realtimeChannel); }
+  currentPage = null;
+  document.getElementById('lms-dashboard').classList.remove('active');
+  document.getElementById('login-section').style.display='';
+  document.querySelector('.navbar').style.display='';
+  document.querySelector('footer').style.display='';
+  const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display='';
+  const btt = document.getElementById('backToTop'); if(btt) btt.style.display='';
+  document.getElementById('login-id').value=''; document.getElementById('login-pass').value='';
+  currentUser=null; window.scrollTo({top:0,behavior:'smooth'});
 };
 
 function launchPortal() {
@@ -162,20 +202,6 @@ function mapAssignment(item){
 function showErr(msg){
   const e = document.getElementById('login-error');
   e.textContent = msg; e.style.display = 'block'; e.scrollIntoView({behavior:'smooth', block:'center'});
-}
-
-function doLogout(){
-  localStorage.removeItem('lms_user'); 
-  if(realtimeChannel && supabaseClient) { supabaseClient.removeChannel(realtimeChannel); }
-  currentPage = null;
-  document.getElementById('lms-dashboard').classList.remove('active');
-  document.getElementById('login-section').style.display='';
-  document.querySelector('.navbar').style.display='';
-  document.querySelector('footer').style.display='';
-  const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display='';
-  const btt = document.getElementById('backToTop'); if(btt) btt.style.display='';
-  document.getElementById('login-id').value=''; document.getElementById('login-pass').value='';
-  currentUser=null; window.scrollTo({top:0,behavior:'smooth'});
 }
 
 /* ====================== DASHBOARD BUILDER ====================== */
