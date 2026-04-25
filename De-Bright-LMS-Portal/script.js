@@ -240,7 +240,7 @@ function showPage(page, el){
   currentPage = page;
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable'};
+  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','s-attendance':'My Attendance','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable'};
   document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').replace(/-/g, ' ').toUpperCase();
   renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -440,6 +440,64 @@ const pages = {
     </div>`;
 },
 
+/* STUDENT ATTENDANCE PAGE */
+'s-attendance':() => {
+    const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id).sort((a,b) => new Date(b.date) - new Date(a.date));
+    const total = myAtt.length;
+    const pres = myAtt.filter(a => a.status === 'present').length;
+    const abs = myAtt.filter(a => a.status === 'absent').length;
+    const pct = total > 0 ? Math.round((pres/total)*100) : 100;
+
+    return `
+    <div class="page-header" style="margin-bottom: 2rem;">
+      <h2>My Attendance</h2>
+      <span style="color:var(--lms-muted);">View your daily attendance history</span>
+    </div>
+
+    <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+      <div class="sc" style="background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.03); border-left:4px solid var(--lms-blue);">
+        <div class="sc-info">
+          <label style="font-size:0.8rem; color:var(--lms-muted); text-transform:uppercase;">Overall Rate</label>
+          <div style="font-size:1.5rem; font-weight:700; color:var(--text);">${pct}%</div>
+        </div>
+      </div>
+      <div class="sc" style="background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.03); border-left:4px solid var(--lms-green);">
+        <div class="sc-info">
+          <label style="font-size:0.8rem; color:var(--lms-muted); text-transform:uppercase;">Days Present</label>
+          <div style="font-size:1.5rem; font-weight:700; color:var(--text);">${pres}</div>
+        </div>
+      </div>
+      <div class="sc" style="background:#fff; padding:1.5rem; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.03); border-left:4px solid var(--lms-red);">
+        <div class="sc-info">
+          <label style="font-size:0.8rem; color:var(--lms-muted); text-transform:uppercase;">Days Absent</label>
+          <div style="font-size:1.5rem; font-weight:700; color:var(--text);">${abs}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;">Recent Records</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+          <thead style="background: var(--lms-surface);">
+            <tr><th style="padding: 1rem;">Date</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            ${myAtt.length === 0 ? '<tr><td colspan="2" style="text-align:center; padding:2rem; color:var(--lms-muted);">No attendance records found yet.</td></tr>' : 
+              myAtt.map(a => `
+              <tr style="border-bottom: 1px solid var(--lms-border);">
+                <td style="padding: 1rem; font-weight:600;">${fmtDate(a.date)}</td>
+                <td><span class="chip ${a.status==='present'?'green':'red'}" style="text-transform:capitalize;">${a.status}</span></td>
+              </tr>
+              `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+},
+
 's-subjects':()=>`
   <div class="page-header" style="margin-bottom: 2rem;"><h2>My Subjects</h2><span style="color:var(--lms-muted);">Overview of your active courses</span></div>
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
@@ -531,7 +589,7 @@ const pages = {
               </div>
               <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
               <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
-              ${a.attachment_url ? `<div style="margin-top:0.8rem;"><button class="btn-outline" style="padding:0.4rem 0.8rem; font-size:0.8rem;" onclick="viewAttachedFile('${a.attachment_url}')"><i class="fas fa-paperclip"></i> View Attached Material</button></div>` : ''}
+              ${a.attachment_url ? `<div style="margin-top:0.8rem;"><a href="${a.attachment_url}" target="_blank" style="font-size:0.8rem; color:var(--primary); text-decoration:none;"><i class="fas fa-file-download"></i> Attached File</a></div>` : ''}
               
               ${isGraded && submission.feedback ? `<div style="margin-top:1rem; background: #fef9c3; padding: 1rem; border-radius: 8px; border-left: 3px solid #eab308;"><strong style="font-size:0.8rem; color:#a16207; display:block; margin-bottom: 4px;"><i class="fas fa-comment-dots"></i> Teacher's Feedback:</strong><span style="font-size:0.9rem; color:var(--text);">${submission.feedback}</span></div>` : ''}
           </div>
@@ -612,7 +670,7 @@ const pages = {
               </div>
               <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
               <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
-              ${a.attachment_url ? `<div style="margin-top:0.6rem;"><button class="btn-outline" style="padding:0.3rem 0.8rem; font-size:0.8rem; border:none; background:var(--lms-surface);" onclick="viewAttachedFile('${a.attachment_url}')"><i class="fas fa-file-alt"></i> View Attached File</button></div>` : ''}
+              ${a.attachment_url ? `<div style="margin-top:0.6rem;"><a href="${a.attachment_url}" target="_blank" style="font-size:0.8rem; color:var(--primary); text-decoration:none;"><i class="fas fa-file-download"></i> Attached File</a></div>` : ''}
           </div>
           <div style="display: flex; gap: 0.5rem;">
             <button class="btn-outline" style="padding: 0.5rem 1rem; border-radius: 8px;" onclick="openAssignmentModal('${a.id}')"><i class="fas fa-edit"></i> Edit</button>
@@ -651,7 +709,7 @@ const pages = {
                   
                   <div style="display:flex; gap:0.5rem; margin-top: 8px;">
                     ${sub.typed_response ? `<button class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;" onclick="viewTypedResponse('${sub.id}')"><i class="fas fa-align-left"></i> Read Text</button>` : ''}
-                    ${sub.file_url ? `<button class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;" onclick="viewAttachedFile('${sub.file_url}')"><i class="fas fa-paperclip"></i> File</button>` : ''}
+                    ${sub.file_url ? `<a href="${sub.file_url}" target="_blank" class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;text-decoration:none;"><i class="fas fa-paperclip"></i> File</a>` : ''}
                     ${sub.link ? `<a href="${sub.link}" target="_blank" class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;text-decoration:none;"><i class="fas fa-link"></i> Link</a>` : ''}
                   </div>
                 </td>
@@ -949,37 +1007,6 @@ function buildNotices(isTeacher = false) {
   </div>`;
 }
 
-/* ====================== FILE VIEWER MODAL ====================== */
-function injectFileViewerModal() {
-  if(document.getElementById('file-viewer-modal')) return;
-  const m = document.createElement('div');
-  m.className = 'lms-modal';
-  m.id = 'file-viewer-modal';
-  m.innerHTML = `
-    <div class="lms-modal-box" style="max-width: 800px; height: 85vh; display: flex; flex-direction: column; overflow: hidden;">
-      <div class="modal-h">
-        <h3><i class="fas fa-file-alt" style="color:var(--accent);margin-right:6px;"></i>Document Viewer</h3>
-        <button onclick="closeModal('file-viewer-modal'); document.getElementById('file-viewer-iframe').src='';"><i class="fas fa-times"></i></button>
-      </div>
-      <div class="modal-body" style="flex: 1; padding: 0; background: #e2e8f0; height: calc(100% - 60px);">
-        <iframe id="file-viewer-iframe" style="width: 100%; height: 100%; border: none;" src=""></iframe>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(m);
-}
-
-window.viewAttachedFile = function(url) {
-  injectFileViewerModal();
-  const iframe = document.getElementById('file-viewer-iframe');
-  let viewerUrl = url;
-  if(url.match(/\.(doc|docx|ppt|pptx|xls|xlsx)$/i)) {
-      viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
-  }
-  iframe.src = viewerUrl;
-  openModal('file-viewer-modal');
-};
-
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
 function injectAssignmentModal() {
   if(document.getElementById('assignment-modal')) return;
@@ -1133,7 +1160,7 @@ window.openSubmitModal = function(id) {
     <div style="background:#f8fafc; padding:1.2rem; border-radius:8px; margin-bottom:1.5rem; border:1px solid var(--lms-border);">
       <strong style="display:block; margin-bottom:0.5rem; color:var(--primary); font-size:1.1rem;">${a.title}</strong>
       <p style="font-size:0.9rem; color:var(--text); line-height:1.6; margin-bottom:0.8rem; white-space:pre-wrap;">${a.desc || 'No instructions provided.'}</p>
-      ${a.attachment_url ? `<button class="btn-outline" style="font-size:0.8rem; padding:0.4rem 0.8rem;" onclick="viewAttachedFile('${a.attachment_url}')"><i class="fas fa-paperclip"></i> View Attached Material</button>` : ''}
+      ${a.attachment_url ? `<a href="${a.attachment_url}" target="_blank" class="btn-outline" style="font-size:0.8rem; padding:0.4rem 0.8rem; text-decoration:none;"><i class="fas fa-paperclip"></i> View Attached Material</a>` : ''}
     </div>
   `;
 
