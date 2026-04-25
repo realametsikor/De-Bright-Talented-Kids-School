@@ -12,6 +12,10 @@
   <link rel="icon" href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" type="image/jpeg">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    /* Ensure the dynamic grid always looks perfect */
+    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
+  </style>
 </head>
 <body>
 
@@ -24,9 +28,9 @@
   <ul class="nav-links" id="nav-menu">
     <li><a href="index.html">Home</a></li>
     <li><a href="about.html">About</a></li>
-    <li><a href="articles.html">Articles</a></li>
+    <li><a href="articles.html" class="active">Articles</a></li>
     <li><a href="gallery.html">Gallery</a></li>
-    <li><a href="student-portal.html">Student Portal</a></li>
+    <li><a href="index.html">Student Portal</a></li>
     <li><a href="contact.html">Contact</a></li>
     <li><a href="index.html#apply" class="btn-apply">Apply Now</a></li>
   </ul>
@@ -36,53 +40,42 @@
 <a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
 <div class="page-hero">
-  <a href="index.html" class="back-link" style="position:absolute;top:20px;left:20px;"><i class="fas fa-arrow-left"></i> Home</a>
-  <h1>Articles</h1>
+  <a href="index.html" class="back-link" style="position:absolute;top:20px;left:20px;color:#fff;text-decoration:none;font-weight:600;"><i class="fas fa-arrow-left"></i> Home</a>
+  <h1>School News & Articles</h1>
   <div class="accent-line"></div>
 </div>
 
 <main id="main-content">
-<section style="background:#f4f7f6;padding:0 5% 5rem;">
-  <div class="page-card">
+<section style="background:#f4f7f6;padding:4rem 5% 5rem;">
+  <div class="page-card" style="max-width: 1200px; margin: 0 auto;">
     <div class="news-grid" id="articles-grid">
-      <article class="news-card">
-        <div class="news-img"><img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=600" alt="Students in classroom during admissions" loading="lazy"></div>
-        <div class="news-content">
-          <span class="news-label">School Update</span>
-          <h3>Admissions Open for 2026/2027 Academic Year</h3>
-          <p>We are pleased to announce that applications are now being accepted for the upcoming academic year across all levels.</p>
-          <a href="index.html#apply" class="read-more">Apply Now &rarr;</a>
-        </div>
-      </article>
-      <article class="news-card">
-        <div class="news-img"><img src="https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=600" alt="Students celebrating BECE results" loading="lazy"></div>
-        <div class="news-content">
-          <span class="news-label">Achievement</span>
-          <h3>De-Bright Records 100% B.E.C.E Pass Rate Again</h3>
-          <p>Our JHS graduates have once again achieved a 100% pass rate in the Basic Education Certificate Examination.</p>
-          <a href="about.html" class="read-more">Learn More &rarr;</a>
-        </div>
-      </article>
-      <article class="news-card">
-        <div class="news-img"><img src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?q=80&w=600" alt="Students at inter-house sports competition" loading="lazy"></div>
-        <div class="news-content">
-          <span class="news-label">Events</span>
-          <h3>Inter-House Sports Competition Recap</h3>
-          <p>Students showcased outstanding athletic talent and teamwork during our annual inter-house sports competition.</p>
-          <a href="gallery.html" class="read-more">View Gallery &rarr;</a>
-        </div>
-      </article>
-    </div>
+      </div>
   </div>
 </section>
 </main>
 
-<!-- FOOTER -->
+<div class="lms-modal" id="read-article-modal" style="z-index: 100000;">
+  <div class="lms-modal-box" style="max-width: 800px; padding: 0; overflow: hidden; display: flex; flex-direction: column; background: #fff;">
+    <div style="position:relative;">
+       <img id="ra-img" src="" style="width:100%; height:300px; object-fit:cover; display:block;">
+       <button onclick="document.getElementById('read-article-modal').classList.remove('open')" style="position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.6); border:none; color:white; width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:1.2rem; backdrop-filter:blur(4px); transition: background 0.2s;"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding: 2.5rem; overflow-y:auto; max-height: 50vh;">
+       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; border-bottom: 2px solid var(--lms-surface); padding-bottom: 1rem;">
+         <span id="ra-date" style="font-size:0.85rem; color:var(--lms-muted); font-weight:600; text-transform: uppercase; letter-spacing: 1px;"><i class="far fa-calendar-alt"></i> </span>
+         <span id="ra-author" style="font-size:0.85rem; color:var(--primary); font-weight:700; background: var(--lms-surface); padding: 4px 12px; border-radius: 99px;"><i class="fas fa-user-edit"></i> </span>
+       </div>
+       <h2 id="ra-title" style="font-family:'Poppins',sans-serif; color:var(--primary); font-size:1.8rem; margin-bottom: 1.5rem; line-height:1.3;"></h2>
+       <div id="ra-content" style="font-size:1.05rem; line-height:1.8; color:var(--text);"></div>
+    </div>
+  </div>
+</div>
+
 <footer role="contentinfo">
   <div class="container">
     <div class="footer-content">
       <div class="footer-section"><h3>Contact Us</h3><p><i class="fas fa-map-marker-alt"></i> Sonitra Road, Amasaman, Accra</p><p><i class="fas fa-phone"></i> <a href="tel:+233536998172" style="color:inherit;text-decoration:none;">+233 53 699 8172</a></p><p><i class="fas fa-envelope"></i> <a href="mailto:admin@debrighttalentedkidsschool.online" style="color:inherit;text-decoration:none;">admin@debrighttalentedkidsschool.online</a></p></div>
-      <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li><li><a href="articles.html">Articles</a></li><li><a href="student-portal.html">Student Portal</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li><li><a href="articles.html">Articles</a></li><li><a href="index.html">Student Portal</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="contact.html">Contact</a></li></ul></div>
       <div class="footer-section"><h3>Follow Us</h3><div class="social-icons"><a href="https://www.facebook.com/debrightschool" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a><a href="https://www.instagram.com/debrightschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a><a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a></div></div>
     </div>
     <div class="copyright"><p>&copy; <span id="year"></span> De-Bright Talented Kids School. All Rights Reserved.</p></div>
@@ -90,7 +83,88 @@
 </footer>
 
 <button id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 <script src="main.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  // 1. Connect to your database
+  const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  
+  let PUBLIC_ARTICLES = [];
+
+  // 2. Fetch Published Articles
+  async function loadPublicArticles() {
+    const grid = document.getElementById('articles-grid');
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 4rem; color: var(--lms-muted);"><i class="fas fa-spinner fa-spin fa-2x"></i><p style="margin-top:1rem;">Loading latest news...</p></div>';
+
+    const { data, error } = await supabaseClient
+      .from('articles')
+      .select('*')
+      .eq('status', 'published') // Only show articles you hit 'Publish' on
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error(error);
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 4rem; color: #dc2626;"><i class="fas fa-exclamation-circle fa-2x"></i><p>Unable to load news feed.</p></div>';
+      return;
+    }
+
+    if (!data || data.length === 0) {
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 5rem 2rem; color: var(--lms-muted);"><i class="fas fa-newspaper fa-3x" style="opacity:0.3; margin-bottom:1rem;"></i><p style="font-size: 1.1rem;">No news articles have been published yet.</p><p style="font-size:0.9rem;">Check back soon for updates from De-Bright Talented Kids School!</p></div>';
+      return;
+    }
+
+    PUBLIC_ARTICLES = data;
+
+    // 3. Render Cards
+    grid.innerHTML = data.map(a => `
+      <article class="news-card" style="background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05); display:flex; flex-direction:column; transition:transform 0.2s ease, box-shadow 0.2s ease; cursor:pointer; border: 1px solid var(--lms-border);" onclick="openFullArticle('${a.id}')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)';">
+        <div class="news-img" style="position:relative;">
+          <img src="${a.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'}" alt="${a.title}" loading="lazy" style="width:100%; height:220px; object-fit:cover; display:block;">
+          <div style="position:absolute; top:15px; left:15px; background:var(--accent); color:var(--primary); padding:4px 12px; border-radius:999px; font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">School Update</div>
+        </div>
+        <div class="news-content" style="padding: 1.8rem; display: flex; flex-direction: column; flex: 1;">
+          <div style="margin-bottom:0.8rem; font-size:0.75rem; color:var(--lms-muted); font-weight:600;">
+            <i class="far fa-calendar-alt"></i> ${new Date(a.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'})}
+          </div>
+          <h3 style="margin: 0 0 0.8rem 0; font-size: 1.25rem; color: var(--primary); line-height: 1.4; font-family:'Poppins',sans-serif;">${a.title}</h3>
+          <p style="font-size: 0.95rem; color: var(--lms-muted); margin: 0 0 1.5rem 0; line-height: 1.6; flex: 1;">${a.excerpt || 'Click to read the full story...'}</p>
+          <div style="margin-top:auto; padding-top: 1.2rem; border-top: 1px solid var(--lms-border); display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size:0.85rem; font-weight:600; color:var(--text);"><i class="fas fa-user-edit" style="color:var(--lms-muted);"></i> ${a.author || 'Administration'}</span>
+              <span style="font-size:0.9rem; font-weight:700; color:var(--lms-blue);">Read More &rarr;</span>
+          </div>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  // 4. Open Reader Modal
+  window.openFullArticle = function(id) {
+    const art = PUBLIC_ARTICLES.find(a => a.id === id);
+    if(!art) return;
+    
+    document.getElementById('ra-img').src = art.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg';
+    document.getElementById('ra-title').textContent = art.title;
+    document.getElementById('ra-date').innerHTML = '<i class="far fa-calendar-alt"></i> ' + new Date(art.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+    document.getElementById('ra-author').innerHTML = '<i class="fas fa-user-edit"></i> ' + (art.author || 'Administration');
+    
+    // Format text so paragraphs look clean
+    let contentHtml = art.content;
+    if (!contentHtml.includes('<p>') && !contentHtml.includes('<br>')) {
+        contentHtml = contentHtml.replace(/\n/g, '<br><br>');
+    }
+    document.getElementById('ra-content').innerHTML = contentHtml;
+    
+    document.getElementById('read-article-modal').classList.add('open');
+  };
+
+  // Run the fetcher when page loads
+  window.addEventListener('DOMContentLoaded', loadPublicArticles);
+</script>
+
 </body>
 </html>
