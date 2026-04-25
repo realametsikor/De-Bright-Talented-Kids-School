@@ -71,8 +71,22 @@ window.doLogin = async function(){
 
     let fetchedUser = null;
 
-    // 3. Load user profile data based on role
-    if (currentRole === 'teacher') {
+    // 3. Load user profile data based on role OR Admin override
+    if (idInputRaw.toUpperCase().startsWith('ADM')) {
+      // HIDDEN ADMIN OVERRIDE
+      const { data, error } = await supabaseClient.from('admins')
+        .select('*')
+        .eq('id', idInputRaw.toUpperCase())
+        .single();
+      
+      if (error || !data) { 
+        showErr('Admin profile not found in database.'); 
+        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
+        return; 
+      }
+      fetchedUser = { role: 'admin', name: data.name, initials: getInitials(data.name), id: data.id };
+      
+    } else if (currentRole === 'teacher') {
       const { data, error } = await supabaseClient.from('teachers')
         .select('*')
         .eq('id', idInputRaw.toUpperCase())
@@ -84,6 +98,7 @@ window.doLogin = async function(){
         return; 
       }
       fetchedUser = { role: 'teacher', name: data.name, initials: data.initials, class: data.class_assigned, id: data.id };
+      
     } else {
       const { data, error } = await supabaseClient.from('students')
         .select('*')
@@ -159,8 +174,8 @@ async function fetchAllData(){
       supabaseClient.from('notices').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('notice_comments').select('*').order('created_at',{ascending:true}),
       supabaseClient.from('subjects').select('*').order('name',{ascending:true}),
-      supabaseClient.from('continuous_assessments').select('*').eq('student_id', currentUser.id),
-      supabaseClient.from('classes').select('*').eq('name', currentUser.class).single()
+      supabaseClient.from('continuous_assessments').select('*').eq('student_id', currentUser?.id || ''),
+      supabaseClient.from('classes').select('*').eq('name', currentUser?.class || '').single()
     ]);
 
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
@@ -186,7 +201,8 @@ async function fetchAllData(){
 
   } catch (e) {
     console.error("Supabase Error:", e);
-    throw e;
+    // Don't throw for Admins, just log it, as they don't have a specific class assigned
+    if(currentUser.role !== 'admin') throw e; 
   }
 }
 
@@ -209,50 +225,49 @@ function buildDashboard(){
   const u = currentUser;
   document.getElementById('sb-avatar').textContent = u.initials;
   document.getElementById('sb-name').textContent = u.name;
-  document.getElementById('sb-sub').textContent = u.role==='student'?`Class ${u.class} · ${u.id}`:`Teacher · ${u.class}`;
-  document.getElementById('sb-role-label').textContent = u.role==='student'?'Student Portal':'Teacher Portal';
+  
+  // Set Subtitles dynamically
+  if(u.role === 'student') document.getElementById('sb-sub').textContent = `Class ${u.class} · ${u.id}`;
+  else if(u.role === 'teacher') document.getElementById('sb-sub').textContent = `Teacher · ${u.class}`;
+  else document.getElementById('sb-sub').textContent = `Administrator · ${u.id}`;
+
+  // Set Portal Label
+  if(u.role === 'student') document.getElementById('sb-role-label').textContent = 'Student Portal';
+  else if(u.role === 'teacher') document.getElementById('sb-role-label').textContent = 'Teacher Portal';
+  else document.getElementById('sb-role-label').textContent = 'Super Admin Portal';
 
   const nav = document.getElementById('sidebar-nav');
   const pending = ASSIGNMENTS.filter(a=>!SUBMISSIONS.some(s => String(s.assignment_id) === String(a.id) && s.student_id === u.id)).length;
   const pendingQuizzes = QUIZZES.filter(q=>q.class === u.class && q.status==='active' && !QUIZ_SUBMISSIONS.some(qs => qs.quiz_id === q.id && qs.student_id === u.id)).length;
 
-  const items = u.role==='student' ? [
-    {section:'Overview', links:[
-      {icon:'th-large',label:'Dashboard',page:'s-dashboard'},
-      {icon:'book-open',label:'My Subjects',page:'s-subjects'},
-    ]},
-    {section:'Academics', links:[
-      {icon:'tasks',label:'Assignments',page:'s-assignments',badge:pending||null},
-      {icon:'question-circle',label:'Quizzes',page:'s-quiz',badge:pendingQuizzes||null},
-      {icon:'chart-bar',label:'Grades & Reports',page:'s-grades'},
-      {icon:'calendar-alt',label:'Timetable',page:'s-timetable'},
-      {icon:'user-check',label:'Attendance',page:'s-attendance'},
-    ]},
-    {section:'Learning', links:[
-      {icon:'folder-open',label:'Resources',page:'s-resources'},
-      {icon:'robot',label:'AI Tutor',page:'s-ai'}, 
-      {icon:'bullhorn',label:'Notices',page:'s-notices'},
-    ]},
-  ] : [
-    {section:'Overview', links:[
-      {icon:'th-large',label:'Dashboard',page:'t-dashboard'},
-      {icon:'users',label:'My Class',page:'t-class'},
-    ]},
-    {section:'Academics', links:[
-      {icon:'tasks',label:'Assignments',page:'t-assignments'},
-      {icon:'question-circle',label:'Quizzes',page:'t-quiz'},
-      {icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && (s.class===u.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===u.class)).length||null},
-      {icon:'chart-bar',label:'Grade Book',page:'t-grades'},
-      {icon:'clipboard-list',label:'Attendance',page:'t-attendance'},
-    ]},
-    {section:'Communication', links:[
-      {icon:'bullhorn',label:'Notices',page:'t-notices'},
-      {icon:'folder-open',label:'Resources',page:'t-resources'},
-      {icon:'calendar-alt',label:'Timetable',page:'t-timetable'},
-    ]},
-  ];
+  let items = [];
+  
+  if (u.role === 'student') {
+    items = [
+      {section:'Overview', links:[{icon:'th-large',label:'Dashboard',page:'s-dashboard'},{icon:'book-open',label:'My Subjects',page:'s-subjects'}]},
+      {section:'Academics', links:[{icon:'tasks',label:'Assignments',page:'s-assignments',badge:pending||null},{icon:'question-circle',label:'Quizzes',page:'s-quiz',badge:pendingQuizzes||null},{icon:'chart-bar',label:'Grades & Reports',page:'s-grades'},{icon:'calendar-alt',label:'Timetable',page:'s-timetable'},{icon:'user-check',label:'Attendance',page:'s-attendance'}]},
+      {section:'Learning', links:[{icon:'folder-open',label:'Resources',page:'s-resources'},{icon:'robot',label:'AI Tutor',page:'s-ai'},{icon:'bullhorn',label:'Notices',page:'s-notices'}]},
+    ];
+  } else if (u.role === 'teacher') {
+    items = [
+      {section:'Overview', links:[{icon:'th-large',label:'Dashboard',page:'t-dashboard'},{icon:'users',label:'My Class',page:'t-class'}]},
+      {section:'Academics', links:[{icon:'tasks',label:'Assignments',page:'t-assignments'},{icon:'question-circle',label:'Quizzes',page:'t-quiz'},{icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && (s.class===u.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===u.class)).length||null},{icon:'chart-bar',label:'Grade Book',page:'t-grades'},{icon:'clipboard-list',label:'Attendance',page:'t-attendance'}]},
+      {section:'Communication', links:[{icon:'bullhorn',label:'Notices',page:'t-notices'},{icon:'folder-open',label:'Resources',page:'t-resources'},{icon:'calendar-alt',label:'Timetable',page:'t-timetable'}]},
+    ];
+  } else if (u.role === 'admin') {
+    items = [
+      {section:'System Operations', links:[
+        {icon:'shield-alt',label:'Admin Dashboard',page:'a-dashboard'},
+        {icon:'users-cog',label:'Manage Users',page:'a-users'}
+      ]},
+      {section:'Website CMS', links:[
+        {icon:'newspaper',label:'News & Articles',page:'a-articles'},
+        {icon:'cogs',label:'Global Settings',page:'a-settings'}
+      ]}
+    ];
+  }
 
-  const currentDisplayPage = currentPage || (u.role==='student'?'s-dashboard':'t-dashboard');
+  const currentDisplayPage = currentPage || (u.role==='student'?'s-dashboard':(u.role==='teacher'?'t-dashboard':'a-dashboard'));
 
   nav.innerHTML = items.map(s=>` <div class="sb-section">${s.section}</div> ${s.links.map(l=>`
   <div class="sb-item${l.page===currentDisplayPage?' active':''}" onclick="showPage('${l.page}',this)">
@@ -270,7 +285,7 @@ function showPage(page, el){
   currentPage = page;
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','s-attendance':'My Attendance','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable'};
+  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','s-attendance':'My Attendance','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable','a-dashboard':'System Overview','a-users':'User Management','a-articles':'Website Content','a-settings':'Global Settings'};
   document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').replace(/-/g, ' ').toUpperCase();
   renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -444,6 +459,20 @@ window.viewPrintableTimetable = function() {
 
 /* ====================== MODERN UI PAGE DEFINITIONS ====================== */
 const pages = {
+
+'a-dashboard':() => `
+  <div class="welcome-banner" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
+    <div class="wb-text">
+      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">🔒 Root Access</div>
+      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">System Administrator</h2>
+    </div>
+    <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-shield-alt"></i></div>
+  </div>
+  <div class="empty-state" style="background:#fff; border-radius:12px;"><i class="fas fa-server"></i><h3>System Online</h3><p>Select an option from the sidebar to manage the school database.</p></div>
+`,
+'a-users':() => `<div class="page-header" style="margin-bottom: 2rem;"><h2>User Management</h2><span style="color:var(--lms-muted);">Add/Edit Teachers and Students across the entire school</span></div>`,
+'a-articles':() => `<div class="page-header" style="margin-bottom: 2rem;"><h2>Content Management System</h2><span style="color:var(--lms-muted);">Write and publish articles to the main website</span></div>`,
+'a-settings':() => `<div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update homepage banners, contact info, and active terms</span></div>`,
 
 's-dashboard':() => {
     const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id);
@@ -2116,7 +2145,7 @@ window.viewNoticeThread = function(noticeId) {
         <div id="notice-comments-list" style="display:flex; flex-direction:column; gap:1rem;">
           ${comments.length === 0 ? '<p style="color:var(--lms-muted); font-size:0.85rem; text-align:center; padding:1rem;">No questions or comments yet. Start the discussion!</p>' : 
             comments.map(c => {
-              const isTeacher = c.user_role === 'teacher';
+              const isTeacher = c.user_role === 'teacher' || c.user_role === 'admin';
               const isMe = c.user_id === currentUser.id;
               
               return `
@@ -2125,7 +2154,7 @@ window.viewNoticeThread = function(noticeId) {
                 
                 <div style="background:${isTeacher ? '#eff6ff' : (isMe ? '#fffbeb' : '#f1f5f9')}; padding:0.8rem 1rem; border-radius:12px; border:1px solid ${isTeacher ? '#bfdbfe' : (isMe ? '#fde68a' : '#e2e8f0')}; max-width:85%;">
                   <div style="display:flex; justify-content:space-between; gap:1rem; margin-bottom:0.4rem; align-items:center;">
-                    <strong style="font-size:0.8rem; color:var(--text);">${c.user_name} ${isTeacher ? '<i class="fas fa-check-circle" style="color:var(--lms-blue); margin-left:4px;" title="Teacher"></i>' : ''}</strong>
+                    <strong style="font-size:0.8rem; color:var(--text);">${c.user_name} ${isTeacher ? '<i class="fas fa-check-circle" style="color:var(--lms-blue); margin-left:4px;" title="Staff"></i>' : ''}</strong>
                     <span style="font-size:0.7rem; color:var(--lms-muted);">${fmtDate(c.created_at || new Date())}</span>
                   </div>
                   <div style="font-size:0.9rem; color:var(--text); line-height:1.5;">${c.text}</div>
