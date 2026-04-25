@@ -15,63 +15,20 @@
   <style>
     .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
 
-    /* --- PROFESSIONAL FULL PAGE ARTICLE VIEW (CNN/BBC STYLE) --- */
-    #full-article-page {
-      position: fixed; inset: 0; background: #fff; z-index: 100000; overflow-y: auto; display: none;
-      animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* --- WORDPRESS STYLE ARTICLE CONTENT --- */
+    #ra-content p { margin-bottom: 1.6rem; color: #475569; font-size: 1.1rem; line-height: 1.85; font-family: 'Open Sans', sans-serif; }
+    #ra-content h2, #ra-content h3, #ra-content h4 { color: #0a2540; font-family: 'Poppins', sans-serif; margin: 2.5rem 0 1.2rem; font-weight: 700; line-height: 1.3; }
+    #ra-content ul, #ra-content ol { margin-bottom: 1.6rem; padding-left: 2rem; color: #475569; font-size: 1.1rem; line-height: 1.85; }
+    #ra-content li { margin-bottom: 0.6rem; }
+    #ra-content a { color: var(--primary); font-weight: 600; text-decoration: underline; }
+    #ra-content blockquote { border-left: 5px solid var(--accent); padding-left: 1.5rem; margin: 2rem 0; font-style: italic; color: #64748b; font-size: 1.2rem; }
+    
+    .social-share-btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; 
+      font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; color: #fff; 
+      text-decoration: none; cursor: pointer; border: none; transition: opacity 0.2s;
     }
-    
-    @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    .article-nav {
-      position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
-      padding: 1.2rem 5%; border-bottom: 1px solid #e2e8f0; z-index: 10; display: flex; align-items: center;
-    }
-    
-    .article-nav button {
-      background: none; border: none; font-family: 'Poppins', sans-serif; font-size: 1rem; color: #0a2540; 
-      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color 0.2s;
-    }
-    .article-nav button:hover { color: #2563eb; }
-    
-    .article-container { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
-    
-    .article-header h1 {
-      font-family: 'Poppins', sans-serif; font-size: 2.6rem; line-height: 1.25; color: #0a2540; margin-bottom: 1.5rem; letter-spacing: -0.5px;
-      text-align: left;
-    }
-    
-    .article-meta {
-      display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; margin-bottom: 2.5rem; border-bottom: 1px solid #e2e8f0;
-    }
-    
-    .author-block { display: flex; align-items: center; gap: 14px; text-align: left; }
-    
-    .author-av {
-      width: 48px; height: 48px; border-radius: 50%; background: #f0f4f8; color: #0a2540;
-      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;
-      font-family: 'Poppins', sans-serif; border: 1px solid #cbd5e1;
-    }
-    
-    .author-block strong { display: block; font-size: 0.95rem; color: #0a2540; margin-bottom: 2px; }
-    .author-block span { font-size: 0.85rem; color: #64748b; }
-    
-    .article-hero { margin-bottom: 2.5rem; border-radius: 12px; overflow: hidden; background: #f8fafc; }
-    .article-hero img { width: 100%; max-height: 480px; object-fit: cover; display: block; }
-    
-    .article-body {
-      font-size: 1.15rem; line-height: 1.85; color: #334155; font-family: Georgia, 'Times New Roman', serif; text-align: left;
-    }
-    .article-body p { margin-bottom: 1.5em; }
-    .article-body h2, .article-body h3 { color: #0a2540; margin: 2rem 0 1rem; font-family: 'Poppins', sans-serif; line-height: 1.3;}
-    .article-body ul { margin-bottom: 1.5em; padding-left: 2rem; }
-    .article-body li { margin-bottom: 0.5rem; }
-
-    @media(max-width: 768px) {
-      .article-header h1 { font-size: 2rem; }
-      .article-hero img { max-height: 300px; border-radius: 8px; }
-      .article-body { font-size: 1.05rem; }
-    }
+    .social-share-btn:hover { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -96,47 +53,57 @@
 
 <a href="https://wa.me/233536998172" class="whatsapp-btn" target="_blank" rel="noopener" aria-label="Chat on WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
-<div class="page-hero">
+<div class="page-hero" id="articles-hero">
   <a href="index.html" class="back-link" style="position:absolute;top:20px;left:20px;color:#fff;text-decoration:none;font-weight:600;"><i class="fas fa-arrow-left"></i> Home</a>
   <h1>School News & Articles</h1>
   <div class="accent-line"></div>
 </div>
 
 <main id="main-content">
-<section style="background:#f4f7f6;padding:4rem 5% 5rem;">
-  <div style="max-width: 1200px; margin: 0 auto; width: 100%;">
-    <div class="news-grid" id="articles-grid">
-      </div>
-  </div>
-</section>
-</main>
-
-<div id="full-article-page">
-  <div class="article-nav">
-    <button onclick="closeFullArticle()"><i class="fas fa-arrow-left"></i> Back to News</button>
-  </div>
   
-  <article class="article-container">
-    <header class="article-header">
-       <h1 id="ra-title"></h1>
-       <div class="article-meta">
-         <div class="author-block">
-            <div class="author-av" id="ra-author-initials"></div>
-            <div>
-              <strong id="ra-author"></strong>
-              <span id="ra-date"></span>
-            </div>
-         </div>
-       </div>
-    </header>
-    
-    <div class="article-hero">
-      <img id="ra-img" src="" alt="Article Cover Image">
+  <section id="articles-list-view" style="background:#f4f7f6;padding:4rem 5% 5rem;">
+    <div style="max-width: 1200px; margin: 0 auto; width: 100%;">
+      <div class="news-grid" id="articles-grid">
+        </div>
     </div>
-    
-    <div class="article-body" id="ra-content"></div>
-  </article>
-</div>
+  </section>
+
+  <section id="article-single-view" style="display:none; background:#fff; padding: 3rem 5% 6rem;">
+    <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+      
+      <div style="font-size:0.85rem; color:#64748b; margin-bottom:1.5rem; font-family:'Poppins', sans-serif;">
+        <a href="index.html" style="color:var(--primary); text-decoration:none;">Home</a> &nbsp;/&nbsp; 
+        <a href="javascript:void(0)" onclick="closeFullArticle()" style="color:var(--primary); text-decoration:none;">School News</a> &nbsp;/&nbsp; 
+        <span style="color:#94a3b8;">Article</span>
+      </div>
+
+      <h1 id="ra-title" style="font-family:'Poppins',sans-serif; font-size:2.8rem; color:#0a2540; line-height:1.2; margin-bottom:1rem; letter-spacing: -0.5px;"></h1>
+      
+      <div style="display:flex; gap:1.5rem; color:#64748b; font-size:0.95rem; margin-bottom:2rem; font-weight:500;">
+        <span><i class="far fa-calendar-alt"></i> <span id="ra-date"></span></span>
+        <span><i class="fas fa-user-edit"></i> <span id="ra-author"></span></span>
+      </div>
+
+      <div style="margin-bottom: 3rem;">
+        <img id="ra-img" src="" style="width:100%; max-height:500px; object-fit:cover; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
+      </div>
+
+      <div id="ra-content"></div>
+
+      <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
+        <h4 style="font-family:'Poppins',sans-serif; color:#0a2540; margin-bottom:1rem; font-size: 1.2rem;">Share this story</h4>
+        <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 3rem;">
+           <button class="social-share-btn" style="background:#25D366;" onclick="window.open('https://wa.me/?text=' + encodeURIComponent(document.getElementById('ra-title').textContent + ' - ' + window.location.href))"><i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> WhatsApp</button>
+           <button class="social-share-btn" style="background:#1877F2;" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href))"><i class="fab fa-facebook-f" style="font-size: 1.2rem;"></i> Facebook</button>
+        </div>
+        
+        <a href="javascript:void(0)" onclick="closeFullArticle()" style="display:inline-flex; align-items:center; gap:8px; font-family:'Poppins',sans-serif; font-weight:600; color:var(--primary); text-decoration:none; font-size:1.1rem; transition:color 0.2s;"><i class="fas fa-arrow-left"></i> Back to News Feed</a>
+      </div>
+      
+    </div>
+  </section>
+
+</main>
 
 <footer role="contentinfo" style="background:#0a2540; color:rgba(255,255,255,0.7); padding:2rem;">
   <div class="container">
@@ -185,7 +152,7 @@
 
     PUBLIC_ARTICLES = data;
 
-    // Fully custom inline styling matching the exact design you wanted
+    // Fully custom inline styling matching the exact design you wanted for the cards
     grid.innerHTML = data.map(a => {
       const authorName = a.author || 'Administration';
       const dateStr = new Date(a.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
@@ -221,17 +188,21 @@
     const art = PUBLIC_ARTICLES.find(a => a.id === id);
     if(!art) return;
     
+    // Hide the grid layout
+    document.getElementById('articles-hero').style.display = 'none';
+    document.getElementById('articles-list-view').style.display = 'none';
+    
+    // Show the single reader layout
+    document.getElementById('article-single-view').style.display = 'block';
+    
+    // Populate data
     document.getElementById('ra-img').src = art.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg';
     document.getElementById('ra-title').textContent = art.title;
     
     const formattedDate = new Date(art.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
     document.getElementById('ra-date').textContent = formattedDate;
     
-    const authorName = art.author || 'Administration';
-    document.getElementById('ra-author').textContent = authorName;
-    
-    let initials = authorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
-    document.getElementById('ra-author-initials').textContent = initials || 'DB';
+    document.getElementById('ra-author').textContent = art.author || 'Administration';
     
     let contentHtml = art.content;
     if (!contentHtml.includes('<p>') && !contentHtml.includes('<br>')) {
@@ -239,15 +210,18 @@
     }
     document.getElementById('ra-content').innerHTML = contentHtml;
     
-    const page = document.getElementById('full-article-page');
-    page.style.display = 'block';
-    document.body.style.overflow = 'hidden'; 
-    page.scrollTop = 0; 
+    // Scroll cleanly to the top of the article
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   window.closeFullArticle = function() {
-    document.getElementById('full-article-page').style.display = 'none';
-    document.body.style.overflow = ''; 
+    // Restore grid layout
+    document.getElementById('article-single-view').style.display = 'none';
+    document.getElementById('articles-hero').style.display = 'block';
+    document.getElementById('articles-list-view').style.display = 'block';
+    
+    // Scroll cleanly to the top of the grid
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   window.addEventListener('DOMContentLoaded', loadPublicArticles);
