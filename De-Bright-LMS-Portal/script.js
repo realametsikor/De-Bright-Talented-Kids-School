@@ -30,13 +30,21 @@ const GRADES = [
   {subject:'Social Studies',classScore:'30/40',examScore:'40/60',total:70,grade:'B',remark:'Good'},
 ];
 
-const TIMETABLE = [
+/* ====================== LIVE DB STATE ====================== */
+let currentUser = null, currentRole = 'student', currentPage = null;
+let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
+let STUDENTS_DB = [], REPORT_CARDS = []; 
+let QUIZZES = [], QUIZ_SUBMISSIONS = [];
+let attState = {};
+
+// DYNAMIC TIMETABLE STATE
+let TIMETABLE = [
   ['Maths','English','Science','Maths','French'],
   ['Science','Maths','English','ICT','Maths'],
-  ['English','BREAK','Creative Arts','Social Studies','RME'],
+  ['BREAK','BREAK','BREAK','BREAK','BREAK'],
+  ['English','Creative Arts','Social Studies','RME','Maths'],
   ['LUNCH','LUNCH','LUNCH','LUNCH','LUNCH'],
-  ['ICT','Science','RME','French','Science'],
-  ['Social Studies','Creative Arts','Maths','English','ICT'],
+  ['ICT','Science','RME','French','Science']
 ];
 const TT_TIMES = ['7:30–8:20','8:20–9:10','9:10–10:00','10:00–10:30','10:30–11:20','11:20–12:10'];
 const TT_COLORS = {
@@ -44,13 +52,6 @@ const TT_COLORS = {
   'ICT':'filled-green','French':'filled-purple','Social Studies':'filled-purple',
   'Creative Arts':'filled-gold','RME':'filled-red','BREAK':'break','LUNCH':'lunch'
 };
-
-/* ====================== LIVE DB STATE ====================== */
-let currentUser = null, currentRole = 'student', currentPage = null;
-let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
-let STUDENTS_DB = [], REPORT_CARDS = []; 
-let QUIZZES = [], QUIZ_SUBMISSIONS = [];
-let attState = {};
 
 /* ====================== DYNAMIC LOGIN & PERSISTENCE ====================== */
 window.setRole = function(r){
@@ -235,7 +236,7 @@ function showPage(page, el){
   currentPage = page;
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes'};
+  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable'};
   document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').replace(/-/g, ' ').toUpperCase();
   renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -266,6 +267,88 @@ function getAvgGrade(){return 83;}
 function getInitials(name) { return name ? name.split(' ').map(n => n[0]).join('').slice(0, 2) : ''; }
 function renderProgressBar(pct, color = '') { return `<div class="prog-bar" style="background:#e2e8f0;border-radius:99px;height:8px;overflow:hidden;width:100%;"><div class="fill" style="height:100%;width:${pct}%;background:${color||'var(--primary)'};border-radius:99px;transition:width 1s ease;"></div></div>`; }
 function fmtDate(d){try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
+
+/* ====================== TIMETABLE FUNCTIONS ====================== */
+window.saveTimetable = function() {
+  const selects = document.querySelectorAll('.tt-select');
+  const newTimetable = Array.from({length: TT_TIMES.length}, () => Array(5).fill('-'));
+
+  selects.forEach(sel => {
+    const r = parseInt(sel.getAttribute('data-row'));
+    const c = parseInt(sel.getAttribute('data-col'));
+    newTimetable[r][c] = sel.value;
+  });
+
+  TIMETABLE = newTimetable;
+  
+  // Simulated Cloud Push for full functionality feeling
+  if(supabaseClient && currentUser.role === 'teacher') {
+      supabaseClient.from('classes').update({ timetable_data: TIMETABLE }).eq('name', currentUser.class).then(() => {});
+  }
+
+  toast('Timetable updated successfully! ✅');
+  renderPage('t-timetable');
+};
+
+window.viewPrintableTimetable = function() {
+  if(!document.getElementById('view-timetable-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal';
+    m.id = 'view-timetable-modal';
+    document.body.appendChild(m);
+  }
+  const m = document.getElementById('view-timetable-modal');
+  m.innerHTML = `
+    <div class="lms-modal-box" style="max-width:800px;">
+      <div class="modal-h">
+        <h3><i class="fas fa-calendar-alt" style="color:var(--accent);margin-right:6px;"></i>Official Timetable</h3>
+        <button onclick="closeModal('view-timetable-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" id="print-area" style="background:#fff; color:#000;">
+        <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
+          <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
+          <h3 style="margin-top:1rem; color:var(--accent);">CLASS ${currentUser.class || ''} TIMETABLE</h3>
+        </div>
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; text-align:center;">
+          <thead>
+            <tr style="background:var(--lms-surface);">
+              <th style="padding:10px; border:1px solid #ccc;">Time</th>
+              <th style="padding:10px; border:1px solid #ccc;">Mon</th>
+              <th style="padding:10px; border:1px solid #ccc;">Tue</th>
+              <th style="padding:10px; border:1px solid #ccc;">Wed</th>
+              <th style="padding:10px; border:1px solid #ccc;">Thu</th>
+              <th style="padding:10px; border:1px solid #ccc;">Fri</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${TT_TIMES.map((time, i) => {
+              const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
+              const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
+              let rowContent = '';
+              if(isAllBreak || isAllLunch) {
+                const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
+                rowContent = `<td colspan="5" style="padding:10px; border:1px solid #ccc; background:#f9f9f9; font-weight:bold; letter-spacing:2px; color:#555;">${label}</td>`;
+              } else {
+                rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
+                  const sub = TIMETABLE[i]?.[j] || '-';
+                  return `<td style="padding:10px; border:1px solid #ccc;">${sub}</td>`;
+                }).join('');
+              }
+              return `<tr><td style="padding:10px; border:1px solid #ccc; font-weight:bold;">${time}</td>${rowContent}</tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="padding:1.5rem;display:flex;gap:.7rem;border-top:1px solid var(--lms-border);">
+        <button class="btn-lms-primary" style="flex:1;background:var(--lms-green);" onclick="window.print()"><i class="fas fa-download"></i> Download PDF / Print</button>
+        <button class="btn-outline" onclick="closeModal('view-timetable-modal')">Close</button>
+      </div>
+    </div>
+  `;
+  openModal('view-timetable-modal');
+};
+
 
 /* ====================== MODERN UI PAGE DEFINITIONS ====================== */
 const pages = {
@@ -306,7 +389,10 @@ const pages = {
   </div>`,
 
 's-timetable':()=>`
-  <div class="page-header" style="margin-bottom: 2rem;"><h2>Class Timetable</h2><span style="color:var(--lms-muted);">Term 2 Schedule</span></div>
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div><h2>Class Timetable</h2><span style="color:var(--lms-muted);">Term 2 Schedule</span></div>
+    <button class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="viewPrintableTimetable()"><i class="fas fa-print"></i> Download PDF</button>
+  </div>
   <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
     <div style="overflow-x: auto;">
       <table class="lms-tbl" style="width: 100%; min-width: 700px; text-align: center;">
@@ -314,20 +400,29 @@ const pages = {
           <tr><th style="padding: 1rem;">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
         </thead>
         <tbody>
-          ${TT_TIMES.map((time, i) => `
-            <tr style="border-bottom: 1px solid var(--lms-border);">
-              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">${time}</td>
-              ${['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
+          ${TT_TIMES.map((time, i) => {
+            const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
+            const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
+            let rowContent = '';
+
+            if (isAllBreak || isAllLunch) {
+              const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
+              rowContent = \`<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted); text-transform:uppercase;">\${label}</td>\`;
+            } else {
+              rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
                 const sub = TIMETABLE[i]?.[j] || '-';
                 const colorClass = TT_COLORS[sub] || 'grey';
-                if(sub === 'LUNCH' || sub === 'BREAK') {
-                  if(j===0) return `<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted);">${sub}</td>`;
-                  return '';
+                if(sub === 'BREAK' || sub === 'LUNCH') {
+                    return \`<td style="padding: 0.5rem;"><span class="chip \${sub==='BREAK'?'gold':'green'}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">\${sub}</span></td>\`;
                 }
-                return `<td style="padding: 0.5rem;"><span class="chip ${colorClass}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">${sub}</span></td>`;
-              }).join('')}
-            </tr>
-          `).join('')}
+                return \`<td style="padding: 0.5rem;"><span class="chip \${colorClass}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">\${sub}</span></td>\`;
+              }).join('');
+            }
+            return \`<tr style="border-bottom: 1px solid var(--lms-border);">
+              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">\${time}</td>
+              \${rowContent}
+            </tr>\`;
+          }).join('')}
         </tbody>
       </table>
     </div>
@@ -684,7 +779,43 @@ const pages = {
 's-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>`,
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
-'t-timetable': () => pages['s-timetable']()
+'t-timetable': () => {
+  const ALL_OPTS = ['Maths','English Language','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH','-'];
+  return `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div><h2>Timetable Manager</h2><span style="color:var(--lms-muted);">Edit schedule for ${currentUser.class}</span></div>
+    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Changes</button>
+  </div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div style="overflow-x: auto;">
+      <table class="lms-tbl" style="width: 100%; min-width: 700px; text-align: center;">
+        <thead style="background: var(--lms-surface);">
+          <tr><th style="padding: 1rem;">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
+        </thead>
+        <tbody id="tt-edit-body">
+          ${TT_TIMES.map((time, i) => `
+            <tr style="border-bottom: 1px solid var(--lms-border); transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='transparent'">
+              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">${time}</td>
+              ${['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
+                const sub = TIMETABLE[i]?.[j] || '-';
+                return `
+                <td style="padding: 0.5rem;">
+                  <select class="tt-select" data-row="${i}" data-col="${j}" style="width:100%; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; background:#fff; cursor:pointer;" onchange="this.style.borderColor='var(--primary)'">
+                    ${ALL_OPTS.map(opt => `<option value="${opt}" ${sub === opt ? 'selected' : ''}>${opt === 'BREAK' ? 'Morning Break' : opt === 'LUNCH' ? 'Lunch Break' : opt}</option>`).join('')}
+                  </select>
+                </td>`;
+              }).join('')}
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div style="background:#fef9c3; color:#a16207; padding:1rem; border-radius:8px; margin-top:1rem; font-size:0.85rem; display:flex; gap:0.5rem; align-items:center;">
+    <i class="fas fa-info-circle"></i>
+    <span><strong>Tip:</strong> If you assign <strong>Morning Break</strong> or <strong>Lunch Break</strong> to all 5 days in a single row, it will cleanly span across the entire row on the student's view.</span>
+  </div>`;
+}
 };
 
 function buildNotices(isTeacher = false) {
@@ -1118,6 +1249,11 @@ window.saveReportCard = async function() {
 window.viewReportCard = function(reportId) {
   const report = REPORT_CARDS.find(r => r.id === reportId);
   const printArea = document.getElementById('print-area');
+  
+  const modal = document.getElementById('view-report-modal');
+  const header = modal.querySelector('.modal-h h3');
+  if (header) header.innerHTML = `<i class="fas fa-award" style="color:var(--accent);margin-right:6px;"></i>Official Report Card`;
+
   printArea.innerHTML = `
     <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff;">
       <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
