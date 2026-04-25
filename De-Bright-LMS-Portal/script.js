@@ -867,6 +867,7 @@ const pages = {
   </div>`
 },
 
+/* --- TEACHER QUIZ PAGE --- */
 't-quiz': () => {
   const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
   return `
@@ -898,6 +899,7 @@ const pages = {
   `;
 },
 
+/* --- STUDENT QUIZ PAGE --- */
 's-quiz': () => {
   const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class && q.status === 'active');
   return `
@@ -1234,6 +1236,7 @@ window.openArticleModal = function(id = null) {
   const m = document.getElementById('admin-article-modal');
   
   let art = id ? ARTICLES_DB.find(a => a.id === id) : null;
+  let defaultAuthor = art ? (art.author || currentUser.name) : currentUser.name;
   
   m.innerHTML = `
     <div class="lms-modal-box" style="max-width:700px;">
@@ -1241,6 +1244,9 @@ window.openArticleModal = function(id = null) {
       <div class="modal-body">
         <input type="hidden" id="art-id" value="${art ? art.id : ''}">
         <div class="lms-form-group"><label>Headline / Title</label><input type="text" id="art-title" value="${art ? art.title : ''}"></div>
+        
+        <div class="lms-form-group"><label>Author Name</label><input type="text" id="art-author" value="${defaultAuthor}" placeholder="e.g. Administration or Mr. Kwame"></div>
+        
         <div class="lms-form-group"><label>Short Excerpt (Summary)</label><textarea id="art-excerpt" rows="2">${art ? (art.excerpt||'') : ''}</textarea></div>
         <div class="lms-form-group"><label>Full Article Content (Supports HTML)</label><textarea id="art-content" rows="6">${art ? art.content : ''}</textarea></div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
@@ -1260,6 +1266,7 @@ window.saveArticle = async function() {
   const btn = document.getElementById('btn-save-art');
   const id = document.getElementById('art-id').value;
   const title = document.getElementById('art-title').value.trim();
+  const author = document.getElementById('art-author').value.trim() || currentUser.name;
   const excerpt = document.getElementById('art-excerpt').value.trim();
   const content = document.getElementById('art-content').value.trim();
   const status = document.getElementById('art-status').value;
@@ -1282,7 +1289,7 @@ window.saveArticle = async function() {
     }
   }
   
-  const payload = { title, excerpt, content, status, cover_image: imgUrl, author: currentUser.name };
+  const payload = { title, excerpt, content, status, cover_image: imgUrl, author: author };
   
   if(id) {
     const { error } = await supabaseClient.from('articles').update(payload).eq('id', id);
