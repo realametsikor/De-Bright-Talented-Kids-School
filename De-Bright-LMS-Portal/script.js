@@ -14,7 +14,7 @@ const SCHOOL_CLASSES = ['Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Pri
 
 const SUBJECTS = [
   {name:'Mathematics',teacher:'Mr. Asare',progress:82,emoji:'➕',color:'gold'},
-  {name:'English Language',teacher:'Ms. Owusu',progress:75,emoji:'📝',color:'blue'},
+  {name:'English',teacher:'Ms. Owusu',progress:75,emoji:'📝',color:'blue'},
   {name:'Science',teacher:'Mr. Boateng',progress:88,emoji:'🔬',color:'green'},
   {name:'Social Studies',teacher:'Ms. Ofori',progress:70,emoji:'🌍',color:'purple'},
   {name:'Creative Arts',teacher:'Ms. Acheampong',progress:91,emoji:'🎨',color:'gold'},
@@ -281,7 +281,6 @@ window.saveTimetable = function() {
 
   TIMETABLE = newTimetable;
   
-  // Simulated Cloud Push for full functionality feeling
   if(supabaseClient && currentUser.role === 'teacher') {
       supabaseClient.from('classes').update({ timetable_data: TIMETABLE }).eq('name', currentUser.class).then(() => {});
   }
@@ -299,12 +298,21 @@ window.viewPrintableTimetable = function() {
   }
   const m = document.getElementById('view-timetable-modal');
   m.innerHTML = `
+    <style>
+      @media print {
+        body * { visibility: hidden; }
+        #tt-print-area, #tt-print-area * { visibility: visible; }
+        #tt-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+        .lms-modal-box { box-shadow: none; border: none; }
+        #view-timetable-modal .modal-h, #view-timetable-modal .print-footer-actions { display: none !important; }
+      }
+    </style>
     <div class="lms-modal-box" style="max-width:800px;">
       <div class="modal-h">
         <h3><i class="fas fa-calendar-alt" style="color:var(--accent);margin-right:6px;"></i>Official Timetable</h3>
         <button onclick="closeModal('view-timetable-modal')"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body" id="print-area" style="background:#fff; color:#000;">
+      <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000;">
         <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
           <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
           <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
@@ -340,7 +348,7 @@ window.viewPrintableTimetable = function() {
           </tbody>
         </table>
       </div>
-      <div style="padding:1.5rem;display:flex;gap:.7rem;border-top:1px solid var(--lms-border);">
+      <div class="print-footer-actions" style="padding:1.5rem;display:flex;gap:.7rem;border-top:1px solid var(--lms-border);">
         <button class="btn-lms-primary" style="flex:1;background:var(--lms-green);" onclick="window.print()"><i class="fas fa-download"></i> Download PDF / Print</button>
         <button class="btn-outline" onclick="closeModal('view-timetable-modal')">Close</button>
       </div>
@@ -407,21 +415,21 @@ const pages = {
 
             if (isAllBreak || isAllLunch) {
               const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
-              rowContent = \`<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted); text-transform:uppercase;">\${label}</td>\`;
+              rowContent = `<td colspan="5" style="background: var(--lms-surface); letter-spacing: 4px; font-weight: 700; color: var(--lms-muted); text-transform:uppercase;">${label}</td>`;
             } else {
               rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
                 const sub = TIMETABLE[i]?.[j] || '-';
                 const colorClass = TT_COLORS[sub] || 'grey';
                 if(sub === 'BREAK' || sub === 'LUNCH') {
-                    return \`<td style="padding: 0.5rem;"><span class="chip \${sub==='BREAK'?'gold':'green'}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">\${sub}</span></td>\`;
+                    return `<td style="padding: 0.5rem;"><span class="chip ${sub==='BREAK'?'gold':'green'}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">${sub}</span></td>`;
                 }
-                return \`<td style="padding: 0.5rem;"><span class="chip \${colorClass}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">\${sub}</span></td>\`;
+                return `<td style="padding: 0.5rem;"><span class="chip ${colorClass}" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">${sub}</span></td>`;
               }).join('');
             }
-            return \`<tr style="border-bottom: 1px solid var(--lms-border);">
-              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">\${time}</td>
-              \${rowContent}
-            </tr>\`;
+            return `<tr style="border-bottom: 1px solid var(--lms-border);">
+              <td style="padding: 1rem; font-weight: 600; color: var(--primary); white-space: nowrap;">${time}</td>
+              ${rowContent}
+            </tr>`;
           }).join('')}
         </tbody>
       </table>
@@ -780,11 +788,14 @@ const pages = {
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
 't-timetable': () => {
-  const ALL_OPTS = ['Maths','English Language','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH','-'];
+  const ALL_OPTS = ['Maths','English','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH','-'];
   return `
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
     <div><h2>Timetable Manager</h2><span style="color:var(--lms-muted);">Edit schedule for ${currentUser.class}</span></div>
-    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Changes</button>
+    <div style="display:flex; gap:0.5rem;">
+      <button class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="viewPrintableTimetable()"><i class="fas fa-print"></i> Preview PDF</button>
+      <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="saveTimetable()"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
   </div>
   <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
     <div style="overflow-x: auto;">
