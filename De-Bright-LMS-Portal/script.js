@@ -124,13 +124,14 @@ function launchPortal() {
 async function fetchAllData(){
   if(!supabaseClient) return;
   try {
-    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes] = await Promise.all([
+    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes] = await Promise.all([
       supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('students').select('*').order('name',{ascending:true}), 
       supabaseClient.from('report_cards').select('*').order('date',{ascending:false}),
       supabaseClient.from('quizzes').select('*').order('created_at',{ascending:false}),
-      supabaseClient.from('quiz_submissions').select('*').order('created_at',{ascending:false})
+      supabaseClient.from('quiz_submissions').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('attendance_records').select('*').order('date',{ascending:false})
     ]);
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
     if(subs.data) SUBMISSIONS = subs.data;
@@ -138,6 +139,7 @@ async function fetchAllData(){
     if(repRes.data) REPORT_CARDS = repRes.data;
     if(qzRes.data) QUIZZES = qzRes.data;
     if(qzSubRes.data) QUIZ_SUBMISSIONS = qzSubRes.data;
+    if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
   } catch (e) {
     console.error("Supabase Error:", e);
     throw e;
@@ -413,7 +415,12 @@ window.viewPrintableTimetable = function() {
 /* ====================== MODERN UI PAGE DEFINITIONS ====================== */
 const pages = {
 
-'s-dashboard':()=>`
+'s-dashboard':() => {
+    const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id);
+    const myPres = myAtt.filter(a => a.status === 'present').length;
+    const myAttPct = myAtt.length > 0 ? Math.round((myPres/myAtt.length)*100) : 100;
+    
+    return `
     <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 2rem;">
       <div class="wb-text">
         <div class="wb-tag" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📚 Term 2 — 2025/26</div>
@@ -428,9 +435,10 @@ const pages = {
       </div>
       <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
         <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-check-circle"></i></div>
-        <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase; letter-spacing: 0.5px;">Attendance</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">98%</div></div>
+        <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase; letter-spacing: 0.5px;">Attendance</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${myAttPct}%</div></div>
       </div>
-    </div>`,
+    </div>`;
+},
 
 's-subjects':()=>`
   <div class="page-header" style="margin-bottom: 2rem;"><h2>My Subjects</h2><span style="color:var(--lms-muted);">Overview of your active courses</span></div>
@@ -852,7 +860,22 @@ const pages = {
 't-notices':()=>buildNotices(true),
 's-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>`,
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
-'t-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
+
+'t-attendance':() => {
+  const today = new Date().toISOString().split('T')[0];
+  return `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>Attendance Tracker</h2><span style="color:var(--lms-muted);">Daily Register for Class ${currentUser.class}</span></div>
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+      <input type="date" id="att-date" value="${today}" onchange="renderAttList()" style="padding:0.6rem 1rem; border:1px solid var(--lms-border); border-radius:8px; font-family:var(--font-lms); outline:none;">
+      <button class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="viewAttendancePDF()"><i class="fas fa-print"></i> PDF View</button>
+      <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="saveAttendance()"><i class="fas fa-save"></i> Save</button>
+    </div>
+  </div>
+  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden; padding: 1.5rem;">
+    <div id="att-mark-list" style="display:flex; flex-direction:column; gap:0.8rem;"></div>
+  </div>`;
+},
 
 't-timetable': () => {
   const PRESET_OPTS = ['Maths','English','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH'];
@@ -950,7 +973,6 @@ window.viewAttachedFile = function(url) {
   injectFileViewerModal();
   const iframe = document.getElementById('file-viewer-iframe');
   let viewerUrl = url;
-  // Use Google Docs viewer for common office documents to ensure inline rendering
   if(url.match(/\.(doc|docx|ppt|pptx|xls|xlsx)$/i)) {
       viewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`;
   }
@@ -1372,11 +1394,19 @@ window.saveReportCard = async function() {
 
 window.viewReportCard = function(reportId) {
   const report = REPORT_CARDS.find(r => r.id === reportId);
+  const std = STUDENTS_DB.find(s => s.id === report.student_id) || currentUser; // Fixed to show student name for teacher
   const printArea = document.getElementById('print-area');
   
   const modal = document.getElementById('view-report-modal');
   const header = modal.querySelector('.modal-h h3');
   if (header) header.innerHTML = `<i class="fas fa-award" style="color:var(--accent);margin-right:6px;"></i>Official Report Card`;
+
+  // Dynamic Attendance Calculation for Report Card
+  const stdAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === std.id);
+  const totalDays = stdAtt.length;
+  const presDays = stdAtt.filter(a => a.status === 'present').length;
+  const absDays = stdAtt.filter(a => a.status === 'absent').length;
+  const attPct = totalDays > 0 ? Math.round((presDays / totalDays) * 100) : 0;
 
   let gradesHTML = '';
   GRADES.slice(0,5).forEach(g => {
@@ -1413,8 +1443,8 @@ window.viewReportCard = function(reportId) {
         <h3 style="margin-top:1rem; color:var(--accent);">OFFICIAL END OF TERM REPORT</h3>
       </div>
       <div style="display:flex; justify-content:space-between; margin-bottom: 2rem; font-size:.95rem; position:relative; z-index:2;">
-        <div><p><strong>Student Name:</strong> ` + currentUser.name + `</p><p><strong>Student ID:</strong> ` + currentUser.id + `</p></div>
-        <div style="text-align:right;"><p><strong>Class:</strong> ` + currentUser.class + `</p><p><strong>Term:</strong> ` + report.term + ` 2025/26</p></div>
+        <div><p><strong>Student Name:</strong> ` + std.name + `</p><p><strong>Student ID:</strong> ` + std.id + `</p></div>
+        <div style="text-align:right;"><p><strong>Class:</strong> ` + std.class + `</p><p><strong>Term:</strong> ` + report.term + ` 2025/26</p></div>
       </div>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; background:transparent; position:relative; z-index:2; border: 2px solid #000;">
         <tr style="background:rgba(240,244,248,0.9);">
@@ -1424,9 +1454,18 @@ window.viewReportCard = function(reportId) {
         </tr>
         ` + gradesHTML + `
       </table>
-      <div style="background: rgba(249,249,249,0.9); padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem; position:relative; z-index:2; border: 1px solid #ccc;">
-        <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ` + report.conduct + `</p>
-        <p><strong>Class Teacher's Remarks:</strong> ` + report.remarks + `</p>
+      <div style="background: rgba(249,249,249,0.9); padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem; position:relative; z-index:2; border: 1px solid #ccc; display:flex; flex-wrap:wrap; gap:2rem;">
+        <div style="flex:1; min-width:300px;">
+          <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ` + report.conduct + `</p>
+          <p><strong>Class Teacher's Remarks:</strong> ` + report.remarks + `</p>
+        </div>
+        <div style="width:250px; background:#fff; padding:1rem; border:1px solid #ccc; border-radius:8px;">
+          <h4 style="margin:0 0 0.5rem 0; font-size:0.9rem; border-bottom:1px solid #ccc; padding-bottom:0.3rem;">Attendance Summary</h4>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;"><span>Total Days Recorded:</span> <strong>${totalDays}</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;"><span>Present:</span> <strong style="color:green;">${presDays}</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.3rem;"><span>Absent:</span> <strong style="color:red;">${absDays}</strong></div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-top:0.5rem; padding-top:0.5rem; border-top:1px dashed #ccc;"><span>Attendance Rate:</span> <strong>${attPct}%</strong></div>
+        </div>
       </div>
       <div style="margin-top: 3rem; display:flex; justify-content:space-between; position:relative; z-index:2;">
         <div style="border-top: 1px solid #000; padding-top: 5px; width: 200px; text-align:center;">Teacher's Signature</div>
@@ -1438,13 +1477,157 @@ window.viewReportCard = function(reportId) {
 };
 
 /* ====================== ATTENDANCE ====================== */
-function renderAttList(){
-  const el=document.getElementById('att-mark-list');
+window.renderAttList = function() {
+  const el = document.getElementById('att-mark-list');
   if(!el) return;
+  const dateInput = document.getElementById('att-date');
+  const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
   const myClass = STUDENTS_DB.filter(s => s.class === currentUser.class);
-  el.innerHTML=myClass.map((s,i)=>` <div class="std-row" style="background:#f8fafc; border:1px solid var(--lms-border); border-radius:10px; padding:0.8rem 1rem; display:flex; align-items:center; gap:1rem;"> <div class="std-av" style="width:36px;height:36px;font-size:.9rem;">${getInitials(s.name)}</div> <div class="std-info" style="flex:1;"><strong>${s.name}</strong><span style="display:block;font-size:0.75rem;color:var(--lms-muted);">${s.id}</span></div> <div class="ml-auto" style="display:flex;gap:.5rem;"> <button onclick="setAtt(${i},'present')" class="att-btn ${attState[i]==='present'?'att-present':''}" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;box-shadow:0 4px 10px rgba(34,197,94,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Present</button> <button onclick="setAtt(${i},'absent')" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${attState[i]==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;box-shadow:0 4px 10px rgba(239,68,68,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Absent</button> </div> </div>`).join('');
-}
-window.setAtt=function(i,v){attState[i]=v;renderAttList();};
+  
+  if(myClass.length === 0) {
+    el.innerHTML = '<div class="empty-state"><p>No students in this class.</p></div>';
+    return;
+  }
+
+  el.innerHTML = myClass.map(s => {
+    const existing = ATTENDANCE_RECORDS.find(r => r.student_id === s.id && r.date === date);
+    const status = existing ? existing.status : (attState[s.id] || '');
+    
+    if(existing) attState[s.id] = existing.status;
+
+    return `
+    <div class="std-row" data-std-id="${s.id}" style="background:#f8fafc; border:1px solid var(--lms-border); border-radius:10px; padding:0.8rem 1rem; display:flex; align-items:center; gap:1rem; transition: border-color 0.2s;">
+      <div class="std-av" style="width:36px;height:36px;font-size:.9rem;">${getInitials(s.name)}</div>
+      <div class="std-info" style="flex:1;">
+        <strong>${s.name}</strong>
+        <span style="display:block;font-size:0.75rem;color:var(--lms-muted);">${s.id}</span>
+      </div>
+      <div class="ml-auto" style="display:flex;gap:.5rem;">
+        <button onclick="setAtt('${s.id}','present')" class="att-btn" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${status==='present'?'background:#22c55e;color:#fff;border-color:#22c55e;box-shadow:0 4px 10px rgba(34,197,94,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Present</button>
+        <button onclick="setAtt('${s.id}','absent')" class="att-btn" style="padding:6px 18px;border-radius:8px;font-size:.8rem;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .2s;${status==='absent'?'background:#ef4444;color:#fff;border-color:#ef4444;box-shadow:0 4px 10px rgba(239,68,68,0.3);':'background:#fff;color:var(--lms-muted);border-color:var(--lms-border);'}">Absent</button>
+      </div>
+    </div>`;
+  }).join('');
+};
+
+window.setAtt = function(id, v) { 
+  attState[id] = v; 
+  renderAttList(); 
+};
+
+window.saveAttendance = async function() {
+  if (!supabaseClient) return toast('Database connection missing!', 'error');
+  
+  const dateInput = document.getElementById('att-date');
+  const date = dateInput ? dateInput.value : '';
+  if(!date) return toast('Please select a valid date.', 'error');
+
+  const myClass = STUDENTS_DB.filter(s => s.class === currentUser.class);
+  const payload = myClass.map(s => {
+      const stat = attState[s.id];
+      if(!stat) return null; 
+      return {
+          date: date,
+          class: currentUser.class,
+          student_id: s.id,
+          student_name: s.name,
+          status: stat
+      };
+  }).filter(Boolean);
+
+  if(payload.length === 0) return toast('No attendance marked for submission.', 'error');
+
+  const btn = document.querySelector('button[onclick="saveAttendance()"]');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  btn.disabled = true;
+
+  // Remove existing records for this class and date to prevent duplicates prior to bulk insert
+  await supabaseClient.from('attendance_records').delete().eq('date', date).eq('class', currentUser.class);
+  
+  const { data, error } = await supabaseClient.from('attendance_records').insert(payload).select();
+  
+  btn.innerHTML = '<i class="fas fa-save"></i> Save';
+  btn.disabled = false;
+
+  if(error) return toast('DB Error: ' + error.message, 'error');
+  
+  ATTENDANCE_RECORDS = ATTENDANCE_RECORDS.filter(r => !(r.date === date && r.class === currentUser.class));
+  if(data) ATTENDANCE_RECORDS.push(...data);
+  
+  toast('Attendance saved successfully! ✅');
+};
+
+window.viewAttendancePDF = function() {
+  const dateInput = document.getElementById('att-date');
+  const date = dateInput ? dateInput.value : new Date().toISOString().split('T')[0];
+  const myClass = STUDENTS_DB.filter(s => s.class === currentUser.class);
+  
+  if(!document.getElementById('att-pdf-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal';
+    m.id = 'att-pdf-modal';
+    document.body.appendChild(m);
+  }
+  const m = document.getElementById('att-pdf-modal');
+  
+  let rows = myClass.map((s, i) => {
+      const existing = ATTENDANCE_RECORDS.find(r => r.student_id === s.id && r.date === date);
+      const stat = existing ? existing.status : (attState[s.id] || 'Not Marked');
+      let statColor = stat === 'present' ? 'color: #15803d;' : (stat === 'absent' ? 'color: #b91c1c;' : 'color: #64748b;');
+      
+      return `<tr>
+        <td style="padding:10px; border:1px solid #000; text-align:center;">${i+1}</td>
+        <td style="padding:10px; border:1px solid #000;">${s.id}</td>
+        <td style="padding:10px; border:1px solid #000;">${s.name}</td>
+        <td style="padding:10px; border:1px solid #000; text-align:center; font-weight:bold; text-transform:capitalize; ${statColor}">${stat}</td>
+      </tr>`;
+  }).join('');
+
+  m.innerHTML = `
+    <style>
+      @media print {
+        body * { visibility: hidden; }
+        #att-pdf-modal, #att-pdf-modal * { visibility: visible; }
+        #att-pdf-modal { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; background: #fff !important; }
+        .lms-modal-box { max-width: 100% !important; box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+        .modal-h, .print-footer-actions { display: none !important; }
+        #att-print-area { width: 100%; padding: 0; margin: 0; border: none !important; background: transparent !important; }
+        table { width: 100% !important; border-collapse: collapse; }
+        th, td { border: 1px solid #000 !important; }
+      }
+    </style>
+    <div class="lms-modal-box" style="max-width:800px;">
+      <div class="modal-h">
+        <h3><i class="fas fa-clipboard-list" style="color:var(--accent);margin-right:6px;"></i> Daily Register PDF</h3>
+        <button onclick="closeModal('att-pdf-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" id="att-print-area" style="background:#fff; color:#000;">
+        <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
+          <h3 style="margin-top:0.5rem; color:var(--accent);">DAILY ATTENDANCE REGISTER</h3>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 1rem; font-size:.95rem;">
+          <div><p><strong>Class:</strong> ${currentUser.class}</p><p><strong>Class Teacher:</strong> ${currentUser.name}</p></div>
+          <div style="text-align:right;"><p><strong>Date:</strong> ${fmtDate(date)}</p></div>
+        </div>
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; border: 1px solid #000;">
+          <tr style="background:rgba(240,244,248,0.9);">
+            <th style="padding:10px; border:1px solid #000; width: 50px;">S/N</th>
+            <th style="padding:10px; border:1px solid #000; width: 150px;">Student ID</th>
+            <th style="padding:10px; border:1px solid #000; text-align:left;">Student Name</th>
+            <th style="padding:10px; border:1px solid #000; width: 150px;">Status</th>
+          </tr>
+          ${rows}
+        </table>
+      </div>
+      <div class="print-footer-actions" style="padding:1.5rem;display:flex;gap:.7rem;border-top:1px solid var(--lms-border);">
+        <button class="btn-lms-primary" style="flex:1;background:var(--lms-green);" onclick="window.print()"><i class="fas fa-download"></i> Download / Print PDF</button>
+        <button class="btn-outline" onclick="closeModal('att-pdf-modal')">Close</button>
+      </div>
+    </div>
+  `;
+  openModal('att-pdf-modal');
+};
 
 
 /* ====================== QUIZ ENGINE (TEACHER) ====================== */
@@ -1807,6 +1990,13 @@ function setupRealtimeListeners() {
       if (eventType === 'INSERT') { QUIZ_SUBMISSIONS.unshift(newRec); } 
       else if (eventType === 'UPDATE') { const idx = QUIZ_SUBMISSIONS.findIndex(q => q.id === newRec.id); if (idx !== -1) QUIZ_SUBMISSIONS[idx] = newRec; } 
       else if (eventType === 'DELETE') { QUIZ_SUBMISSIONS = QUIZ_SUBMISSIONS.filter(q => q.id !== oldRec.id); }
+      refreshUI();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records' }, payload => {
+      const { eventType, new: newRec, old: oldRec } = payload;
+      if (eventType === 'INSERT') { ATTENDANCE_RECORDS.unshift(newRec); } 
+      else if (eventType === 'UPDATE') { const idx = ATTENDANCE_RECORDS.findIndex(a => String(a.id) === String(newRec.id)); if (idx !== -1) ATTENDANCE_RECORDS[idx] = newRec; } 
+      else if (eventType === 'DELETE') { ATTENDANCE_RECORDS = ATTENDANCE_RECORDS.filter(a => String(a.id) !== String(oldRec.id)); }
       refreshUI();
     })
     .subscribe();
