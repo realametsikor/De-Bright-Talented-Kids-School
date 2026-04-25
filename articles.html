@@ -13,15 +13,64 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    /* Ensure the dynamic grid always looks perfect */
     .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
 
-    /* --- MISSING MODAL CSS FOR PUBLIC PAGE --- */
-    .lms-modal { position: fixed; inset: 0; background: rgba(10,37,64,0.75); backdrop-filter: blur(5px); z-index: 100000; display: none; align-items: center; justify-content: center; padding: 1rem; }
-    .lms-modal.open { display: flex; animation: fadeIn 0.2s ease; }
-    .lms-modal-box { background: #fff; border-radius: 16px; width: 100%; max-width: 800px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: slideUp 0.3s ease; position: relative; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    /* --- PROFESSIONAL FULL PAGE ARTICLE VIEW (CNN/BBC STYLE) --- */
+    #full-article-page {
+      position: fixed; inset: 0; background: #fff; z-index: 100000; overflow-y: auto; display: none;
+      animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes slideInUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .article-nav {
+      position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px);
+      padding: 1.2rem 5%; border-bottom: 1px solid #e2e8f0; z-index: 10; display: flex; align-items: center;
+    }
+    
+    .article-nav button {
+      background: none; border: none; font-family: 'Poppins', sans-serif; font-size: 1rem; color: #0a2540; 
+      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color 0.2s;
+    }
+    .article-nav button:hover { color: #2563eb; }
+    
+    .article-container { max-width: 800px; margin: 0 auto; padding: 3rem 1.5rem 6rem; }
+    
+    .article-header h1 {
+      font-family: 'Poppins', sans-serif; font-size: 2.6rem; line-height: 1.25; color: #0a2540; margin-bottom: 1.5rem; letter-spacing: -0.5px;
+    }
+    
+    .article-meta {
+      display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; margin-bottom: 2.5rem; border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .author-block { display: flex; align-items: center; gap: 14px; }
+    
+    .author-av {
+      width: 48px; height: 48px; border-radius: 50%; background: #f0f4f8; color: #0a2540;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem;
+      font-family: 'Poppins', sans-serif; border: 1px solid #cbd5e1;
+    }
+    
+    .author-block strong { display: block; font-size: 0.95rem; color: #0a2540; margin-bottom: 2px; }
+    .author-block span { font-size: 0.85rem; color: #64748b; }
+    
+    .article-hero { margin-bottom: 2.5rem; border-radius: 12px; overflow: hidden; background: #f8fafc; }
+    .article-hero img { width: 100%; max-height: 480px; object-fit: cover; display: block; }
+    
+    .article-body {
+      font-size: 1.15rem; line-height: 1.85; color: #334155; font-family: Georgia, 'Times New Roman', serif;
+    }
+    .article-body p { margin-bottom: 1.5em; }
+    .article-body h2, .article-body h3 { color: #0a2540; margin: 2rem 0 1rem; font-family: 'Poppins', sans-serif; line-height: 1.3;}
+    .article-body ul { margin-bottom: 1.5em; padding-left: 2rem; }
+    .article-body li { margin-bottom: 0.5rem; }
+
+    @media(max-width: 768px) {
+      .article-header h1 { font-size: 2rem; }
+      .article-hero img { max-height: 300px; border-radius: 8px; }
+      .article-body { font-size: 1.05rem; }
+    }
   </style>
 </head>
 <body>
@@ -61,21 +110,31 @@
 </section>
 </main>
 
-<div class="lms-modal" id="read-article-modal">
-  <div class="lms-modal-box">
-    <div style="position:relative; flex-shrink: 0;">
-       <img id="ra-img" src="" style="width:100%; height:250px; object-fit:cover; display:block;">
-       <button onclick="document.getElementById('read-article-modal').classList.remove('open')" style="position:absolute; top:15px; right:15px; background:rgba(0,0,0,0.6); border:none; color:white; width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:1.2rem; backdrop-filter:blur(4px); transition: background 0.2s; display:flex; align-items:center; justify-content:center;"><i class="fas fa-times"></i></button>
-    </div>
-    <div style="padding: 2.5rem; overflow-y:auto; flex: 1;">
-       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem;">
-         <span id="ra-date" style="font-size:0.85rem; color:#64748b; font-weight:600; text-transform: uppercase; letter-spacing: 1px;"></span>
-         <span id="ra-author" style="font-size:0.85rem; color:#0a2540; font-weight:700; background: #f0f4f8; padding: 4px 12px; border-radius: 99px;"></span>
-       </div>
-       <h2 id="ra-title" style="font-family:'Poppins',sans-serif; color:#0a2540; font-size:1.8rem; margin-top:0; margin-bottom: 1.5rem; line-height:1.3;"></h2>
-       <div id="ra-content" style="font-size:1.05rem; line-height:1.8; color:#333;"></div>
-    </div>
+<div id="full-article-page">
+  <div class="article-nav">
+    <button onclick="closeFullArticle()"><i class="fas fa-arrow-left"></i> Back to News</button>
   </div>
+  
+  <article class="article-container">
+    <header class="article-header">
+       <h1 id="ra-title"></h1>
+       <div class="article-meta">
+         <div class="author-block">
+            <div class="author-av" id="ra-author-initials"></div>
+            <div>
+              <strong id="ra-author"></strong>
+              <span id="ra-date"></span>
+            </div>
+         </div>
+       </div>
+    </header>
+    
+    <div class="article-hero">
+      <img id="ra-img" src="" alt="Article Cover Image">
+    </div>
+    
+    <div class="article-body" id="ra-content"></div>
+  </article>
 </div>
 
 <footer role="contentinfo" style="background:#0a2540; color:rgba(255,255,255,0.7); padding:2rem;">
@@ -109,7 +168,7 @@
     const { data, error } = await supabaseClient
       .from('articles')
       .select('*')
-      .eq('status', 'published') // Only fetches 'published' articles
+      .eq('status', 'published')
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -125,7 +184,9 @@
 
     PUBLIC_ARTICLES = data;
 
-    grid.innerHTML = data.map(a => `
+    grid.innerHTML = data.map(a => {
+      const authorName = a.author || 'Administration';
+      return `
       <article class="news-card" style="background:#fff; border-radius:14px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05); display:flex; flex-direction:column; transition:transform 0.2s ease, box-shadow 0.2s ease; cursor:pointer; border: 1px solid #e2e8f0;" onclick="openFullArticle('${a.id}')" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.05)';">
         <div class="news-img" style="position:relative;">
           <img src="${a.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'}" alt="${a.title}" loading="lazy" style="width:100%; height:220px; object-fit:cover; display:block;">
@@ -138,22 +199,31 @@
           <h3 style="margin: 0 0 0.8rem 0; font-size: 1.25rem; color: #0a2540; line-height: 1.4; font-family:'Poppins',sans-serif;">${a.title}</h3>
           <p style="font-size: 0.95rem; color: #64748b; margin: 0 0 1.5rem 0; line-height: 1.6; flex: 1;">${a.excerpt || 'Click to read the full story...'}</p>
           <div style="margin-top:auto; padding-top: 1.2rem; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-              <span style="font-size:0.85rem; font-weight:600; color:#333;"><i class="fas fa-user-edit" style="color:#64748b;"></i> ${a.author || 'Administration'}</span>
+              <span style="font-size:0.85rem; font-weight:600; color:#333;"><i class="fas fa-user-edit" style="color:#64748b;"></i> ${authorName}</span>
               <span style="font-size:0.9rem; font-weight:700; color:#2563eb;">Read More &rarr;</span>
           </div>
         </div>
       </article>
-    `).join('');
+    `}).join('');
   }
 
+  // Opens the dedicated full-page reader
   window.openFullArticle = function(id) {
     const art = PUBLIC_ARTICLES.find(a => a.id === id);
     if(!art) return;
     
     document.getElementById('ra-img').src = art.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg';
     document.getElementById('ra-title').textContent = art.title;
-    document.getElementById('ra-date').innerHTML = '<i class="far fa-calendar-alt"></i> ' + new Date(art.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
-    document.getElementById('ra-author').innerHTML = '<i class="fas fa-user-edit"></i> ' + (art.author || 'Administration');
+    
+    const formattedDate = new Date(art.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
+    document.getElementById('ra-date').textContent = formattedDate;
+    
+    const authorName = art.author || 'Administration';
+    document.getElementById('ra-author').textContent = authorName;
+    
+    // Create initials for the author avatar bubble
+    let initials = authorName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('ra-author-initials').textContent = initials || 'DB';
     
     let contentHtml = art.content;
     if (!contentHtml.includes('<p>') && !contentHtml.includes('<br>')) {
@@ -161,7 +231,17 @@
     }
     document.getElementById('ra-content').innerHTML = contentHtml;
     
-    document.getElementById('read-article-modal').classList.add('open');
+    // Show the full page and lock the background scroll
+    const page = document.getElementById('full-article-page');
+    page.style.display = 'block';
+    document.body.style.overflow = 'hidden'; 
+    page.scrollTop = 0; 
+  };
+
+  // Closes the full-page reader
+  window.closeFullArticle = function() {
+    document.getElementById('full-article-page').style.display = 'none';
+    document.body.style.overflow = ''; // Restore background scroll
   };
 
   window.addEventListener('DOMContentLoaded', loadPublicArticles);
