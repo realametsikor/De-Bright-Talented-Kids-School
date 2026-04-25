@@ -13,8 +13,6 @@
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
-
     /* --- PROFESSIONAL FULL PAGE ARTICLE VIEW (CNN/BBC STYLE) --- */
     #full-article-page {
       position: fixed; inset: 0; background: #fff; z-index: 100000; overflow-y: auto; display: none;
@@ -38,13 +36,14 @@
     
     .article-header h1 {
       font-family: 'Poppins', sans-serif; font-size: 2.6rem; line-height: 1.25; color: #0a2540; margin-bottom: 1.5rem; letter-spacing: -0.5px;
+      text-align: left;
     }
     
     .article-meta {
       display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.5rem; margin-bottom: 2.5rem; border-bottom: 1px solid #e2e8f0;
     }
     
-    .author-block { display: flex; align-items: center; gap: 14px; }
+    .author-block { display: flex; align-items: center; gap: 14px; text-align: left; }
     
     .author-av {
       width: 48px; height: 48px; border-radius: 50%; background: #f0f4f8; color: #0a2540;
@@ -59,7 +58,7 @@
     .article-hero img { width: 100%; max-height: 480px; object-fit: cover; display: block; }
     
     .article-body {
-      font-size: 1.15rem; line-height: 1.85; color: #334155; font-family: Georgia, 'Times New Roman', serif;
+      font-size: 1.15rem; line-height: 1.85; color: #334155; font-family: Georgia, 'Times New Roman', serif; text-align: left;
     }
     .article-body p { margin-bottom: 1.5em; }
     .article-body h2, .article-body h3 { color: #0a2540; margin: 2rem 0 1rem; font-family: 'Poppins', sans-serif; line-height: 1.3;}
@@ -102,8 +101,8 @@
 </div>
 
 <main id="main-content">
-<section style="background:#f4f7f6;padding:4rem 5% 5rem;">
-  <div class="page-card" style="max-width: 1200px; margin: 0 auto; background: transparent; box-shadow: none;">
+<section style="background:#f4f7f6;padding:0 5% 5rem;">
+  <div class="page-card">
     <div class="news-grid" id="articles-grid">
       </div>
   </div>
@@ -137,14 +136,14 @@
   </article>
 </div>
 
-<footer role="contentinfo" style="background:#0a2540; color:rgba(255,255,255,0.7); padding:2rem;">
+<footer role="contentinfo">
   <div class="container">
-    <div class="footer-content" style="display:flex; flex-wrap:wrap; gap:1.5rem; margin-bottom:1rem;">
+    <div class="footer-content">
       <div class="footer-section"><h3>Contact Us</h3><p><i class="fas fa-map-marker-alt"></i> Sonitra Road, Amasaman, Accra</p><p><i class="fas fa-phone"></i> <a href="tel:+233536998172" style="color:inherit;text-decoration:none;">+233 53 699 8172</a></p><p><i class="fas fa-envelope"></i> <a href="mailto:admin@debrighttalentedkidsschool.online" style="color:inherit;text-decoration:none;">admin@debrighttalentedkidsschool.online</a></p></div>
-      <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="index.html" style="color:inherit;text-decoration:none;">Home</a></li><li><a href="about.html" style="color:inherit;text-decoration:none;">About Us</a></li><li><a href="articles.html" style="color:inherit;text-decoration:none;">Articles</a></li><li><a href="index.html" style="color:inherit;text-decoration:none;">Student Portal</a></li><li><a href="gallery.html" style="color:inherit;text-decoration:none;">Gallery</a></li><li><a href="contact.html" style="color:inherit;text-decoration:none;">Contact</a></li></ul></div>
-      <div class="footer-section"><h3>Follow Us</h3><div class="social-icons" style="display:flex; gap:10px;"><a href="https://www.facebook.com/debrightschool" target="_blank" rel="noopener noreferrer" style="color:inherit;"><i class="fab fa-facebook-f"></i></a><a href="https://www.instagram.com/debrightschool" target="_blank" rel="noopener noreferrer" style="color:inherit;"><i class="fab fa-instagram"></i></a><a href="#" style="color:inherit;"><i class="fab fa-tiktok"></i></a><a href="#" style="color:inherit;"><i class="fab fa-youtube"></i></a></div></div>
+      <div class="footer-section"><h3>Quick Links</h3><ul><li><a href="index.html">Home</a></li><li><a href="about.html">About Us</a></li><li><a href="articles.html">Articles</a></li><li><a href="student-portal.html">Student Portal</a></li><li><a href="gallery.html">Gallery</a></li><li><a href="contact.html">Contact</a></li></ul></div>
+      <div class="footer-section"><h3>Follow Us</h3><div class="social-icons"><a href="https://www.facebook.com/debrightschool" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a><a href="https://www.instagram.com/debrightschool" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a><a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a><a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a></div></div>
     </div>
-    <div class="copyright" style="border-top:1px solid rgba(255,255,255,0.1); padding-top:1rem; text-align:center;"><p>&copy; <span id="year"></span> De-Bright Talented Kids School. All Rights Reserved.</p></div>
+    <div class="copyright"><p>&copy; <span id="year"></span> De-Bright Talented Kids School. All Rights Reserved.</p></div>
   </div>
 </footer>
 
@@ -184,33 +183,18 @@
 
     PUBLIC_ARTICLES = data;
 
+    // Notice we are using your exact original .news-card HTML structure here to match your style.css perfectly
     grid.innerHTML = data.map(a => {
-      const authorName = a.author || 'Administration';
-      const dateStr = new Date(a.created_at).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'});
-      
       return `
-      <article style="background:#fff; border-radius:16px; padding:1.2rem; box-shadow:0 8px 24px rgba(10,37,64,0.06); display:flex; flex-direction:column; transition:all 0.3s ease; cursor:pointer; border:1px solid #f1f5f9;" onclick="openFullArticle('${a.id}')" onmouseover="this.style.transform='translateY(-6px)'; this.style.boxShadow='0 14px 30px rgba(10,37,64,0.1)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(10,37,64,0.06)';">
-        
-        <div style="position:relative; margin-bottom:1.2rem;">
-          <img src="${a.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'}" alt="${a.title}" loading="lazy" style="width:100%; height:200px; object-fit:cover; border-radius:12px; display:block;">
-          <div style="position:absolute; top:12px; left:12px; background:#fbc02d; color:#000; padding:6px 12px; border-radius:8px; font-size:0.7rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px;">School Update</div>
+      <article class="news-card" onclick="openFullArticle('${a.id}')" style="cursor:pointer; text-align:left;">
+        <div class="news-img">
+          <img src="${a.cover_image || 'https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'}" alt="${a.title}" loading="lazy">
         </div>
-        
-        <div style="display:flex; align-items:center; gap:8px; color:#64748b; font-size:0.85rem; margin-bottom:0.8rem; font-weight:500;">
-          <i class="far fa-calendar-alt"></i> <span>${dateStr}</span>
+        <div class="news-content" style="text-align:left;">
+          <h3 style="text-align:left;">${a.title}</h3>
+          <p style="text-align:left;">${a.excerpt || 'Click to read the full story...'}</p>
+          <a href="javascript:void(0)" class="read-more" style="text-align:left; display:block;">Read More &rarr;</a>
         </div>
-        
-        <h3 style="margin:0 0 0.8rem 0; font-size:1.35rem; color:#0a2540; line-height:1.35; font-family:'Poppins',sans-serif; font-weight:700;">${a.title}</h3>
-        
-        <p style="color:#64748b; font-size:0.95rem; line-height:1.6; margin:0 0 1.5rem 0; flex:1;">${a.excerpt || 'Click to read the full story...'}</p>
-        
-        <hr style="border:none; border-top:1px solid #e2e8f0; margin:0 0 1rem 0;">
-        
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:0.9rem; color:#334155; font-weight:600; display:flex; align-items:center; gap:6px;"><i class="fas fa-user" style="color:#94a3b8;"></i> ${authorName}</span>
-          <span style="font-size:0.9rem; color:#2563eb; font-weight:600;">Read More &rarr;</span>
-        </div>
-        
       </article>
     `}).join('');
   }
