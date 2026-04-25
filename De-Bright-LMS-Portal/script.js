@@ -289,7 +289,7 @@ window.saveTimetable = function(silent = false) {
     const r = parseInt(sel.getAttribute('data-row'));
     const c = parseInt(sel.getAttribute('data-col'));
     if(newTimetable[r]) {
-      newTimetable[r][c] = sel.value;
+      newTimetable[r][c] = sel.value.trim();
     }
   });
 
@@ -332,71 +332,67 @@ window.viewPrintableTimetable = function() {
   
   let tbodyHTML = '';
   TT_TIMES.forEach((time, i) => {
-    const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
-    const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
+    const isAllBreak = TIMETABLE[i].every(s => s.toUpperCase().includes('BREAK'));
+    const isAllLunch = TIMETABLE[i].every(s => s.toUpperCase().includes('LUNCH'));
     let rowContent = '';
     
     if(isAllBreak || isAllLunch) {
       const label = isAllBreak ? 'MORNING BREAK' : 'LUNCH BREAK';
-      rowContent = '<td colspan="5" style="padding:10px; border:1px solid #ccc; background:rgba(249,249,249,0.7); font-weight:bold; letter-spacing:2px; color:#555;">' + label + '</td>';
+      rowContent = '<td colspan="5" style="padding:15px; border:2px solid #333; background:rgba(240,240,240,0.8); font-weight:bold; font-size:1.15rem; letter-spacing:2px; color:#222; text-transform:uppercase;">' + label + '</td>';
     } else {
       rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
         const sub = TIMETABLE[i]?.[j] || '-';
-        return '<td style="padding:10px; border:1px solid #ccc;">' + sub + '</td>';
+        return '<td style="padding:15px; border:2px solid #333; font-size:1.1rem; font-weight:600; color:#000;">' + sub + '</td>';
       }).join('');
     }
-    tbodyHTML += '<tr><td style="padding:10px; border:1px solid #ccc; font-weight:bold;">' + time + '</td>' + rowContent + '</tr>';
+    tbodyHTML += '<tr><td style="padding:15px; border:2px solid #333; font-weight:bold; font-size:1.1rem; color:#000;">' + time + '</td>' + rowContent + '</tr>';
   });
 
   m.innerHTML = `
     <style>
       @media print {
+        @page { size: landscape; margin: 10mm; }
         body * { visibility: hidden; }
-        #tt-print-area, #tt-print-area * { visibility: visible; }
-        #tt-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
-        .lms-modal-box { box-shadow: none; border: none; }
-        #view-timetable-modal .modal-h, #view-timetable-modal .print-footer-actions { display: none !important; }
+        #view-timetable-modal, #view-timetable-modal * { visibility: visible; }
+        #view-timetable-modal { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; background: #fff !important; }
+        .lms-modal-box { max-width: 100% !important; border: none !important; box-shadow: none !important; margin: 0 !important; padding: 0 !important; background: transparent !important; }
+        .modal-h, .print-footer-actions { display: none !important; }
+        #tt-print-area { width: 100%; margin: 0; padding: 0; background: transparent !important; }
+        table { table-layout: fixed; width: 100% !important; border-collapse: collapse; }
+        th, td { word-wrap: break-word; border: 2px solid #000 !important; }
         
-        /* Watermark for Print */
+        /* High Opacity Watermark */
         #tt-print-area::before {
-          content: "";
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 600px;
-          height: 600px;
+          content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 700px; height: 700px;
           background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
-          background-size: contain;
-          opacity: 0.15;
-          z-index: -1;
-          pointer-events: none;
+          background-size: contain; opacity: 0.3 !important; z-index: -1; pointer-events: none;
         }
       }
     </style>
-    <div class="lms-modal-box" style="max-width:800px;">
+    <div class="lms-modal-box" style="max-width:900px;">
       <div class="modal-h">
         <h3><i class="fas fa-calendar-alt" style="color:var(--accent);margin-right:6px;"></i>Official Timetable</h3>
         <button onclick="closeModal('view-timetable-modal')"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000; position:relative; z-index:1;">
+      <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000; position:relative; z-index:1; padding:2rem;">
         
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height:500px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.12; z-index:-1; pointer-events:none;"></div>
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; height:600px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.15; z-index:-1; pointer-events:none;"></div>
         
-        <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
-          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
-          <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
-          <h3 style="margin-top:1rem; color:var(--accent);">CLASS ` + (currentUser.class || '') + ` TIMETABLE</h3>
+        <div style="text-align:center; border-bottom: 3px solid var(--accent); padding-bottom: 1.5rem; margin-bottom: 2rem; position:relative; z-index:2;">
+          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif; font-size:1.8rem; margin-bottom:0.5rem;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
+          <p style="font-size:1rem; color:#444; font-weight:600;">Sonitra Road, Amasaman, Accra</p>
+          <h3 style="margin-top:1.5rem; color:var(--accent); font-size:1.4rem;">CLASS ` + (currentUser.class || '') + ` TIMETABLE</h3>
         </div>
-        <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; text-align:center; background:transparent; position:relative; z-index:2;">
+        <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; text-align:center; background:transparent; position:relative; z-index:2; border:2px solid #000;">
           <thead>
-            <tr style="background:rgba(240,244,248,0.8);">
-              <th style="padding:10px; border:1px solid #ccc;">Time</th>
-              <th style="padding:10px; border:1px solid #ccc;">Mon</th>
-              <th style="padding:10px; border:1px solid #ccc;">Tue</th>
-              <th style="padding:10px; border:1px solid #ccc;">Wed</th>
-              <th style="padding:10px; border:1px solid #ccc;">Thu</th>
-              <th style="padding:10px; border:1px solid #ccc;">Fri</th>
+            <tr style="background:rgba(240,244,248,0.9);">
+              <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Time</th>
+              <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Mon</th>
+              <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Tue</th>
+              <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Wed</th>
+              <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Thu</th>
+              <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Fri</th>
             </tr>
           </thead>
           <tbody>
@@ -455,8 +451,8 @@ const pages = {
 's-timetable':() => {
   let tbodyHTML = '';
   TT_TIMES.forEach((time, i) => {
-    const isAllBreak = TIMETABLE[i].every(s => s === 'BREAK');
-    const isAllLunch = TIMETABLE[i].every(s => s === 'LUNCH');
+    const isAllBreak = TIMETABLE[i].every(s => s.toUpperCase().includes('BREAK'));
+    const isAllLunch = TIMETABLE[i].every(s => s.toUpperCase().includes('LUNCH'));
     let rowContent = '';
 
     if (isAllBreak || isAllLunch) {
@@ -465,10 +461,20 @@ const pages = {
     } else {
       rowContent = ['Mon','Tue','Wed','Thu','Fri'].map((day, j) => {
         const sub = TIMETABLE[i]?.[j] || '-';
-        const colorClass = TT_COLORS[sub] || 'grey';
-        if(sub === 'BREAK' || sub === 'LUNCH') {
-            const displaySub = sub === 'BREAK' ? 'Morning Break' : 'Lunch Break';
-            return '<td style="padding: 0.5rem;"><span class="chip ' + (sub==='BREAK'?'gold':'green') + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + displaySub + '</span></td>';
+        const uSub = sub.toUpperCase();
+        let colorClass = TT_COLORS[sub] || 'grey';
+        
+        // Dynamically style new subjects typed by teacher
+        if(colorClass === 'grey') {
+            if(uSub.includes('MATH')) colorClass = 'filled-gold';
+            else if(uSub.includes('ENG')) colorClass = 'filled-blue';
+            else if(uSub.includes('SCI')) colorClass = 'filled-green';
+            else if(uSub.includes('ART')) colorClass = 'filled-gold';
+        }
+
+        if(uSub.includes('BREAK') || uSub.includes('LUNCH')) {
+            const displaySub = uSub.includes('BREAK') ? 'Break' : 'Lunch';
+            return '<td style="padding: 0.5rem;"><span class="chip ' + (uSub.includes('BREAK')?'gold':'green') + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + displaySub + '</span></td>';
         }
         return '<td style="padding: 0.5rem;"><span class="chip ' + colorClass + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + sub + '</span></td>';
       }).join('');
@@ -846,21 +852,20 @@ const pages = {
 's-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>`,
 't-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
 't-attendance':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Attendance Tracker</h2></div><div class="panel" style="border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.04);overflow:hidden;padding:1.5rem;"><div id="att-mark-list" style="display:flex;flex-direction:column;gap:0.8rem;"></div></div>`,
+
 't-timetable': () => {
-  const ALL_OPTS = ['Maths','English','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH','-'];
+  const PRESET_OPTS = ['Maths','English','Science','Social Studies','Creative Arts','RME','French','ICT','BREAK','LUNCH'];
+  let datalistHTML = '<datalist id="tt-subjects">';
+  PRESET_OPTS.forEach(opt => { datalistHTML += '<option value="' + opt + '">'; });
+  datalistHTML += '</datalist>';
+  
   let tbodyHTML = '';
   
   TT_TIMES.forEach((time, i) => {
     let rowHTML = '';
     ['Mon','Tue','Wed','Thu','Fri'].forEach((day, j) => {
       const sub = TIMETABLE[i]?.[j] || '-';
-      let optionsHTML = '';
-      ALL_OPTS.forEach(opt => {
-        const isSelected = sub === opt ? 'selected' : '';
-        const displayOpt = opt === 'BREAK' ? 'Morning Break' : opt === 'LUNCH' ? 'Lunch Break' : opt;
-        optionsHTML += '<option value="' + opt + '" ' + isSelected + '>' + displayOpt + '</option>';
-      });
-      rowHTML += '<td style="padding: 0.5rem;"><select class="tt-select" data-row="' + i + '" data-col="' + j + '" style="width:100%; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; background:#fff; cursor:pointer;" onchange="this.style.borderColor=\'var(--primary)\'">' + optionsHTML + '</select></td>';
+      rowHTML += '<td style="padding: 0.5rem;"><input type="text" class="tt-select" data-row="' + i + '" data-col="' + j + '" value="' + sub + '" list="tt-subjects" style="width:100%; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; background:#fff; text-align:center; font-weight:600; color:var(--text);" onfocus="this.select()" onchange="this.style.borderColor=\'var(--primary)\'"></td>';
     });
 
     tbodyHTML += '<tr style="border-bottom: 1px solid var(--lms-border); transition: background 0.2s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'transparent\'">';
@@ -883,6 +888,7 @@ const pages = {
   </div>
   <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
     <div style="overflow-x: auto;">
+      ` + datalistHTML + `
       <table class="lms-tbl" style="width: 100%; min-width: 700px; text-align: center;">
         <thead style="background: var(--lms-surface);">
           <tr><th style="padding: 1rem;">Time</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th></tr>
@@ -898,7 +904,7 @@ const pages = {
   </div>
   <div style="background:#fef9c3; color:#a16207; padding:1rem; border-radius:8px; margin-top:1rem; font-size:0.85rem; display:flex; gap:0.5rem; align-items:center;">
     <i class="fas fa-info-circle"></i>
-    <span><strong>Tip:</strong> If you assign <strong>Morning Break</strong> or <strong>Lunch Break</strong> to all 5 days in a single row, it will cleanly span across the entire row on the student's view.</span>
+    <span><strong>Tip:</strong> You can type any custom subject! To create a full-row break, simply type <strong>BREAK</strong> or <strong>LUNCH</strong> across all 5 days in a row.</span>
   </div>`;
 }
 };
@@ -1341,31 +1347,32 @@ window.viewReportCard = function(reportId) {
 
   let gradesHTML = '';
   GRADES.slice(0,5).forEach(g => {
-      gradesHTML += '<tr><td style="padding:10px; border:1px solid #ccc;">' + g.subject + '</td><td style="padding:10px; border:1px solid #ccc; text-align:center;">' + g.total + '</td><td style="padding:10px; border:1px solid #ccc; text-align:center;"><strong>' + g.grade + '</strong></td></tr>';
+      gradesHTML += '<tr><td style="padding:10px; border:2px solid #000;">' + g.subject + '</td><td style="padding:10px; border:2px solid #000; text-align:center;">' + g.total + '</td><td style="padding:10px; border:2px solid #000; text-align:center;"><strong>' + g.grade + '</strong></td></tr>';
   });
 
   printArea.innerHTML = `
     <style>
       @media print {
+        @page { margin: 15mm; }
+        body * { visibility: hidden; }
+        #view-report-modal, #view-report-modal * { visibility: visible; }
+        #view-report-modal { position: absolute; left: 0; top: 0; width: 100vw; height: 100vh; background: #fff !important; }
+        .lms-modal-box { max-width: 100% !important; box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+        .modal-h, .print-footer-actions { display: none !important; }
+        #print-area { width: 100%; padding: 0; margin: 0; border: none !important; background: transparent !important; }
+        table { width: 100% !important; border-collapse: collapse; }
+        th, td { border: 2px solid #000 !important; }
         #print-area::before {
-          content: "";
-          position: fixed;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 600px;
-          height: 600px;
+          content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 700px; height: 700px;
           background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
-          background-size: contain;
-          opacity: 0.15;
-          z-index: -1;
-          pointer-events: none;
+          background-size: contain; opacity: 0.3 !important; z-index: -1; pointer-events: none;
         }
       }
     </style>
     <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff; position:relative; z-index:1;">
       
-      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height:500px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.12; z-index:-1; pointer-events:none;"></div>
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height:500px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.15; z-index:-1; pointer-events:none;"></div>
 
       <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
         <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
@@ -1376,15 +1383,15 @@ window.viewReportCard = function(reportId) {
         <div><p><strong>Student Name:</strong> ` + currentUser.name + `</p><p><strong>Student ID:</strong> ` + currentUser.id + `</p></div>
         <div style="text-align:right;"><p><strong>Class:</strong> ` + currentUser.class + `</p><p><strong>Term:</strong> ` + report.term + ` 2025/26</p></div>
       </div>
-      <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; background:transparent; position:relative; z-index:2;">
-        <tr style="background:rgba(240,244,248,0.8);">
-          <th style="padding:10px; border:1px solid #ccc; text-align:left;">Subject</th>
-          <th style="padding:10px; border:1px solid #ccc; text-align:center;">Score</th>
-          <th style="padding:10px; border:1px solid #ccc; text-align:center;">Grade</th>
+      <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; background:transparent; position:relative; z-index:2; border: 2px solid #000;">
+        <tr style="background:rgba(240,244,248,0.9);">
+          <th style="padding:10px; border:2px solid #000; text-align:left;">Subject</th>
+          <th style="padding:10px; border:2px solid #000; text-align:center;">Score</th>
+          <th style="padding:10px; border:2px solid #000; text-align:center;">Grade</th>
         </tr>
         ` + gradesHTML + `
       </table>
-      <div style="background: rgba(249,249,249,0.8); padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem; position:relative; z-index:2;">
+      <div style="background: rgba(249,249,249,0.9); padding: 1rem; border-left: 4px solid var(--primary); margin-bottom: 1rem; position:relative; z-index:2; border: 1px solid #ccc;">
         <p style="margin-bottom:.5rem;"><strong>Conduct:</strong> ` + report.conduct + `</p>
         <p><strong>Class Teacher's Remarks:</strong> ` + report.remarks + `</p>
       </div>
