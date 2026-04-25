@@ -28,6 +28,7 @@ let currentUser = null, currentRole = 'student', currentPage = null;
 let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], NOTICE_COMMENTS = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
 let STUDENTS_DB = [], REPORT_CARDS = []; 
 let QUIZZES = [], QUIZ_SUBMISSIONS = [];
+let TEACHERS_DB = [], ARTICLES_DB = [], SITE_SETTINGS = {};
 let attState = {};
 
 /* ====================== DYNAMIC LOGIN & PERSISTENCE ====================== */
@@ -52,10 +53,8 @@ window.doLogin = async function(){
   btnText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Authenticating…';
 
   try {
-    // 1. Format the ID into a dummy email for Supabase Auth
     const authEmail = `${idInput}@debright.edu`;
 
-    // 2. Authenticate officially with Supabase Auth
     if (!supabaseClient) throw new Error("Supabase not initialized");
     
     const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({
@@ -71,49 +70,22 @@ window.doLogin = async function(){
 
     let fetchedUser = null;
 
-    // 3. Load user profile data based on role OR Admin override
     if (idInputRaw.toUpperCase().startsWith('ADM')) {
-      // HIDDEN ADMIN OVERRIDE
-      const { data, error } = await supabaseClient.from('admins')
-        .select('*')
-        .eq('id', idInputRaw.toUpperCase())
-        .single();
-      
-      if (error || !data) { 
-        showErr('Admin profile not found in database.'); 
-        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
-        return; 
-      }
+      const { data, error } = await supabaseClient.from('admins').select('*').eq('id', idInputRaw.toUpperCase()).single();
+      if (error || !data) { showErr('Admin profile not found in database.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
       fetchedUser = { role: 'admin', name: data.name, initials: getInitials(data.name), id: data.id };
       
     } else if (currentRole === 'teacher') {
-      const { data, error } = await supabaseClient.from('teachers')
-        .select('*')
-        .eq('id', idInputRaw.toUpperCase())
-        .single();
-      
-      if (error || !data) { 
-        showErr('Teacher profile not found in database.'); 
-        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
-        return; 
-      }
+      const { data, error } = await supabaseClient.from('teachers').select('*').eq('id', idInputRaw.toUpperCase()).single();
+      if (error || !data) { showErr('Teacher profile not found in database.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
       fetchedUser = { role: 'teacher', name: data.name, initials: data.initials, class: data.class_assigned, id: data.id };
       
     } else {
-      const { data, error } = await supabaseClient.from('students')
-        .select('*')
-        .eq('id', idInputRaw.toUpperCase())
-        .single();
-      
-      if (error || !data) { 
-        showErr('Student profile not found in database.'); 
-        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
-        return; 
-      }
+      const { data, error } = await supabaseClient.from('students').select('*').eq('id', idInputRaw.toUpperCase()).single();
+      if (error || !data) { showErr('Student profile not found in database.'); btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; return; }
       fetchedUser = { role: 'student', name: data.name, initials: getInitials(data.name), class: data.class, id: data.id };
     }
 
-    // 4. Proceed to Dashboard
     if (fetchedUser) {
       currentUser = fetchedUser;
       localStorage.setItem('lms_user', JSON.stringify(currentUser));
@@ -134,9 +106,7 @@ window.doLogin = async function(){
 };
 
 window.doLogout = async function(){
-  // Officially sign out of Supabase to kill the secure session
   if(supabaseClient) { await supabaseClient.auth.signOut(); }
-  
   localStorage.removeItem('lms_user'); 
   if(realtimeChannel && supabaseClient) { supabaseClient.removeChannel(realtimeChannel); }
   currentPage = null;
@@ -163,7 +133,7 @@ function launchPortal() {
 async function fetchAllData(){
   if(!supabaseClient) return;
   try {
-    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes] = await Promise.all([
+    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes, teachRes, artRes, setRes] = await Promise.all([
       supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('students').select('*').order('name',{ascending:true}), 
@@ -175,7 +145,10 @@ async function fetchAllData(){
       supabaseClient.from('notice_comments').select('*').order('created_at',{ascending:true}),
       supabaseClient.from('subjects').select('*').order('name',{ascending:true}),
       supabaseClient.from('continuous_assessments').select('*').eq('student_id', currentUser?.id || ''),
-      supabaseClient.from('classes').select('*').eq('name', currentUser?.class || '').single()
+      supabaseClient.from('classes').select('*').eq('name', currentUser?.class || '').single(),
+      supabaseClient.from('teachers').select('*').order('name',{ascending:true}),
+      supabaseClient.from('articles').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('site_settings').select('*').eq('id', 1).single()
     ]);
 
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
@@ -189,19 +162,17 @@ async function fetchAllData(){
     if(comRes.data) NOTICE_COMMENTS = comRes.data;
     if(subjRes.data) SUBJECTS = subjRes.data;
     if(gradesRes.data) GRADES = gradesRes.data;
+    if(teachRes && teachRes.data) TEACHERS_DB = teachRes.data;
+    if(artRes && artRes.data) ARTICLES_DB = artRes.data;
+    if(setRes && setRes.data) SITE_SETTINGS = setRes.data;
     
-    // Load the timetable for the specific class, or use empty defaults if none exists
-    if(classRes.data) {
+    if(classRes && classRes.data) {
       TIMETABLE = classRes.data.timetable_data || [];
       TT_TIMES = classRes.data.timetable_times || [];
-    } else {
-      TIMETABLE = [];
-      TT_TIMES = [];
-    }
+    } else { TIMETABLE = []; TT_TIMES = []; }
 
   } catch (e) {
     console.error("Supabase Error:", e);
-    // Don't throw for Admins, just log it, as they don't have a specific class assigned
     if(currentUser.role !== 'admin') throw e; 
   }
 }
@@ -226,12 +197,10 @@ function buildDashboard(){
   document.getElementById('sb-avatar').textContent = u.initials;
   document.getElementById('sb-name').textContent = u.name;
   
-  // Set Subtitles dynamically
   if(u.role === 'student') document.getElementById('sb-sub').textContent = `Class ${u.class} · ${u.id}`;
   else if(u.role === 'teacher') document.getElementById('sb-sub').textContent = `Teacher · ${u.class}`;
   else document.getElementById('sb-sub').textContent = `Administrator · ${u.id}`;
 
-  // Set Portal Label
   if(u.role === 'student') document.getElementById('sb-role-label').textContent = 'Student Portal';
   else if(u.role === 'teacher') document.getElementById('sb-role-label').textContent = 'Teacher Portal';
   else document.getElementById('sb-role-label').textContent = 'Super Admin Portal';
@@ -354,7 +323,7 @@ window.saveTimetable = function(silent = false) {
 };
 
 window.addTimetableRow = function() {
-  window.saveTimetable(true); // Save current input states to arrays silently before modifying structure
+  window.saveTimetable(true); 
   TT_TIMES.push('00:00 PM');
   TIMETABLE.push(['-','-','-','-','-']);
   renderPage('t-timetable');
@@ -362,7 +331,7 @@ window.addTimetableRow = function() {
 
 window.removeTimetableRow = function(index) {
   if (TT_TIMES.length <= 1) { toast('Cannot remove the last row!', 'error'); return; }
-  window.saveTimetable(true); // Save current input states first to avoid data loss
+  window.saveTimetable(true); 
   TT_TIMES.splice(index, 1);
   TIMETABLE.splice(index, 1);
   renderPage('t-timetable');
@@ -407,8 +376,6 @@ window.viewPrintableTimetable = function() {
         #tt-print-area { width: 100%; margin: 0; padding: 0; background: transparent !important; }
         table { table-layout: fixed; width: 100% !important; border-collapse: collapse; }
         th, td { word-wrap: break-word; border: 2px solid #000 !important; }
-        
-        /* High Opacity Watermark */
         #tt-print-area::before {
           content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
           width: 700px; height: 700px;
@@ -423,11 +390,9 @@ window.viewPrintableTimetable = function() {
         <button onclick="closeModal('view-timetable-modal')"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000; position:relative; z-index:1; padding:2rem;">
-        
         <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; height:600px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.15; z-index:-1; pointer-events:none;"></div>
-        
         <div style="text-align:center; border-bottom: 3px solid var(--accent); padding-bottom: 1.5rem; margin-bottom: 2rem; position:relative; z-index:2;">
-          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif; font-size:1.8rem; margin-bottom:0.5rem;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
+          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif; font-size:1.8rem; margin-bottom:0.5rem;">${SITE_SETTINGS.school_name || 'DE-BRIGHT TALENTED KIDS SCHOOL'}</h2>
           <p style="font-size:1rem; color:#444; font-weight:600;">Sonitra Road, Amasaman, Accra</p>
           <h3 style="margin-top:1.5rem; color:var(--accent); font-size:1.4rem;">CLASS ` + (currentUser.class || '') + ` TIMETABLE</h3>
         </div>
@@ -442,9 +407,7 @@ window.viewPrintableTimetable = function() {
               <th style="padding:15px; border:2px solid #333; font-size:1.1rem; color:#000;">Fri</th>
             </tr>
           </thead>
-          <tbody>
-            ` + tbodyHTML + `
-          </tbody>
+          <tbody>` + tbodyHTML + `</tbody>
         </table>
       </div>
       <div class="print-footer-actions" style="padding:1.5rem;display:flex;gap:.7rem;border-top:1px solid var(--lms-border);">
@@ -468,11 +431,129 @@ const pages = {
     </div>
     <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-shield-alt"></i></div>
   </div>
-  <div class="empty-state" style="background:#fff; border-radius:12px;"><i class="fas fa-server"></i><h3>System Online</h3><p>Select an option from the sidebar to manage the school database.</p></div>
+  <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-user-graduate"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${STUDENTS_DB.length}</div></div>
+    </div>
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-chalkboard-teacher"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Teachers</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${TEACHERS_DB.length}</div></div>
+    </div>
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-purple);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #f5f3ff; color: var(--lms-purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-newspaper"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Published Articles</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${ARTICLES_DB.length}</div></div>
+    </div>
+  </div>
 `,
-'a-users':() => `<div class="page-header" style="margin-bottom: 2rem;"><h2>User Management</h2><span style="color:var(--lms-muted);">Add/Edit Teachers and Students across the entire school</span></div>`,
-'a-articles':() => `<div class="page-header" style="margin-bottom: 2rem;"><h2>Content Management System</h2><span style="color:var(--lms-muted);">Write and publish articles to the main website</span></div>`,
-'a-settings':() => `<div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update homepage banners, contact info, and active terms</span></div>`,
+
+'a-users':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>User Management</h2><span style="color:var(--lms-muted);">Add, edit, or remove users globally</span></div>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-blue);" onclick="openAdminUserModal('teacher')"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</button>
+      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-green); border-color:var(--lms-green);" onclick="openAdminUserModal('student')"><i class="fas fa-user-graduate"></i> Add Student</button>
+    </div>
+  </div>
+  
+  <div style="display:grid; grid-template-columns: 1fr; gap: 2rem;">
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-chalkboard-teacher" style="color:var(--lms-blue); margin-right:8px;"></i> Staff Directory</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+          <thead style="background: var(--lms-surface);">
+            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class Assigned</th><th style="text-align:center;">Action</th></tr>
+          </thead>
+          <tbody>
+            ${TEACHERS_DB.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--lms-muted);">No teachers found.</td></tr>' : 
+              TEACHERS_DB.map(t => `
+              <tr style="border-bottom: 1px solid var(--lms-border);">
+                <td style="padding: 1rem; font-weight:600;">${t.id}</td>
+                <td><div style="display:flex;align-items:center;gap:.8rem;"><div class="std-av">${t.initials}</div><strong>${t.name}</strong></div></td>
+                <td><span class="chip blue">${t.class_assigned || 'None'}</span></td>
+                <td style="text-align:center;"><button class="btn-danger" style="padding:.4rem .8rem;font-size:.75rem;" onclick="deleteTeacher('${t.id}')"><i class="fas fa-trash"></i> Delete</button></td>
+              </tr>
+              `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-user-graduate" style="color:var(--lms-green); margin-right:8px;"></i> Student Directory</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+          <thead style="background: var(--lms-surface);">
+            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class</th><th>Contact</th><th style="text-align:center;">Action</th></tr>
+          </thead>
+          <tbody>
+            ${STUDENTS_DB.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--lms-muted);">No students found.</td></tr>' : 
+              STUDENTS_DB.map(s => `
+              <tr style="border-bottom: 1px solid var(--lms-border);">
+                <td style="padding: 1rem; font-weight:600;">${s.id}</td>
+                <td><strong>${s.name}</strong></td>
+                <td><span class="chip green">${s.class}</span></td>
+                <td>${s.parent_contact}</td>
+                <td style="text-align:center;"><button class="btn-danger" style="padding:.4rem .8rem;font-size:.75rem;" onclick="deleteStudent('${s.id}', true)"><i class="fas fa-trash"></i> Delete</button></td>
+              </tr>
+              `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+`,
+
+'a-articles':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>Content Management System</h2><span style="color:var(--lms-muted);">Write and publish articles to the main website</span></div>
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openArticleModal()"><i class="fas fa-pen"></i> Draft New Article</button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    ${ARTICLES_DB.length === 0 ? `<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No articles published yet.</p></div>` : 
+      ARTICLES_DB.map(a => `
+        <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column;">
+          ${a.cover_image ? `<img src="${a.cover_image}" style="width:100%; height:160px; object-fit:cover; border-bottom:1px solid var(--lms-border);">` : `<div style="width:100%; height:160px; background:var(--lms-surface); display:flex; align-items:center; justify-content:center; color:var(--lms-muted);"><i class="fas fa-image fa-2x"></i></div>`}
+          <div style="padding:1.5rem; flex:1; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+              <span class="chip ${a.status==='published'?'green':'grey'}">${a.status==='published'?'Published':'Draft'}</span>
+              <span style="font-size:0.75rem; color:var(--lms-muted);">${fmtDate(a.created_at)}</span>
+            </div>
+            <strong style="font-size:1.1rem; margin-bottom:0.5rem; color:var(--text); line-height:1.4;">${a.title}</strong>
+            <p style="font-size:0.85rem; color:var(--lms-muted); margin-bottom:1rem; flex:1;">${a.excerpt || 'No excerpt provided.'}</p>
+            <div style="display:flex; gap:0.5rem; margin-top:auto;">
+              <button class="btn-outline" style="flex:1; padding:0.5rem; border-radius:6px;" onclick="openArticleModal('${a.id}')"><i class="fas fa-edit"></i> Edit</button>
+              <button class="btn-danger" style="padding:0.5rem; border-radius:6px;" onclick="deleteArticle('${a.id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+  </div>
+`,
+
+'a-settings':() => `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
+  <div class="panel" style="max-width: 600px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+      <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+      <div class="lms-form-group"><label>School Name</label><input type="text" id="set-school" value="${SITE_SETTINGS.school_name || ''}"></div>
+      <div class="lms-form-group"><label>Contact Phone</label><input type="text" id="set-phone" value="${SITE_SETTINGS.contact_phone || ''}"></div>
+      <div class="lms-form-group"><label>Contact Email</label><input type="email" id="set-email" value="${SITE_SETTINGS.contact_email || ''}"></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="lms-form-group"><label>Current Term</label><input type="text" id="set-term" value="${SITE_SETTINGS.current_term || ''}"></div>
+        <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="${SITE_SETTINGS.academic_year || ''}"></div>
+      </div>
+      <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>
+      <button class="btn-lms-primary" style="margin-top: 1rem; width: 100%;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save Configuration</button>
+    </div>
+  </div>
+`,
 
 's-dashboard':() => {
     const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id);
@@ -482,7 +563,7 @@ const pages = {
     return `
     <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 2rem;">
       <div class="wb-text">
-        <div class="wb-tag" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📚 Term 2 — 2025/26</div>
+        <div class="wb-tag" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📚 ${SITE_SETTINGS.current_term || 'Term 2'} — ${SITE_SETTINGS.academic_year || '2025/26'}</div>
         <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
       </div>
       <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-graduation-cap"></i></div>
@@ -589,7 +670,6 @@ const pages = {
         const uSub = sub.toUpperCase();
         let colorClass = TT_COLORS[sub] || 'grey';
         
-        // Dynamically style new subjects typed by teacher
         if(colorClass === 'grey') {
             if(uSub.includes('MATH')) colorClass = 'filled-gold';
             else if(uSub.includes('ENG')) colorClass = 'filled-blue';
@@ -609,7 +689,7 @@ const pages = {
 
   return `
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
-    <div><h2>Class Timetable</h2><span style="color:var(--lms-muted);">Term 2 Schedule</span></div>
+    <div><h2>Class Timetable</h2><span style="color:var(--lms-muted);">${SITE_SETTINGS.current_term || 'Term 2'} Schedule</span></div>
     <button class="btn-outline" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="viewPrintableTimetable()"><i class="fas fa-print"></i> Download PDF</button>
   </div>
   <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
@@ -787,7 +867,6 @@ const pages = {
   </div>`
 },
 
-/* --- TEACHER QUIZ PAGE --- */
 't-quiz': () => {
   const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
   return `
@@ -819,7 +898,6 @@ const pages = {
   `;
 },
 
-/* --- STUDENT QUIZ PAGE --- */
 's-quiz': () => {
   const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class && q.status === 'active');
   return `
@@ -854,7 +932,7 @@ const pages = {
 's-grades':()=>{
   const myReports = REPORT_CARDS.filter(r => r.student_id === currentUser.id);
   return `
-  <div class="page-header" style="margin-bottom: 2rem;"><h2>Grades & Reports</h2><span style="color:var(--lms-muted);">Term 2 · 2025/26</span></div>
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Grades & Reports</h2><span style="color:var(--lms-muted);">${SITE_SETTINGS.current_term || 'Term 2'} · ${SITE_SETTINGS.academic_year || '2025/26'}</span></div>
   <div class="panel" style="border: 2px solid var(--accent); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden; margin-bottom: 2rem;">
     <div class="panel-head" style="background:var(--lms-gold-pale); padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
       <h3 style="margin:0; color: var(--accent);"><i class="fas fa-scroll"></i> Official End of Term Reports</h3>
@@ -936,10 +1014,10 @@ const pages = {
 't-grades':()=>{
   const myClass = STUDENTS_DB.filter(s => s.class === currentUser.class);
   return `
-  <div class="page-header" style="margin-bottom: 2rem;"><h2>Grade Book & Reports</h2><span style="color:var(--lms-muted);">Class ${currentUser.class} · Term 2</span></div>
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Grade Book & Reports</h2><span style="color:var(--lms-muted);">Class ${currentUser.class} · ${SITE_SETTINGS.current_term || 'Term 2'}</span></div>
   <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
     <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
-      <h3 style="margin:0;">Term 2 Assessments</h3>
+      <h3 style="margin:0;">Term Assessments</h3>
     </div>
     <div style="overflow-x:auto;">
       <table class="lms-tbl" style="width: 100%; min-width: 700px;">
@@ -1047,6 +1125,209 @@ const pages = {
     <span><strong>Tip:</strong> You can type any custom subject! To create a full-row break, simply type <strong>BREAK</strong> or <strong>LUNCH</strong> across all 5 days in a row.</span>
   </div>`;
 }
+};
+
+/* ====================== ADMIN SPECIFIC FUNCTIONS ====================== */
+window.openAdminUserModal = function(roleType) {
+  if(!document.getElementById('admin-user-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'admin-user-modal';
+    document.body.appendChild(m);
+  }
+  const m = document.getElementById('admin-user-modal');
+  
+  if(roleType === 'teacher') {
+    m.innerHTML = `
+      <div class="lms-modal-box">
+        <div class="modal-h"><h3><i class="fas fa-chalkboard-teacher" style="color:var(--lms-blue);margin-right:6px;"></i>Add New Teacher</h3><button onclick="closeModal('admin-user-modal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <p style="font-size:0.8rem; color:var(--lms-muted); margin-bottom:1rem;"><strong>Note:</strong> You must also create an Auth user for them in Supabase (e.g. <code>tch002@debright.edu</code>) before they can log in.</p>
+          <input type="hidden" id="admin-add-type" value="teacher">
+          <div class="lms-form-group"><label>Teacher ID (Prefix)</label><input type="text" id="adm-user-id" placeholder="e.g. TCH002"></div>
+          <div class="lms-form-group"><label>Full Name</label><input type="text" id="adm-user-name" placeholder="e.g. Abena Boateng"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+            <div class="lms-form-group"><label>Initials</label><input type="text" id="adm-user-initials" placeholder="e.g. AB" maxlength="3"></div>
+            <div class="lms-form-group"><label>Class Assigned (Optional)</label><select id="adm-user-class"><option value="">None</option>${SCHOOL_CLASSES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+          </div>
+          <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+            <button class="btn-lms-primary" style="flex:1;" onclick="saveAdminUser()">Save Teacher</button>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    m.innerHTML = `
+      <div class="lms-modal-box">
+        <div class="modal-h"><h3><i class="fas fa-user-graduate" style="color:var(--lms-green);margin-right:6px;"></i>Add New Student</h3><button onclick="closeModal('admin-user-modal')"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body">
+          <p style="font-size:0.8rem; color:var(--lms-muted); margin-bottom:1rem;"><strong>Note:</strong> You must also create an Auth user for them in Supabase (e.g. <code>stu002@debright.edu</code>).</p>
+          <input type="hidden" id="admin-add-type" value="student">
+          <div class="lms-form-group"><label>Student ID (Prefix)</label><input type="text" id="adm-user-id" placeholder="e.g. STU002"></div>
+          <div class="lms-form-group"><label>Full Name</label><input type="text" id="adm-user-name" placeholder="e.g. Kwame Mensah"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+            <div class="lms-form-group"><label>Class</label><select id="adm-user-class">${SCHOOL_CLASSES.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>
+            <div class="lms-form-group"><label>Age</label><input type="number" id="adm-user-age" placeholder="e.g. 11"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;">
+            <div class="lms-form-group"><label>Gender</label><select id="adm-user-gender"><option>Male</option><option>Female</option></select></div>
+            <div class="lms-form-group"><label>Parent's Contact</label><input type="text" id="adm-user-contact" placeholder="e.g. 024 123 4567"></div>
+          </div>
+          <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+            <button class="btn-lms-primary" style="flex:1;" onclick="saveAdminUser()">Save Student</button>
+          </div>
+        </div>
+      </div>`;
+  }
+  openModal('admin-user-modal');
+};
+
+window.saveAdminUser = async function() {
+  if(!supabaseClient) return toast('Database connection missing', 'error');
+  const type = document.getElementById('admin-add-type').value;
+  const id = document.getElementById('adm-user-id').value.trim().toUpperCase();
+  const name = document.getElementById('adm-user-name').value.trim();
+  
+  if(!id || !name) return toast('ID and Name are required.', 'error');
+  
+  if(type === 'teacher') {
+    const payload = {
+      id: id, name: name,
+      initials: document.getElementById('adm-user-initials').value.trim().toUpperCase() || getInitials(name),
+      class_assigned: document.getElementById('adm-user-class').value || null
+    };
+    const { error } = await supabaseClient.from('teachers').insert([payload]);
+    if(error) return toast(error.message, 'error');
+    TEACHERS_DB.push(payload);
+    toast('Teacher added successfully!');
+  } else {
+    const payload = {
+      id: id, name: name,
+      class: document.getElementById('adm-user-class').value,
+      age: document.getElementById('adm-user-age').value,
+      gender: document.getElementById('adm-user-gender').value,
+      parent_contact: document.getElementById('adm-user-contact').value.trim()
+    };
+    const { error } = await supabaseClient.from('students').insert([payload]);
+    if(error) return toast(error.message, 'error');
+    STUDENTS_DB.push(payload);
+    toast('Student added successfully!');
+  }
+  closeModal('admin-user-modal');
+  renderPage('a-users');
+};
+
+window.deleteTeacher = async function(id) {
+  if(!supabaseClient) return;
+  if(confirm('Delete this teacher profile permanently?')) {
+    const { error } = await supabaseClient.from('teachers').delete().eq('id', id);
+    if(error) return toast(error.message, 'error');
+    TEACHERS_DB = TEACHERS_DB.filter(t => t.id !== id);
+    renderPage('a-users'); toast('Teacher deleted.', 'error');
+  }
+};
+
+window.openArticleModal = function(id = null) {
+  if(!document.getElementById('admin-article-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'admin-article-modal';
+    document.body.appendChild(m);
+  }
+  const m = document.getElementById('admin-article-modal');
+  
+  let art = id ? ARTICLES_DB.find(a => a.id === id) : null;
+  
+  m.innerHTML = `
+    <div class="lms-modal-box" style="max-width:700px;">
+      <div class="modal-h"><h3><i class="fas fa-newspaper" style="color:var(--primary);margin-right:6px;"></i>${art ? 'Edit Article' : 'Draft New Article'}</h3><button onclick="closeModal('admin-article-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="art-id" value="${art ? art.id : ''}">
+        <div class="lms-form-group"><label>Headline / Title</label><input type="text" id="art-title" value="${art ? art.title : ''}"></div>
+        <div class="lms-form-group"><label>Short Excerpt (Summary)</label><textarea id="art-excerpt" rows="2">${art ? (art.excerpt||'') : ''}</textarea></div>
+        <div class="lms-form-group"><label>Full Article Content (Supports HTML)</label><textarea id="art-content" rows="6">${art ? art.content : ''}</textarea></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+          <div class="lms-form-group"><label>Cover Image Upload</label><input type="file" id="art-img" accept="image/*"></div>
+          <div class="lms-form-group"><label>Status</label><select id="art-status"><option value="published" ${art&&art.status==='published'?'selected':''}>Published</option><option value="draft" ${art&&art.status==='draft'?'selected':''}>Save as Draft</option></select></div>
+        </div>
+        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+          <button class="btn-lms-primary" id="btn-save-art" style="flex:1;" onclick="saveArticle()"><i class="fas fa-save"></i> Save Article</button>
+        </div>
+      </div>
+    </div>`;
+  openModal('admin-article-modal');
+};
+
+window.saveArticle = async function() {
+  if(!supabaseClient) return toast('Database connection missing', 'error');
+  const btn = document.getElementById('btn-save-art');
+  const id = document.getElementById('art-id').value;
+  const title = document.getElementById('art-title').value.trim();
+  const excerpt = document.getElementById('art-excerpt').value.trim();
+  const content = document.getElementById('art-content').value.trim();
+  const status = document.getElementById('art-status').value;
+  const imgInput = document.getElementById('art-img');
+  
+  if(!title || !content) return toast('Title and content are required.', 'error');
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+  btn.disabled = true;
+  
+  let imgUrl = id ? (ARTICLES_DB.find(a => a.id === id)?.cover_image || null) : null;
+  
+  if(imgInput.files.length > 0) {
+    const file = imgInput.files[0];
+    const filePath = `articles/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+    const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
+    if(!uploadError) {
+      const { data } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
+      imgUrl = data.publicUrl;
+    }
+  }
+  
+  const payload = { title, excerpt, content, status, cover_image: imgUrl, author: currentUser.name };
+  
+  if(id) {
+    const { error } = await supabaseClient.from('articles').update(payload).eq('id', id);
+    if(error) { btn.disabled = false; return toast(error.message, 'error'); }
+  } else {
+    const { error } = await supabaseClient.from('articles').insert([payload]);
+    if(error) { btn.disabled = false; return toast(error.message, 'error'); }
+  }
+  
+  // Reload articles
+  const { data } = await supabaseClient.from('articles').select('*').order('created_at',{ascending:false});
+  if(data) ARTICLES_DB = data;
+  
+  closeModal('admin-article-modal');
+  renderPage('a-articles');
+  toast('Article saved successfully!');
+};
+
+window.deleteArticle = async function(id) {
+  if(!supabaseClient) return;
+  if(confirm('Delete this article? It will be removed from the public website.')) {
+    const { error } = await supabaseClient.from('articles').delete().eq('id', id);
+    if(error) return toast(error.message, 'error');
+    ARTICLES_DB = ARTICLES_DB.filter(a => a.id !== id);
+    renderPage('a-articles'); toast('Article deleted.', 'error');
+  }
+};
+
+window.saveSiteSettings = async function() {
+  if(!supabaseClient) return toast('Database connection missing', 'error');
+  const payload = {
+    school_name: document.getElementById('set-school').value.trim(),
+    contact_phone: document.getElementById('set-phone').value.trim(),
+    contact_email: document.getElementById('set-email').value.trim(),
+    current_term: document.getElementById('set-term').value.trim(),
+    academic_year: document.getElementById('set-year').value.trim(),
+    homepage_announcement: document.getElementById('set-ann').value.trim()
+  };
+  
+  const { error } = await supabaseClient.from('site_settings').update(payload).eq('id', 1);
+  if(error) return toast(error.message, 'error');
+  
+  SITE_SETTINGS = { ...SITE_SETTINGS, ...payload };
+  toast('Global Settings Updated! ✅');
+  buildDashboard(); // Refreshes UI with new term/year
 };
 
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
@@ -1399,14 +1680,15 @@ window.saveNewStudent = async function() {
   closeModal('add-student-modal'); renderPage('t-class'); toast(`${name} added successfully! ID: ${newId}`);
 };
 
-window.deleteStudent = async function(id) {
+window.deleteStudent = async function(id, fromAdmin = false) {
   if (!supabaseClient) return;
   const student = STUDENTS_DB.find(s => s.id === id);
   if(confirm(`Are you absolutely sure you want to remove ${student.name} from the database?`)) {
     const { error } = await supabaseClient.from('students').delete().eq('id', id);
     if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
     STUDENTS_DB = STUDENTS_DB.filter(s => s.id !== id);
-    renderPage('t-class'); toast('Student removed successfully.', 'error');
+    if (fromAdmin) renderPage('a-users'); else renderPage('t-class'); 
+    toast('Student removed successfully.', 'error');
   }
 };
 
@@ -1452,7 +1734,8 @@ window.saveReportCard = async function() {
   const remarks = document.getElementById('report-remarks').value.trim();
   if(!remarks) { toast('Please add teacher remarks.', 'error'); return; }
   
-  const payload = { student_id: id, term: 'Term 2', conduct: conduct, remarks: remarks };
+  const termName = SITE_SETTINGS.current_term || 'Term 2';
+  const payload = { student_id: id, term: termName, conduct: conduct, remarks: remarks };
   const { data, error } = await supabaseClient.from('report_cards').insert([payload]).select();
   
   if (error) { console.error(error); toast('DB Error: ' + error.message, 'error'); return; }
@@ -1463,14 +1746,13 @@ window.saveReportCard = async function() {
 
 window.viewReportCard = function(reportId) {
   const report = REPORT_CARDS.find(r => r.id === reportId);
-  const std = STUDENTS_DB.find(s => s.id === report.student_id) || currentUser; // Fixed to show student name for teacher
+  const std = STUDENTS_DB.find(s => s.id === report.student_id) || currentUser;
   const printArea = document.getElementById('print-area');
   
   const modal = document.getElementById('view-report-modal');
   const header = modal.querySelector('.modal-h h3');
   if (header) header.innerHTML = `<i class="fas fa-award" style="color:var(--accent);margin-right:6px;"></i>Official Report Card`;
 
-  // Dynamic Attendance Calculation for Report Card
   const stdAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === std.id);
   const totalDays = stdAtt.length;
   const presDays = stdAtt.filter(a => a.status === 'present').length;
@@ -1481,6 +1763,8 @@ window.viewReportCard = function(reportId) {
   GRADES.slice(0,5).forEach(g => {
       gradesHTML += '<tr><td style="padding:10px; border:2px solid #000;">' + (g.subject_name || g.subject) + '</td><td style="padding:10px; border:2px solid #000; text-align:center;">' + g.total + '</td><td style="padding:10px; border:2px solid #000; text-align:center;"><strong>' + g.grade + '</strong></td></tr>';
   });
+
+  const sName = SITE_SETTINGS.school_name || 'DE-BRIGHT TALENTED KIDS SCHOOL';
 
   printArea.innerHTML = `
     <style>
@@ -1507,13 +1791,13 @@ window.viewReportCard = function(reportId) {
       <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height:500px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.15; z-index:-1; pointer-events:none;"></div>
 
       <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
-        <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
+        <h2 style="color:var(--primary); font-family:'Poppins', sans-serif; text-transform:uppercase;">${sName}</h2>
         <p style="font-size:.9rem; color:#555;">Sonitra Road, Amasaman, Accra</p>
         <h3 style="margin-top:1rem; color:var(--accent);">OFFICIAL END OF TERM REPORT</h3>
       </div>
       <div style="display:flex; justify-content:space-between; margin-bottom: 2rem; font-size:.95rem; position:relative; z-index:2;">
         <div><p><strong>Student Name:</strong> ` + std.name + `</p><p><strong>Student ID:</strong> ` + std.id + `</p></div>
-        <div style="text-align:right;"><p><strong>Class:</strong> ` + std.class + `</p><p><strong>Term:</strong> ` + report.term + ` 2025/26</p></div>
+        <div style="text-align:right;"><p><strong>Class:</strong> ` + std.class + `</p><p><strong>Term:</strong> ` + report.term + ` ${SITE_SETTINGS.academic_year || '2025/26'}</p></div>
       </div>
       <table style="width:100%; border-collapse: collapse; margin-bottom: 2rem; background:transparent; position:relative; z-index:2; border: 2px solid #000;">
         <tr style="background:rgba(240,244,248,0.9);">
@@ -1610,7 +1894,6 @@ window.saveAttendance = async function() {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
   btn.disabled = true;
 
-  // Remove existing records for this class and date to prevent duplicates prior to bulk insert
   await supabaseClient.from('attendance_records').delete().eq('date', date).eq('class', currentUser.class);
   
   const { data, error } = await supabaseClient.from('attendance_records').insert(payload).select();
@@ -1672,7 +1955,7 @@ window.viewAttendancePDF = function() {
       </div>
       <div class="modal-body" id="att-print-area" style="background:#fff; color:#000;">
         <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem;">
-          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
+          <h2 style="color:var(--primary); font-family:'Poppins', sans-serif; text-transform:uppercase;">${SITE_SETTINGS.school_name || 'DE-BRIGHT TALENTED KIDS SCHOOL'}</h2>
           <h3 style="margin-top:0.5rem; color:var(--accent);">DAILY ATTENDANCE REGISTER</h3>
         </div>
         <div style="display:flex; justify-content:space-between; margin-bottom: 1rem; font-size:.95rem;">
@@ -1740,7 +2023,7 @@ window.openQuizBuilder = function() {
   document.getElementById('qb-title').value = '';
   document.getElementById('qb-duration').value = '15';
   document.getElementById('qb-questions-container').innerHTML = '';
-  addQuizQuestionBlock(); // Add one empty question by default
+  addQuizQuestionBlock(); 
   openModal('quiz-builder-modal');
 };
 
@@ -1882,7 +2165,6 @@ window.startQuizPlayer = function(quizId) {
   const quiz = QUIZZES.find(q => q.id === quizId);
   if(!quiz) return;
   
-  // Track the current question state
   window.currentQuizQuestionIndex = 0;
   window.currentQuizData = quiz;
   
@@ -1933,7 +2215,6 @@ window.startQuizPlayer = function(quizId) {
   overlay.style.display = 'block';
   document.body.style.overflow = 'hidden'; 
   
-  // Timer Logic & Notifications
   let timeRemaining = quiz.duration * 60;
   const timerEl = document.getElementById('qp-timer');
   
@@ -1944,10 +2225,7 @@ window.startQuizPlayer = function(quizId) {
     const s = (timeRemaining % 60).toString().padStart(2, '0');
     timerEl.textContent = `${m}:${s}`;
     
-    // Time warnings
-    if(timeRemaining === 300) {
-        toast('⚠️ 5 minutes remaining!', 'error');
-    }
+    if(timeRemaining === 300) { toast('⚠️ 5 minutes remaining!', 'error'); }
     if(timeRemaining === 60) {
         toast('⚠️ 1 minute remaining! Wrap up your answers.', 'error');
         timerEl.style.animation = 'pulse 1s infinite alternate';
@@ -2026,7 +2304,6 @@ window.submitQuiz = async function(isAuto = false) {
 
 /* ====================== NOTICES & ANNOUNCEMENTS (Q&A) ====================== */
 window.buildNotices = function(isTeacher = false) {
-  // Filter notices for the specific class (or school-wide 'All' notices)
   const classNotices = NOTICES.filter(n => n.class === currentUser.class || n.class === 'All');
   
   return `
@@ -2121,7 +2398,6 @@ window.viewNoticeThread = function(noticeId) {
   }
   
   const m = document.getElementById('view-notice-modal');
-  // Store the current notice ID on the modal for real-time refresh targeting
   m.dataset.currentNotice = noticeId; 
 
   m.innerHTML = `
@@ -2172,7 +2448,6 @@ window.viewNoticeThread = function(noticeId) {
   `;
   openModal('view-notice-modal');
 
-  // Auto-scroll to the bottom of the discussion thread
   setTimeout(() => {
     const body = m.querySelector('.modal-body');
     if(body) body.scrollTop = body.scrollHeight;
@@ -2205,7 +2480,7 @@ window.addNoticeComment = async function(noticeId) {
   if(error) return toast('DB Error: ' + error.message, 'error');
 
   if(data) NOTICE_COMMENTS.push(data[0]);
-  viewNoticeThread(noticeId); // Re-render the thread instantly
+  viewNoticeThread(noticeId); 
 };
 
 /* ====================== REAL-TIME LISTENERS ====================== */
