@@ -44,9 +44,11 @@ let TIMETABLE = [
   ['BREAK','BREAK','BREAK','BREAK','BREAK'],
   ['English','Creative Arts','Social Studies','RME','Maths'],
   ['LUNCH','LUNCH','LUNCH','LUNCH','LUNCH'],
-  ['ICT','Science','RME','French','Science']
+  ['ICT','Science','RME','French','Science'],
+  ['Social Studies','Creative Arts','Maths','English','ICT'],
+  ['French','ICT','Science','Maths','RME']
 ];
-let TT_TIMES = ['07:30 AM','08:20 AM','09:10 AM','10:00 AM','10:30 AM','11:20 AM'];
+let TT_TIMES = ['07:30 AM','08:20 AM','09:10 AM','10:00 AM','10:30 AM','11:20 AM','12:10 PM','01:00 PM'];
 const TT_COLORS = {
   'Maths':'filled-gold','English':'filled-blue','Science':'filled-green',
   'ICT':'filled-green','French':'filled-purple','Social Studies':'filled-purple',
@@ -269,6 +271,19 @@ function renderProgressBar(pct, color = '') { return `<div class="prog-bar" styl
 function fmtDate(d){try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
 
 /* ====================== TIMETABLE FUNCTIONS ====================== */
+window.addTimetableRow = function() {
+  TT_TIMES.push('00:00 PM');
+  TIMETABLE.push(['-','-','-','-','-']);
+  renderPage('t-timetable');
+};
+
+window.removeTimetableRow = function(index) {
+  if (TT_TIMES.length <= 1) { toast('Cannot remove the last row!', 'error'); return; }
+  TT_TIMES.splice(index, 1);
+  TIMETABLE.splice(index, 1);
+  renderPage('t-timetable');
+};
+
 window.saveTimetable = function() {
   const selects = document.querySelectorAll('.tt-select');
   const timeInputs = document.querySelectorAll('.tt-time-input');
@@ -276,16 +291,19 @@ window.saveTimetable = function() {
   const newTimetable = Array.from({length: TT_TIMES.length}, () => Array(5).fill('-'));
   const newTimes = Array(TT_TIMES.length).fill('');
 
-  // Update Times array
   timeInputs.forEach(inp => {
-    newTimes[parseInt(inp.getAttribute('data-row'))] = inp.value.trim();
+    const r = parseInt(inp.getAttribute('data-row'));
+    if(newTimes[r] !== undefined) {
+      newTimes[r] = inp.value.trim();
+    }
   });
 
-  // Update Subjects array
   selects.forEach(sel => {
     const r = parseInt(sel.getAttribute('data-row'));
     const c = parseInt(sel.getAttribute('data-col'));
-    newTimetable[r][c] = sel.value;
+    if(newTimetable[r]) {
+      newTimetable[r][c] = sel.value;
+    }
   });
 
   TIMETABLE = newTimetable;
@@ -342,11 +360,11 @@ window.viewPrintableTimetable = function() {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 500px;
-          height: 500px;
+          width: 600px;
+          height: 600px;
           background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
           background-size: contain;
-          opacity: 0.08;
+          opacity: 0.15;
           z-index: -1;
           pointer-events: none;
         }
@@ -359,7 +377,7 @@ window.viewPrintableTimetable = function() {
       </div>
       <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000; position:relative; z-index:1;">
         
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:400px; height:400px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.05; z-index:-1; pointer-events:none;"></div>
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height:500px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.12; z-index:-1; pointer-events:none;"></div>
         
         <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
           <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
@@ -841,7 +859,11 @@ const pages = {
     });
 
     tbodyHTML += '<tr style="border-bottom: 1px solid var(--lms-border); transition: background 0.2s;" onmouseover="this.style.background=\'#f8fafc\'" onmouseout="this.style.background=\'transparent\'">';
-    tbodyHTML += '<td style="padding: 0.5rem;"><input type="text" class="tt-time-input" data-row="' + i + '" value="' + time + '" style="width:100px; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; text-align:center; font-weight:bold; color:var(--primary);"></td>';
+    tbodyHTML += '<td style="padding: 0.5rem; min-width: 140px;">' +
+                 '<div style="display:flex; align-items:center; justify-content:center; gap:0.4rem;">' +
+                 '<button class="btn-danger" style="padding:0.4rem 0.6rem; border-radius:6px; font-size:0.75rem;" onclick="removeTimetableRow(' + i + ')" title="Remove Row"><i class="fas fa-times"></i></button>' +
+                 '<input type="text" class="tt-time-input" data-row="' + i + '" value="' + time + '" style="width:90px; padding:0.5rem; border:1px solid var(--lms-border); border-radius:6px; font-family:var(--font-lms); font-size:0.8rem; outline:none; text-align:center; font-weight:bold; color:var(--primary);">' +
+                 '</div></td>';
     tbodyHTML += rowHTML;
     tbodyHTML += '</tr>';
   });
@@ -864,6 +886,9 @@ const pages = {
           ` + tbodyHTML + `
         </tbody>
       </table>
+    </div>
+    <div style="padding: 1rem; border-top: 1px solid var(--lms-border); background: #f8fafc;">
+      <button class="btn-outline" style="width: 100%; border-style: dashed; padding: 0.8rem; border-radius: 8px;" onclick="addTimetableRow()"><i class="fas fa-plus"></i> Add New Time Slot</button>
     </div>
   </div>
   <div style="background:#fef9c3; color:#a16207; padding:1rem; border-radius:8px; margin-top:1rem; font-size:0.85rem; display:flex; gap:0.5rem; align-items:center;">
@@ -1323,11 +1348,11 @@ window.viewReportCard = function(reportId) {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 500px;
-          height: 500px;
+          width: 600px;
+          height: 600px;
           background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
           background-size: contain;
-          opacity: 0.08;
+          opacity: 0.15;
           z-index: -1;
           pointer-events: none;
         }
@@ -1335,7 +1360,7 @@ window.viewReportCard = function(reportId) {
     </style>
     <div style="border: 2px solid var(--primary); padding: 2rem; border-radius: 10px; background: #fff; position:relative; z-index:1;">
       
-      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:400px; height:400px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.05; z-index:-1; pointer-events:none;"></div>
+      <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:500px; height:500px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.12; z-index:-1; pointer-events:none;"></div>
 
       <div style="text-align:center; border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.5rem; position:relative; z-index:2;">
         <h2 style="color:var(--primary); font-family:'Poppins', sans-serif;">DE-BRIGHT TALENTED KIDS SCHOOL</h2>
