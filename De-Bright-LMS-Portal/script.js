@@ -271,20 +271,7 @@ function renderProgressBar(pct, color = '') { return `<div class="prog-bar" styl
 function fmtDate(d){try{return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}catch(e){return d;}}
 
 /* ====================== TIMETABLE FUNCTIONS ====================== */
-window.addTimetableRow = function() {
-  TT_TIMES.push('00:00 PM');
-  TIMETABLE.push(['-','-','-','-','-']);
-  renderPage('t-timetable');
-};
-
-window.removeTimetableRow = function(index) {
-  if (TT_TIMES.length <= 1) { toast('Cannot remove the last row!', 'error'); return; }
-  TT_TIMES.splice(index, 1);
-  TIMETABLE.splice(index, 1);
-  renderPage('t-timetable');
-};
-
-window.saveTimetable = function() {
+window.saveTimetable = function(silent = false) {
   const selects = document.querySelectorAll('.tt-select');
   const timeInputs = document.querySelectorAll('.tt-time-input');
   
@@ -313,7 +300,24 @@ window.saveTimetable = function() {
       supabaseClient.from('classes').update({ timetable_data: TIMETABLE, timetable_times: TT_TIMES }).eq('name', currentUser.class).then(() => {});
   }
 
-  toast('Timetable updated successfully! ✅');
+  if(!silent) {
+    toast('Timetable updated successfully! ✅');
+    renderPage('t-timetable');
+  }
+};
+
+window.addTimetableRow = function() {
+  window.saveTimetable(true); // Save current input states to arrays silently before modifying structure
+  TT_TIMES.push('00:00 PM');
+  TIMETABLE.push(['-','-','-','-','-']);
+  renderPage('t-timetable');
+};
+
+window.removeTimetableRow = function(index) {
+  if (TT_TIMES.length <= 1) { toast('Cannot remove the last row!', 'error'); return; }
+  window.saveTimetable(true); // Save current input states first to avoid data loss
+  TT_TIMES.splice(index, 1);
+  TIMETABLE.splice(index, 1);
   renderPage('t-timetable');
 };
 
@@ -463,7 +467,8 @@ const pages = {
         const sub = TIMETABLE[i]?.[j] || '-';
         const colorClass = TT_COLORS[sub] || 'grey';
         if(sub === 'BREAK' || sub === 'LUNCH') {
-            return '<td style="padding: 0.5rem;"><span class="chip ' + (sub==='BREAK'?'gold':'green') + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + sub + '</span></td>';
+            const displaySub = sub === 'BREAK' ? 'Morning Break' : 'Lunch Break';
+            return '<td style="padding: 0.5rem;"><span class="chip ' + (sub==='BREAK'?'gold':'green') + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + displaySub + '</span></td>';
         }
         return '<td style="padding: 0.5rem;"><span class="chip ' + colorClass + '" style="display: inline-block; width: 100%; padding: 0.6rem; border-radius: 8px;">' + sub + '</span></td>';
       }).join('');
