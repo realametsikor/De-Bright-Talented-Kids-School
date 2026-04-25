@@ -12,48 +12,23 @@ if (window.supabase) {
 /* ====================== STATIC DATA ====================== */
 const SCHOOL_CLASSES = ['Primary 1', 'Primary 2', 'Primary 3', 'Primary 4', 'Primary 5', 'Primary 6', 'JHS 1', 'JHS 2', 'JHS 3'];
 
-const SUBJECTS = [
-  {name:'Mathematics',teacher:'Mr. Asare',progress:82,emoji:'➕',color:'gold'},
-  {name:'English',teacher:'Ms. Owusu',progress:75,emoji:'📝',color:'blue'},
-  {name:'Science',teacher:'Mr. Boateng',progress:88,emoji:'🔬',color:'green'},
-  {name:'Social Studies',teacher:'Ms. Ofori',progress:70,emoji:'🌍',color:'purple'},
-  {name:'Creative Arts',teacher:'Ms. Acheampong',progress:91,emoji:'🎨',color:'gold'},
-  {name:'RME',teacher:'Mr. Frimpong',progress:66,emoji:'📖',color:'purple'},
-  {name:'French',teacher:'Mme. Kusi',progress:60,emoji:'🇫🇷',color:'blue'},
-  {name:'ICT',teacher:'Ms. Mensah',progress:94,emoji:'💻',color:'green'},
-];
-
-const GRADES = [
-  {subject:'Mathematics',classScore:'38/40',examScore:'52/60',total:90,grade:'A',remark:'Excellent'},
-  {subject:'English Language',classScore:'32/40',examScore:'45/60',total:77,grade:'B',remark:'Good'},
-  {subject:'Science',classScore:'35/40',examScore:'48/60',total:83,grade:'A',remark:'Excellent'},
-  {subject:'Social Studies',classScore:'30/40',examScore:'40/60',total:70,grade:'B',remark:'Good'},
-];
-
-/* ====================== LIVE DB STATE ====================== */
-let currentUser = null, currentRole = 'student', currentPage = null;
-let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], NOTICE_COMMENTS = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
-let STUDENTS_DB = [], REPORT_CARDS = []; 
-let QUIZZES = [], QUIZ_SUBMISSIONS = [];
-let attState = {};
-
-// DYNAMIC TIMETABLE STATE
-let TIMETABLE = [
-  ['Maths','English','Science','Maths','French'],
-  ['Science','Maths','English','ICT','Maths'],
-  ['BREAK','BREAK','BREAK','BREAK','BREAK'],
-  ['English','Creative Arts','Social Studies','RME','Maths'],
-  ['LUNCH','LUNCH','LUNCH','LUNCH','LUNCH'],
-  ['ICT','Science','RME','French','Science'],
-  ['Social Studies','Creative Arts','Maths','English','ICT'],
-  ['French','ICT','Science','Maths','RME']
-];
-let TT_TIMES = ['07:30 AM','08:20 AM','09:10 AM','10:00 AM','10:30 AM','11:20 AM','12:10 PM','01:00 PM'];
 const TT_COLORS = {
   'Maths':'filled-gold','English':'filled-blue','Science':'filled-green',
   'ICT':'filled-green','French':'filled-purple','Social Studies':'filled-purple',
   'Creative Arts':'filled-gold','RME':'filled-red','BREAK':'break','LUNCH':'lunch'
 };
+
+/* ====================== LIVE DB STATE ====================== */
+let SUBJECTS = [];
+let GRADES = [];
+let TIMETABLE = [];
+let TT_TIMES = [];
+
+let currentUser = null, currentRole = 'student', currentPage = null;
+let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], NOTICE_COMMENTS = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
+let STUDENTS_DB = [], REPORT_CARDS = []; 
+let QUIZZES = [], QUIZ_SUBMISSIONS = [];
+let attState = {};
 
 /* ====================== DYNAMIC LOGIN & PERSISTENCE ====================== */
 window.setRole = function(r){
@@ -98,9 +73,18 @@ window.doLogin = async function(){
 
     // 3. Load user profile data based on role
     if (currentRole === 'teacher') {
-      fetchedUser = { role: 'teacher', name: 'Abena Boateng', initials: 'AB', class: 'Primary 6', id: idInputRaw.toUpperCase() };
+      const { data, error } = await supabaseClient.from('teachers')
+        .select('*')
+        .eq('id', idInputRaw.toUpperCase())
+        .single();
+      
+      if (error || !data) { 
+        showErr('Teacher profile not found in database.'); 
+        btnText.innerHTML = '<i class="fas fa-sign-in-alt"></i> Log In'; 
+        return; 
+      }
+      fetchedUser = { role: 'teacher', name: data.name, initials: data.initials, class: data.class_assigned, id: data.id };
     } else {
-      // Fetch the specific student details from your database securely
       const { data, error } = await supabaseClient.from('students')
         .select('*')
         .eq('id', idInputRaw.toUpperCase())
@@ -164,7 +148,7 @@ function launchPortal() {
 async function fetchAllData(){
   if(!supabaseClient) return;
   try {
-    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes] = await Promise.all([
+    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes] = await Promise.all([
       supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('students').select('*').order('name',{ascending:true}), 
@@ -173,8 +157,12 @@ async function fetchAllData(){
       supabaseClient.from('quiz_submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('attendance_records').select('*').order('date',{ascending:false}),
       supabaseClient.from('notices').select('*').order('created_at',{ascending:false}),
-      supabaseClient.from('notice_comments').select('*').order('created_at',{ascending:true})
+      supabaseClient.from('notice_comments').select('*').order('created_at',{ascending:true}),
+      supabaseClient.from('subjects').select('*').order('name',{ascending:true}),
+      supabaseClient.from('continuous_assessments').select('*').eq('student_id', currentUser.id),
+      supabaseClient.from('classes').select('*').eq('name', currentUser.class).single()
     ]);
+
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
     if(subs.data) SUBMISSIONS = subs.data;
     if(stdRes.data) STUDENTS_DB = stdRes.data;
@@ -184,6 +172,18 @@ async function fetchAllData(){
     if(attRes.data) ATTENDANCE_RECORDS = attRes.data;
     if(notRes.data) NOTICES = notRes.data;
     if(comRes.data) NOTICE_COMMENTS = comRes.data;
+    if(subjRes.data) SUBJECTS = subjRes.data;
+    if(gradesRes.data) GRADES = gradesRes.data;
+    
+    // Load the timetable for the specific class, or use empty defaults if none exists
+    if(classRes.data) {
+      TIMETABLE = classRes.data.timetable_data || [];
+      TT_TIMES = classRes.data.timetable_times || [];
+    } else {
+      TIMETABLE = [];
+      TT_TIMES = [];
+    }
+
   } catch (e) {
     console.error("Supabase Error:", e);
     throw e;
@@ -533,12 +533,12 @@ const pages = {
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
     ${SUBJECTS.map(s => `
       <div style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); transition: transform 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-4px)'" onmouseout="this.style.transform='translateY(0)'">
-        <div style="height: 60px; background: var(--lms-${s.color}-pale); display: flex; align-items: center; padding: 0 1.5rem; font-size: 1.5rem;">${s.emoji}</div>
+        <div style="height: 60px; background: var(--lms-${s.color || 'blue'}-pale); display: flex; align-items: center; justify-content: center; width: 60px; border-radius: 12px; margin: 1.5rem 0 0 1.5rem; color: var(--lms-${s.color || 'blue'}); font-size: 1.8rem;"><i class="${s.icon || 'fas fa-book'}"></i></div>
         <div style="padding: 1.5rem;">
           <h3 style="margin: 0 0 0.2rem 0; font-size: 1.1rem; color: var(--text);">${s.name}</h3>
-          <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--lms-muted);"><i class="fas fa-chalkboard-teacher"></i> ${s.teacher}</p>
+          <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: var(--lms-muted);"><i class="fas fa-chalkboard-teacher"></i> ${s.teacher_name || s.teacher}</p>
           <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.4rem; font-weight: 600;"><span>Progress</span><span>${s.progress}%</span></div>
-          ${renderProgressBar(s.progress, `var(--lms-${s.color})`)}
+          ${renderProgressBar(s.progress, `var(--lms-${s.color || 'blue'})`)}
         </div>
       </div>
     `).join('')}
@@ -633,8 +633,7 @@ const pages = {
             }
           </div>
         </div>
-      `}).join('')
-    }
+      `}).join('')}
   </div>`
 },
 
@@ -858,9 +857,9 @@ const pages = {
         </thead>
         <tbody>${GRADES.map(g=>`
           <tr style="border-bottom: 1px solid var(--lms-border);">
-            <td style="padding: 1rem;"><strong>${g.subject}</strong></td>
-            <td style="text-align:center;">${g.classScore}</td>
-            <td style="text-align:center;">${g.examScore}</td>
+            <td style="padding: 1rem;"><strong>${g.subject_name || g.subject}</strong></td>
+            <td style="text-align:center;">${g.class_score || g.classScore}</td>
+            <td style="text-align:center;">${g.exam_score || g.examScore}</td>
             <td style="text-align:center;"><strong>${g.total}/100</strong></td>
             <td style="text-align:center;"><span class="grade-${g.grade}" style="font-weight:bold; padding: 4px 12px; border-radius: 6px; background: var(--lms-surface);">${g.grade}</span></td>
           </tr>`).join('')}
@@ -1451,7 +1450,7 @@ window.viewReportCard = function(reportId) {
 
   let gradesHTML = '';
   GRADES.slice(0,5).forEach(g => {
-      gradesHTML += '<tr><td style="padding:10px; border:2px solid #000;">' + g.subject + '</td><td style="padding:10px; border:2px solid #000; text-align:center;">' + g.total + '</td><td style="padding:10px; border:2px solid #000; text-align:center;"><strong>' + g.grade + '</strong></td></tr>';
+      gradesHTML += '<tr><td style="padding:10px; border:2px solid #000;">' + (g.subject_name || g.subject) + '</td><td style="padding:10px; border:2px solid #000; text-align:center;">' + g.total + '</td><td style="padding:10px; border:2px solid #000; text-align:center;"><strong>' + g.grade + '</strong></td></tr>';
   });
 
   printArea.innerHTML = `
