@@ -551,6 +551,25 @@ const pages = {
   </div>
 `,
 
+'a-gallery':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>Gallery Management</h2><span style="color:var(--lms-muted);">Upload and manage school photos</span></div>
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openGalleryUploadModal()"><i class="fas fa-upload"></i> Upload Photo</button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+    ${GALLERY_DB.length === 0 ? '<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No images in gallery.</p></div>' : 
+      GALLERY_DB.map(img => `
+        <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column;">
+          <img src="${img.image_url}" style="width:100%; height:180px; object-fit:cover; border-bottom:1px solid var(--lms-border);">
+          <div style="padding:1rem; display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size:1rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${img.title || 'Untitled'}">${img.title || 'Untitled'}</strong>
+            <button class="btn-danger" style="padding:0.4rem 0.6rem; border-radius:6px; flex-shrink:0;" onclick="deleteGalleryImage('${img.id}')" title="Delete Image"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('')}
+  </div>
+`,
+
 'a-settings':() => `
   <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
   <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
