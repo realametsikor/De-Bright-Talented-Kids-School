@@ -354,21 +354,9 @@
   <div class="container">
     <h2 class="section-title text-center" style="margin-bottom: 2.5rem; color: var(--primary);">Recent Moments</h2>
     
-    <div class="moments-grid">
-      <div class="moment-item featured">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" alt="School football team" loading="lazy">
-      </div>
-      <div class="moment-item">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" alt="Cultural wear" loading="lazy">
-      </div>
-      <div class="moment-item">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" alt="Creative arts" loading="lazy">
-      </div>
-      <div class="moment-item">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" alt="Student activity" loading="lazy">
-      </div>
-      <div class="moment-item">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="School event" loading="lazy">
+    <div class="moments-grid" id="dynamic-recent-moments">
+      <div style="text-align:center; grid-column: 1 / -1; padding: 2rem; color: #888;">
+        <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading moments...
       </div>
     </div>
 
@@ -455,6 +443,7 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    // 1. FETCH POPUP SETTINGS
     try {
       const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
       const modal = document.getElementById('vacancy-modal');
@@ -468,7 +457,6 @@
           const ul = modal.querySelector('.vacancy-list');
           if (ul) {
             let items = [];
-            // Handle standard string, JSON stringified array, or actual array
             if (typeof data.popup_list === 'string') {
               try { 
                 items = JSON.parse(data.popup_list); 
@@ -479,13 +467,11 @@
               items = data.popup_list;
             }
             
-            // Break down items separated by literal \n or actual line breaks
             if (Array.isArray(items)) {
               items = items.flatMap(item => String(item).split(/\\n|\n/));
               items = items.map(item => item.trim()).filter(item => item.length > 0);
             }
             
-            // Render the items
             if (items && items.length > 0) {
               ul.innerHTML = items.map(item => '<li><i class="fas fa-check-circle"></i> ' + item + '</li>').join('');
             } else {
@@ -505,6 +491,29 @@
       }
     } catch(err) {
       console.error("Failed to load popup settings:", err);
+    }
+
+    // 2. FETCH RECENT MOMENTS (Latest 5 Images)
+    try {
+      const { data: galleryData, error: galleryError } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+        
+      const momentsGrid = document.getElementById('dynamic-recent-moments');
+      
+      if (momentsGrid && galleryData && galleryData.length > 0) {
+        momentsGrid.innerHTML = galleryData.map((img, index) => `
+          <div class="moment-item ${index === 0 ? 'featured' : ''}">
+            <img src="${img.image_url}" alt="${img.title || 'School Moment'}" loading="lazy">
+          </div>
+        `).join('');
+      } else if (momentsGrid) {
+        momentsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#888;">No recent moments to display.</p>';
+      }
+    } catch(gErr) {
+      console.error("Failed to load recent moments:", gErr);
     }
   });
 </script>
