@@ -2706,6 +2706,70 @@ window.deleteGalleryImage = async function(id) {
   }
 };
 
+/* ====================== EVENT ACTIONS ====================== */
+window.openEventModal = function(id = null) {
+  if(!document.getElementById('admin-event-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'admin-event-modal';
+    document.body.appendChild(m);
+  }
+  const m = document.getElementById('admin-event-modal');
+  let ev = id ? EVENTS_DB.find(e => String(e.id) === String(id)) : null;
+  
+  m.innerHTML = `
+    <div class="lms-modal-box" style="max-width:500px;">
+      <div class="modal-h"><h3><i class="fas fa-calendar-alt" style="color:var(--primary);margin-right:6px;"></i>${ev ? 'Edit Event' : 'Add New Event'}</h3><button onclick="closeModal('admin-event-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="ev-id" value="${ev ? ev.id : ''}">
+        <div class="lms-form-group"><label>Event Title</label><input type="text" id="ev-title" value="${ev ? ev.title : ''}" placeholder="e.g. Independence Day Parade"></div>
+        <div class="lms-form-group"><label>Event Date</label><input type="date" id="ev-date" value="${ev ? ev.event_date : ''}"></div>
+        <div class="lms-form-group"><label>Short Description</label><textarea id="ev-desc" rows="3" placeholder="Time, location, details...">${ev ? (ev.description||'') : ''}</textarea></div>
+        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+          <button class="btn-lms-primary" id="btn-save-ev" style="flex:1;" onclick="saveEvent()"><i class="fas fa-save"></i> Save Event</button>
+        </div>
+      </div>
+    </div>`;
+  openModal('admin-event-modal');
+};
+
+window.saveEvent = async function() {
+  if(!supabaseClient) return toast('Database connection missing', 'error');
+  const btn = document.getElementById('btn-save-ev');
+  const id = document.getElementById('ev-id').value;
+  const title = document.getElementById('ev-title').value.trim();
+  const date = document.getElementById('ev-date').value;
+  const desc = document.getElementById('ev-desc').value.trim();
+  
+  if(!title || !date) return toast('Title and Date are required.', 'error');
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; btn.disabled = true;
+  
+  const payload = { title: title, event_date: date, description: desc };
+  
+  if(id) {
+    const { error } = await supabaseClient.from('events').update(payload).eq('id', id);
+    if(error) { btn.innerHTML='Save Event'; btn.disabled=false; return toast(error.message, 'error'); }
+  } else {
+    const { error } = await supabaseClient.from('events').insert([payload]);
+    if(error) { btn.innerHTML='Save Event'; btn.disabled=false; return toast(error.message, 'error'); }
+  }
+  
+  const { data } = await supabaseClient.from('events').select('*').order('event_date',{ascending:true});
+  if(data) EVENTS_DB = data;
+  
+  closeModal('admin-event-modal'); renderPage('a-events'); toast('Event saved successfully!');
+};
+
+window.deleteEvent = async function(id) {
+  if(!supabaseClient) return;
+  if(confirm('Are you sure you want to delete this event?')) {
+    const { error } = await supabaseClient.from('events').delete().eq('id', id);
+    if(error) return toast(error.message, 'error');
+    EVENTS_DB = EVENTS_DB.filter(e => String(e.id) !== String(id));
+    renderPage('a-events'); toast('Event deleted.', 'error');
+  }
+};
+
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded', async () => {
   const y=document.getElementById('year');
