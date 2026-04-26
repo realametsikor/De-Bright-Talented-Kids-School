@@ -136,7 +136,7 @@ function launchPortal() {
 async function fetchAllData(){
   if(!supabaseClient) return;
   try {
-    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes, teachRes, artRes, setRes, galRes] = await Promise.all([
+    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes, teachRes, artRes, setRes, galRes, evRes] = await Promise.all([
       supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('students').select('*').order('name',{ascending:true}), 
@@ -152,7 +152,8 @@ async function fetchAllData(){
       supabaseClient.from('teachers').select('*').order('name',{ascending:true}),
       supabaseClient.from('articles').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('site_settings').select('*').eq('id', 1).single(),
-      supabaseClient.from('gallery_images').select('*').order('created_at',{ascending:false})
+      supabaseClient.from('gallery_images').select('*').order('created_at',{ascending:false}),
+      supabaseClient.from('events').select('*').order('event_date',{ascending:true})
     ]);
 
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
@@ -170,6 +171,7 @@ async function fetchAllData(){
     if(artRes && artRes.data) ARTICLES_DB = artRes.data;
     if(setRes && setRes.data) SITE_SETTINGS = setRes.data;
     if(galRes && galRes.data) GALLERY_DB = galRes.data;
+    if(evRes && evRes.data) EVENTS_DB = evRes.data;
     
     if(classRes && classRes.data) {
       TIMETABLE = classRes.data.timetable_data || [];
@@ -181,6 +183,7 @@ async function fetchAllData(){
     if(currentUser.role !== 'admin') throw e; 
   }
 }
+
 
 
 function mapAssignment(item){
