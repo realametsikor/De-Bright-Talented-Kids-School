@@ -231,6 +231,20 @@ function buildDashboard(){
         {icon:'users-cog',label:'Manage Users',page:'a-users'}
       ]},
       {section:'Website CMS', links:[
+          } else if (u.role === 'admin') {
+    items = [
+      {section:'System Operations', links:[
+        {icon:'shield-alt',label:'Admin Dashboard',page:'a-dashboard'},
+        {icon:'users-cog',label:'Manage Users',page:'a-users'}
+      ]},
+      {section:'Website CMS', links:[
+        {icon:'newspaper',label:'News & Articles',page:'a-articles'},
+        {icon:'images',label:'Gallery Manager',page:'a-gallery'}, // NEW
+        {icon:'cogs',label:'Global Settings',page:'a-settings'}
+      ]}
+    ];
+  }
+
         {icon:'newspaper',label:'News & Articles',page:'a-articles'},
         {icon:'cogs',label:'Global Settings',page:'a-settings'}
       ]}
