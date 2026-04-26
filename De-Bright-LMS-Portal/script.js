@@ -540,48 +540,46 @@ const pages = {
 
 'a-settings':() => `
   <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
-  <div class="panel" style="max-width: 600px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
-    <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
-      <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
-    </div>
-    <div style="padding: 1.5rem;">
-      <div class="lms-form-group"><label>School Name</label><input type="text" id="set-school" value="${SITE_SETTINGS.school_name || ''}"></div>
-      <div class="lms-form-group"><label>Contact Phone</label><input type="text" id="set-phone" value="${SITE_SETTINGS.contact_phone || ''}"></div>
-      <div class="lms-form-group"><label>Contact Email</label><input type="email" id="set-email" value="${SITE_SETTINGS.contact_email || ''}"></div>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
-        <div class="lms-form-group"><label>Current Term</label><input type="text" id="set-term" value="${SITE_SETTINGS.current_term || ''}"></div>
-        <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="${SITE_SETTINGS.academic_year || ''}"></div>
+  <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
       </div>
-      <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>
-      <button class="btn-lms-primary" style="margin-top: 1rem; width: 100%;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save Configuration</button>
+      <div style="padding: 1.5rem;">
+        <div class="lms-form-group"><label>School Name</label><input type="text" id="set-school" value="${SITE_SETTINGS.school_name || ''}"></div>
+        <div class="lms-form-group"><label>Contact Phone</label><input type="text" id="set-phone" value="${SITE_SETTINGS.contact_phone || ''}"></div>
+        <div class="lms-form-group"><label>Contact Email</label><input type="email" id="set-email" value="${SITE_SETTINGS.contact_email || ''}"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="lms-form-group"><label>Current Term</label><input type="text" id="set-term" value="${SITE_SETTINGS.current_term || ''}"></div>
+          <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="${SITE_SETTINGS.academic_year || ''}"></div>
+        </div>
+        <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>
+      </div>
     </div>
+
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-window-restore" style="color:var(--lms-muted); margin-right:8px;"></i> Homepage Popup Settings</h3>
+      </div>
+      <div style="padding: 1.5rem;">
+        <div class="lms-form-group" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; background: var(--lms-surface); padding: 1rem; border-radius: 8px;">
+            <input type="checkbox" id="set-popup-active" ${SITE_SETTINGS.popup_active ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;">
+            <label for="set-popup-active" style="margin:0; cursor:pointer; font-weight: bold; color: var(--text);">Enable Popup on Homepage</label>
+        </div>
+        <div class="lms-form-group"><label>Badge Text</label><input type="text" id="set-popup-badge" value="${SITE_SETTINGS.popup_badge || ''}" placeholder="e.g. HIRING"></div>
+        <div class="lms-form-group"><label>Title</label><input type="text" id="set-popup-title" value="${SITE_SETTINGS.popup_title || ''}" placeholder="e.g. Teachers Needed"></div>
+        <div class="lms-form-group"><label>Description</label><textarea id="set-popup-desc" rows="3" placeholder="Popup message...">${SITE_SETTINGS.popup_desc || ''}</textarea></div>
+        <div class="lms-form-group"><label>List Items (One item per line)</label><textarea id="set-popup-list" rows="4" placeholder="Pre-School / Creche\nPrimary Department\nJ.H.S Subject Teachers">${SITE_SETTINGS.popup_list ? SITE_SETTINGS.popup_list.join('\\n') : ''}</textarea></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="lms-form-group"><label>Button Text</label><input type="text" id="set-popup-btn-text" value="${SITE_SETTINGS.popup_btn_text || ''}" placeholder="e.g. Apply Now"></div>
+          <div class="lms-form-group"><label>Button Link</label><input type="text" id="set-popup-btn-link" value="${SITE_SETTINGS.popup_btn_link || ''}" placeholder="e.g. tel:+233..."></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-lms-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Configurations</button>
   </div>
 `,
 
-'s-dashboard':() => {
-    const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id);
-    const myPres = myAtt.filter(a => a.status === 'present').length;
-    const myAttPct = myAtt.length > 0 ? Math.round((myPres/myAtt.length)*100) : 100;
-    
-    return `
-    <div class="welcome-banner" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.1); margin-bottom: 2rem;">
-      <div class="wb-text">
-        <div class="wb-tag" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📚 ${SITE_SETTINGS.current_term || 'Term 2'} — ${SITE_SETTINGS.academic_year || '2025/26'}</div>
-        <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Welcome back, ${currentUser.name.split(' ')[0]}! 👋</h2>
-      </div>
-      <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-graduation-cap"></i></div>
-    </div>
-    <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
-      <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
-        <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-chart-line"></i></div>
-        <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase; letter-spacing: 0.5px;">Avg Grade</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">83%</div></div>
-      </div>
-      <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
-        <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-check-circle"></i></div>
-        <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase; letter-spacing: 0.5px;">Attendance</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${myAttPct}%</div></div>
-      </div>
-    </div>`;
-},
 
 /* STUDENT ATTENDANCE PAGE */
 's-attendance':() => {
