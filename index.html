@@ -465,14 +465,39 @@
           if(data.popup_title) modal.querySelector('#vacancy-title').textContent = data.popup_title;
           if(data.popup_desc) modal.querySelector('.vacancy-body p').textContent = data.popup_desc;
           
-          if(data.popup_list && Array.isArray(data.popup_list) && data.popup_list.length > 0) {
-            const ul = modal.querySelector('.vacancy-list');
-            ul.innerHTML = data.popup_list.map(item => '<li><i class="fas fa-check-circle"></i> ' + item + '</li>').join('');
+          const ul = modal.querySelector('.vacancy-list');
+          if (ul) {
+            let items = [];
+            // Handle standard string, JSON stringified array, or actual array
+            if (typeof data.popup_list === 'string') {
+              try { 
+                items = JSON.parse(data.popup_list); 
+                if(!Array.isArray(items)) items = [data.popup_list];
+              } 
+              catch(e) { items = [data.popup_list]; }
+            } else if (Array.isArray(data.popup_list)) {
+              items = data.popup_list;
+            }
+            
+            // Break down items separated by literal \n or actual line breaks
+            if (Array.isArray(items)) {
+              items = items.flatMap(item => String(item).split(/\\n|\n/));
+              items = items.map(item => item.trim()).filter(item => item.length > 0);
+            }
+            
+            // Render the items
+            if (items && items.length > 0) {
+              ul.innerHTML = items.map(item => '<li><i class="fas fa-check-circle"></i> ' + item + '</li>').join('');
+            } else {
+              ul.innerHTML = '';
+            }
           }
           
           const btn = modal.querySelector('.apply-btn-modal');
-          if(data.popup_btn_text) btn.textContent = data.popup_btn_text;
-          if(data.popup_btn_link) btn.href = data.popup_btn_link;
+          if(btn) {
+            if(data.popup_btn_text) btn.textContent = data.popup_btn_text;
+            if(data.popup_btn_link) btn.href = data.popup_btn_link;
+          }
         } else {
           modal.style.setProperty('display', 'none', 'important');
           modal.remove(); 
@@ -483,7 +508,6 @@
     }
   });
 </script>
-
 
 </body>
 </html>
