@@ -1161,6 +1161,36 @@ const pages = {
 }
 };
 
+'a-events':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>Event Management</h2><span style="color:var(--lms-muted);">Schedule upcoming school events</span></div>
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openEventModal()"><i class="fas fa-plus"></i> Add Event</button>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    ${EVENTS_DB.length === 0 ? '<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No upcoming events scheduled.</p></div>' : 
+      EVENTS_DB.map(e => {
+        const d = new Date(e.event_date);
+        const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+        const day = d.getDate().toString().padStart(2, '0');
+        return `
+        <div style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; align-items:center; padding: 1.5rem; gap: 1.5rem; flex-wrap:wrap;">
+          <div style="background:var(--primary); color:#fff; border-radius:8px; padding:1rem; text-align:center; min-width:80px; flex-shrink:0;">
+            <div style="font-size:1.8rem; font-weight:bold; line-height:1;">${day}</div>
+            <div style="font-size:0.8rem; letter-spacing:1px; margin-top:4px;">${month}</div>
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <strong style="font-size:1.15rem; display:block; margin-bottom:0.4rem; color:var(--text);">${e.title}</strong>
+            <p style="font-size:0.9rem; color:var(--lms-muted); margin:0;">${e.description || 'No description provided.'}</p>
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-left:auto;">
+            <button class="btn-outline" style="padding:0.5rem 1rem; border-radius:6px;" onclick="openEventModal('${e.id}')"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn-danger" style="padding:0.5rem 1rem; border-radius:6px;" onclick="deleteEvent('${e.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `}).join('')}
+  </div>
+`,
+
 /* ====================== ADMIN SPECIFIC FUNCTIONS ====================== */
 window.openAdminUserModal = function(roleType) {
   if(!document.getElementById('admin-user-modal')) {
