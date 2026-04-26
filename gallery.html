@@ -45,32 +45,16 @@
 <main id="main-content">
 <section style="background:#f4f7f6;padding:0 0 5rem;">
   <div class="gallery-wrap">
-    <div class="gallery-grid">
-      <a href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" class="glightbox" data-gallery="school" data-title="ICT Class">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" alt="Students in the ICT class" loading="lazy">
-      </a>
-      <a href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" class="glightbox" data-gallery="school" data-title="Sports">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" alt="Students during sports activities" loading="lazy">
-      </a>
-      <a href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" class="glightbox" data-gallery="school" data-title="Creative Arts">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" alt="Students in creative arts class" loading="lazy">
-      </a>
-      <a href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" class="glightbox" data-gallery="school" data-title="Culture & Clubs">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" alt="Students in culture and clubs" loading="lazy">
-      </a>
-      <a href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" class="glightbox" data-gallery="school" data-title="School Crest">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="De-Bright Talented Kids School crest" loading="lazy">
-      </a>
-      <a href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/De-Bright-Talented-Kids-School-.jpg" class="glightbox" data-gallery="school" data-title="School Life">
-        <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/De-Bright-Talented-Kids-School-.jpg" alt="Students at De-Bright Talented Kids School" loading="lazy">
-      </a>
+    <div class="gallery-grid" id="dynamic-gallery-grid">
+        <div style="text-align:center; grid-column: 1 / -1; padding: 4rem; color: #888;">
+            <i class="fas fa-spinner fa-spin fa-2x"></i><br>Loading Gallery...
+        </div>
     </div>
     <p style="text-align:center;color:#888;margin-top:2rem;font-size:.9rem;">Click any photo to view full size.</p>
   </div>
 </section>
 </main>
 
-<!-- FOOTER -->
 <footer role="contentinfo">
   <div class="container">
     <div class="footer-content">
@@ -83,9 +67,39 @@
 </footer>
 
 <button id="backToTop" aria-label="Back to top"><i class="fas fa-arrow-up"></i></button>
+
 <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-<script>GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    try {
+      const { data, error } = await supabase.from('gallery_images').select('*').order('created_at', {ascending: false});
+      const grid = document.getElementById('dynamic-gallery-grid');
+      
+      if (data && data.length > 0) {
+        grid.innerHTML = data.map(img => `
+          <a href="${img.image_url}" class="glightbox" data-gallery="school" data-title="${img.title || ''}">
+            <img src="${img.image_url}" alt="${img.title || 'School Photo'}" loading="lazy">
+          </a>
+        `).join('');
+      } else {
+        grid.innerHTML = `<div style="text-align:center; grid-column: 1 / -1; padding: 4rem; color: #888;">No photos in gallery yet.</div>`;
+      }
+      
+      // Initialize GLightbox AFTER the images have been injected
+      GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });
+      
+    } catch(err) {
+      console.error("Gallery failed to load:", err);
+      document.getElementById('dynamic-gallery-grid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Could not load gallery.</p>';
+    }
+  });
+</script>
 <script src="main.js"></script>
 </body>
 </html>
