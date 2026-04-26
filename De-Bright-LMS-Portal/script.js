@@ -272,7 +272,7 @@ function showPage(page, el){
   currentPage = page;
   document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
-  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','s-attendance':'My Attendance','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable','a-dashboard':'System Overview','a-users':'User Management','a-articles':'Website Content','a-settings':'Global Settings'};
+  const titles = {'s-dashboard':'Dashboard','s-grades':'Grades & Reports','s-attendance':'My Attendance','t-dashboard':'Dashboard','t-class':'Manage My Class','t-grades':'Grade Book','t-quiz':'Quiz Manager','s-quiz':'Active Quizzes','t-timetable':'Timetable Manager','s-timetable':'Class Timetable','a-dashboard':'System Overview','a-users':'User Management','a-articles':'Website Content','a-gallery':'Gallery Management','a-settings':'Global Settings'};
   document.getElementById('topbar-title').textContent = titles[page]||page.replace('s-','').replace('t-','').replace(/-/g, ' ').toUpperCase();
   renderPage(page); closeSidebar(); window.scrollTo({top:0,behavior:'smooth'});
 }
