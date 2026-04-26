@@ -23,6 +23,7 @@ let SUBJECTS = [];
 let GRADES = [];
 let TIMETABLE = [];
 let TT_TIMES = [];
+let GALLERY_DB = [];
 
 let currentUser = null, currentRole = 'student', currentPage = null;
 let ASSIGNMENTS = [], SUBMISSIONS = [], NOTICES = [], NOTICE_COMMENTS = [], RESOURCES = [], ATTENDANCE_RECORDS = [];
