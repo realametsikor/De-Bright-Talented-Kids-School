@@ -520,7 +520,10 @@ const pages = {
           ${a.cover_image ? `<img src="${a.cover_image}" style="width:100%; height:160px; object-fit:cover; border-bottom:1px solid var(--lms-border);">` : `<div style="width:100%; height:160px; background:var(--lms-surface); display:flex; align-items:center; justify-content:center; color:var(--lms-muted);"><i class="fas fa-image fa-2x"></i></div>`}
           <div style="padding:1.5rem; flex:1; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
-              <span class="chip ${a.status==='published'?'green':'grey'}">${a.status==='published'?'Published':'Draft'}</span>
+              <div>
+                 <span class="chip ${a.status==='published'?'green':'grey'}">${a.status==='published'?'Published':'Draft'}</span>
+                 <span style="font-size:0.75rem; color:var(--lms-muted); margin-left:8px; font-weight:bold;">${a.category || 'School Update'}</span>
+              </div>
               <span style="font-size:0.75rem; color:var(--lms-muted);">${fmtDate(a.created_at)}</span>
             </div>
             <strong style="font-size:1.1rem; margin-bottom:0.5rem; color:var(--text); line-height:1.4;">${a.title}</strong>
@@ -1245,7 +1248,18 @@ window.openArticleModal = function(id = null) {
         <input type="hidden" id="art-id" value="${art ? art.id : ''}">
         <div class="lms-form-group"><label>Headline / Title</label><input type="text" id="art-title" value="${art ? art.title : ''}"></div>
         
-        <div class="lms-form-group"><label>Author Name</label><input type="text" id="art-author" value="${defaultAuthor}" placeholder="e.g. Administration or Mr. Kwame"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+          <div class="lms-form-group"><label>Author Name</label><input type="text" id="art-author" value="${defaultAuthor}" placeholder="e.g. Administration or Mr. Kwame"></div>
+          <div class="lms-form-group"><label>Category</label>
+            <select id="art-category">
+              <option value="School Update" ${art&&art.category==='School Update'?'selected':''}>School Update</option>
+              <option value="News" ${art&&art.category==='News'?'selected':''}>News</option>
+              <option value="Social Updates" ${art&&art.category==='Social Updates'?'selected':''}>Social Updates</option>
+              <option value="Articles" ${art&&art.category==='Articles'?'selected':''}>Articles</option>
+              <option value="Learn Something New" ${art&&art.category==='Learn Something New'?'selected':''}>Learn Something New</option>
+            </select>
+          </div>
+        </div>
         
         <div class="lms-form-group"><label>Short Excerpt (Summary)</label><textarea id="art-excerpt" rows="2">${art ? (art.excerpt||'') : ''}</textarea></div>
         <div class="lms-form-group"><label>Full Article Content (Supports HTML)</label><textarea id="art-content" rows="6">${art ? art.content : ''}</textarea></div>
@@ -1267,6 +1281,7 @@ window.saveArticle = async function() {
   const id = document.getElementById('art-id').value;
   const title = document.getElementById('art-title').value.trim();
   const author = document.getElementById('art-author').value.trim() || currentUser.name;
+  const category = document.getElementById('art-category').value;
   const excerpt = document.getElementById('art-excerpt').value.trim();
   const content = document.getElementById('art-content').value.trim();
   const status = document.getElementById('art-status').value;
@@ -1289,7 +1304,7 @@ window.saveArticle = async function() {
     }
   }
   
-  const payload = { title, excerpt, content, status, cover_image: imgUrl, author: author };
+  const payload = { title, excerpt, content, status, cover_image: imgUrl, author: author, category: category };
   
   if(id) {
     const { error } = await supabaseClient.from('articles').update(payload).eq('id', id);
@@ -1299,7 +1314,6 @@ window.saveArticle = async function() {
     if(error) { btn.disabled = false; return toast(error.message, 'error'); }
   }
   
-  // Reload articles
   const { data } = await supabaseClient.from('articles').select('*').order('created_at',{ascending:false});
   if(data) ARTICLES_DB = data;
   
@@ -1334,7 +1348,7 @@ window.saveSiteSettings = async function() {
   
   SITE_SETTINGS = { ...SITE_SETTINGS, ...payload };
   toast('Global Settings Updated! ✅');
-  buildDashboard(); // Refreshes UI with new term/year
+  buildDashboard();
 };
 
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
