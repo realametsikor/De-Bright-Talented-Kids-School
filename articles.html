@@ -16,15 +16,15 @@
     .news-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 2rem; }
 
     /* --- WORDPRESS STYLE ARTICLE CONTENT --- */
-    #ra-content p { margin-bottom: 1.6rem; color: #475569; font-size: 1.1rem; line-height: 1.85; font-family: 'Open Sans', sans-serif; }
-    #ra-content h2, #ra-content h3, #ra-content h4 { color: #0a2540; font-family: 'Poppins', sans-serif; margin: 2.5rem 0 1.2rem; font-weight: 700; line-height: 1.3; }
-    #ra-content ul, #ra-content ol { margin-bottom: 1.6rem; padding-left: 2rem; color: #475569; font-size: 1.1rem; line-height: 1.85; }
+    #ra-content p { margin-bottom: 1.6rem; color: #475569; font-size: 1.1rem; line-height: 1.85; font-family: 'Open Sans', sans-serif; text-align: left;}
+    #ra-content h2, #ra-content h3, #ra-content h4 { color: #0a2540; font-family: 'Poppins', sans-serif; margin: 2.5rem 0 1.2rem; font-weight: 700; line-height: 1.3; text-align: left; }
+    #ra-content ul, #ra-content ol { margin-bottom: 1.6rem; padding-left: 2rem; color: #475569; font-size: 1.1rem; line-height: 1.85; text-align: left;}
     #ra-content li { margin-bottom: 0.6rem; }
     #ra-content a { color: var(--primary); font-weight: 600; text-decoration: underline; }
-    #ra-content blockquote { border-left: 5px solid var(--accent); padding-left: 1.5rem; margin: 2rem 0; font-style: italic; color: #64748b; font-size: 1.2rem; }
+    #ra-content blockquote { border-left: 5px solid var(--accent); padding-left: 1.5rem; margin: 2rem 0; font-style: italic; color: #64748b; font-size: 1.2rem; text-align: left;}
     
     .social-share-btn {
-      display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 6px; 
+      display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 99px; 
       font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 0.9rem; color: #fff; 
       text-decoration: none; cursor: pointer; border: none; transition: opacity 0.2s;
     }
@@ -68,38 +68,41 @@
     </div>
   </section>
 
-  <section id="article-single-view" style="display:none; background:#fff; padding: 3rem 5% 6rem;">
-    <div style="max-width: 800px; margin: 0 auto; width: 100%;">
+  <section id="article-single-view" style="display:none; background:#f4f7f6; padding-bottom: 6rem; min-height: 100vh;">
+    
+    <div style="background: var(--primary); padding: 2.5rem 5% 7rem; position: relative; text-align: center;">
+      <div style="max-width: 900px; margin: 0 auto; text-align: left; margin-bottom: 2rem;">
+        <a href="javascript:void(0)" onclick="closeFullArticle()" style="display:inline-flex; align-items:center; gap:8px; color:#fff; text-decoration:none; font-weight:600; padding:8px 18px; background: rgba(255,255,255,0.15); border-radius: 99px; font-size: 0.95rem; transition: background 0.2s;"><i class="fas fa-arrow-left"></i> Home</a>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <span style="background: var(--accent); color: var(--primary); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; padding: 6px 18px; border-radius: 99px;">School Update</span>
+      </div>
+
+      <h1 id="ra-title" style="color: #fff; font-family: 'Poppins', sans-serif; font-size: clamp(1.8rem, 4vw, 2.8rem); line-height: 1.3; margin-bottom: 1.5rem; max-width: 850px; margin-left: auto; margin-right: auto;"></h1>
       
-      <div style="font-size:0.85rem; color:#64748b; margin-bottom:1.5rem; font-family:'Poppins', sans-serif;">
-        <a href="index.html" style="color:var(--primary); text-decoration:none;">Home</a> &nbsp;/&nbsp; 
-        <a href="javascript:void(0)" onclick="closeFullArticle()" style="color:var(--primary); text-decoration:none;">School News</a> &nbsp;/&nbsp; 
-        <span style="color:#94a3b8;">Article</span>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 1.5rem; color: rgba(255,255,255,0.7); font-size: 0.95rem;">
+        <span><i class="far fa-calendar-alt" style="margin-right:5px;"></i> <span id="ra-date"></span></span>
+        <span><i class="fas fa-user-edit" style="margin-right:5px;"></i> <span id="ra-author"></span></span>
       </div>
+    </div>
 
-      <h1 id="ra-title" style="font-family:'Poppins',sans-serif; font-size:2.8rem; color:#0a2540; line-height:1.2; margin-bottom:1rem; letter-spacing: -0.5px;"></h1>
-      
-      <div style="display:flex; gap:1.5rem; color:#64748b; font-size:0.95rem; margin-bottom:2rem; font-weight:500;">
-        <span><i class="far fa-calendar-alt"></i> <span id="ra-date"></span></span>
-        <span><i class="fas fa-user-edit"></i> <span id="ra-author"></span></span>
-      </div>
-
-      <div style="margin-bottom: 3rem;">
-        <img id="ra-img" src="" style="width:100%; max-height:500px; object-fit:cover; border-radius:12px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-      </div>
-
-      <div id="ra-content"></div>
-
-      <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0;">
-        <h4 style="font-family:'Poppins',sans-serif; color:#0a2540; margin-bottom:1rem; font-size: 1.2rem;">Share this story</h4>
-        <div style="display:flex; gap:10px; flex-wrap: wrap; margin-bottom: 3rem;">
-           <button class="social-share-btn" style="background:#25D366;" onclick="window.open('https://wa.me/?text=' + encodeURIComponent(document.getElementById('ra-title').textContent + ' - ' + window.location.href))"><i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> WhatsApp</button>
-           <button class="social-share-btn" style="background:#1877F2;" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href))"><i class="fab fa-facebook-f" style="font-size: 1.2rem;"></i> Facebook</button>
-        </div>
+    <div style="max-width: 900px; margin: -4rem auto 0; padding: 0 5%; position: relative; z-index: 10;">
+      <div style="background: #fff; border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.08); overflow: hidden;">
+        <img id="ra-img" src="" style="width: 100%; max-height: 480px; object-fit: cover; display: block;">
         
-        <a href="javascript:void(0)" onclick="closeFullArticle()" style="display:inline-flex; align-items:center; gap:8px; font-family:'Poppins',sans-serif; font-weight:600; color:var(--primary); text-decoration:none; font-size:1.1rem; transition:color 0.2s;"><i class="fas fa-arrow-left"></i> Back to News Feed</a>
+        <div style="padding: 3.5rem 8%;">
+          <div id="ra-content"></div>
+          
+          <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+             <h4 style="font-family:'Poppins',sans-serif; color:#0a2540; margin:0; font-size: 1.1rem;">Share this story</h4>
+             <div style="display:flex; gap:10px;">
+               <button class="social-share-btn" style="background:#25D366;" onclick="window.open('https://wa.me/?text=' + encodeURIComponent(document.getElementById('ra-title').textContent + ' - ' + window.location.href))"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+               <button class="social-share-btn" style="background:#1877F2;" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href))"><i class="fab fa-facebook-f"></i> Facebook</button>
+             </div>
+          </div>
+        </div>
       </div>
-      
     </div>
   </section>
 
