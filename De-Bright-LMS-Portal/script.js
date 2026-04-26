@@ -227,14 +227,8 @@ function buildDashboard(){
       {section:'Academics', links:[{icon:'tasks',label:'Assignments',page:'t-assignments'},{icon:'question-circle',label:'Quizzes',page:'t-quiz'},{icon:'inbox',label:'Submissions',page:'t-submissions',badge:SUBMISSIONS.filter(s=>s.status!=='graded' && (s.class===u.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===u.class)).length||null},{icon:'chart-bar',label:'Grade Book',page:'t-grades'},{icon:'clipboard-list',label:'Attendance',page:'t-attendance'}]},
       {section:'Communication', links:[{icon:'bullhorn',label:'Notices',page:'t-notices'},{icon:'folder-open',label:'Resources',page:'t-resources'},{icon:'calendar-alt',label:'Timetable',page:'t-timetable'}]},
     ];
-  } else if (u.role === 'admin') {
-    items = [
-      {section:'System Operations', links:[
-        {icon:'shield-alt',label:'Admin Dashboard',page:'a-dashboard'},
-        {icon:'users-cog',label:'Manage Users',page:'a-users'}
-      ]},
-      {section:'Website CMS', links:[
-          } else if (u.role === 'admin') {
+    
+    } else if (u.role === 'admin') {
     items = [
       {section:'System Operations', links:[
         {icon:'shield-alt',label:'Admin Dashboard',page:'a-dashboard'},
@@ -242,11 +236,12 @@ function buildDashboard(){
       ]},
       {section:'Website CMS', links:[
         {icon:'newspaper',label:'News & Articles',page:'a-articles'},
-        {icon:'images',label:'Gallery Manager',page:'a-gallery'}, // NEW
+        {icon:'images',label:'Gallery Manager',page:'a-gallery'},
         {icon:'cogs',label:'Global Settings',page:'a-settings'}
       ]}
     ];
   }
+
 
         {icon:'newspaper',label:'News & Articles',page:'a-articles'},
         {icon:'cogs',label:'Global Settings',page:'a-settings'}
