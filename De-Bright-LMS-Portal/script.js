@@ -317,7 +317,7 @@ window.saveTimetable = function(silent = false) {
   }
 
   if(!silent) {
-    toast('Timetable updated successfully! ✅');
+    toast('Timetable updated successfully!');
     renderPage('t-timetable');
   }
 };
@@ -540,7 +540,8 @@ const pages = {
 
 'a-settings':() => `
   <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
-  <div class="panel" style="max-width: 600px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+  
+  <div class="panel" style="max-width: 600px; margin: 0 auto 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
     <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
       <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
     </div>
@@ -553,7 +554,29 @@ const pages = {
         <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="${SITE_SETTINGS.academic_year || ''}"></div>
       </div>
       <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>
-      <button class="btn-lms-primary" style="margin-top: 1rem; width: 100%;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save Configuration</button>
+    </div>
+  </div>
+
+  <div class="panel" style="max-width: 600px; margin: 0 auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+    <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+      <h3 style="margin:0;"><i class="fas fa-window-restore" style="color:var(--lms-muted); margin-right:8px;"></i> Homepage Popup Configuration</h3>
+    </div>
+    <div style="padding: 1.5rem;">
+      <div class="lms-form-group">
+        <label>Popup Status</label>
+        <select id="set-popup-enabled">
+          <option value="true" ${SITE_SETTINGS.popup_enabled ? 'selected' : ''}>Active (Show Popup)</option>
+          <option value="false" ${!SITE_SETTINGS.popup_enabled ? 'selected' : ''}>Inactive (Hide Popup)</option>
+        </select>
+      </div>
+      <div class="lms-form-group"><label>Headline</label><input type="text" id="set-popup-title" value="${SITE_SETTINGS.popup_title || ''}" placeholder="e.g. Teachers Needed"></div>
+      <div class="lms-form-group"><label>Main Message</label><textarea id="set-popup-text" rows="3" placeholder="Main description text...">${SITE_SETTINGS.popup_text || ''}</textarea></div>
+      <div class="lms-form-group"><label>Checkmark List (Comma-separated)</label><input type="text" id="set-popup-bullets" value="${SITE_SETTINGS.popup_bullets || ''}" placeholder="e.g. Pre-School, Primary Department, J.H.S"></div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="lms-form-group"><label>Button Text</label><input type="text" id="set-popup-btn-text" value="${SITE_SETTINGS.popup_btn_text || ''}" placeholder="e.g. Apply Now"></div>
+        <div class="lms-form-group"><label>Button URL</label><input type="text" id="set-popup-btn-link" value="${SITE_SETTINGS.popup_btn_link || ''}" placeholder="e.g. /apply.html"></div>
+      </div>
+      <button class="btn-lms-primary" style="margin-top: 1rem; width: 100%;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Settings</button>
     </div>
   </div>
 `,
@@ -1334,20 +1357,29 @@ window.deleteArticle = async function(id) {
 
 window.saveSiteSettings = async function() {
   if(!supabaseClient) return toast('Database connection missing', 'error');
+  
   const payload = {
     school_name: document.getElementById('set-school').value.trim(),
     contact_phone: document.getElementById('set-phone').value.trim(),
     contact_email: document.getElementById('set-email').value.trim(),
     current_term: document.getElementById('set-term').value.trim(),
     academic_year: document.getElementById('set-year').value.trim(),
-    homepage_announcement: document.getElementById('set-ann').value.trim()
+    homepage_announcement: document.getElementById('set-ann').value.trim(),
+    
+    // New Popup Fields
+    popup_enabled: document.getElementById('set-popup-enabled').value === 'true',
+    popup_title: document.getElementById('set-popup-title').value.trim(),
+    popup_text: document.getElementById('set-popup-text').value.trim(),
+    popup_bullets: document.getElementById('set-popup-bullets').value.trim(),
+    popup_btn_text: document.getElementById('set-popup-btn-text').value.trim(),
+    popup_btn_link: document.getElementById('set-popup-btn-link').value.trim()
   };
   
   const { error } = await supabaseClient.from('site_settings').update(payload).eq('id', 1);
   if(error) return toast(error.message, 'error');
   
   SITE_SETTINGS = { ...SITE_SETTINGS, ...payload };
-  toast('Global Settings Updated! ✅');
+  toast('Global Settings Updated!');
   buildDashboard();
 };
 
@@ -2339,263 +2371,4 @@ window.buildNotices = function(isTeacher = false) {
         const commentCount = NOTICE_COMMENTS.filter(c => String(c.notice_id) === String(n.id)).length;
         return `
         <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--accent); box-shadow: 0 4px 15px rgba(0,0,0,0.03); cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s;" onclick="viewNoticeThread('${n.id}')" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.06)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.03)'">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; align-items: center;">
-            <strong style="font-size: 1.15rem; color: var(--text);">${n.title}</strong>
-            <span style="font-size: 0.8rem; color: var(--lms-muted); background: var(--lms-surface); padding: 4px 10px; border-radius: 6px;">${fmtDate(n.created_at || new Date())}</span>
-          </div>
-          <p style="font-size: 0.9rem; color: #64748b; margin: 0 0 1rem 0; line-height: 1.5;">${n.content.length > 120 ? n.content.substring(0, 120) + '...' : n.content}</p>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600;"><i class="fas fa-comments" style="color:var(--accent);"></i> ${commentCount} Questions/Replies</span>
-            <span style="font-size: 0.8rem; color: var(--lms-muted);"><i class="fas fa-user-edit"></i> ${n.author_name}</span>
-          </div>
-        </div>
-      `}).join('')}
-  </div>`;
-};
-
-window.openCreateNoticeModal = function() {
-  if(!document.getElementById('create-notice-modal')) {
-    const m = document.createElement('div');
-    m.className = 'lms-modal'; m.id = 'create-notice-modal';
-    document.body.appendChild(m);
-  }
-  
-  document.getElementById('create-notice-modal').innerHTML = `
-    <div class="lms-modal-box">
-      <div class="modal-h"><h3><i class="fas fa-bullhorn" style="color:var(--accent);margin-right:6px;"></i>Post Announcement</h3><button onclick="closeModal('create-notice-modal')"><i class="fas fa-times"></i></button></div>
-      <div class="modal-body">
-        <div class="lms-form-group"><label>Notice Title</label><input type="text" id="notice-title" placeholder="e.g. Field Trip Tomorrow"></div>
-        <div class="lms-form-group"><label>Message</label><textarea id="notice-content" rows="4" placeholder="Type the full announcement here..."></textarea></div>
-        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
-          <button class="btn-lms-primary" id="btn-save-notice" style="flex:1;" onclick="saveNotice()"><i class="fas fa-paper-plane"></i> Post to Class</button>
-          <button class="btn-outline" onclick="closeModal('create-notice-modal')">Cancel</button>
-        </div>
-      </div>
-    </div>
-  `;
-  openModal('create-notice-modal');
-};
-
-window.saveNotice = async function() {
-  if (!supabaseClient) return toast('Database connection missing!', 'error');
-  
-  const title = document.getElementById('notice-title').value.trim();
-  const content = document.getElementById('notice-content').value.trim();
-  const btn = document.getElementById('btn-save-notice');
-  
-  if(!title || !content) return toast('Please enter a title and message.', 'error');
-  
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
-  btn.disabled = true;
-  
-  const payload = {
-    title: title,
-    content: content,
-    class: currentUser.class,
-    author_id: currentUser.id,
-    author_name: currentUser.name
-  };
-  
-  const { data, error } = await supabaseClient.from('notices').insert([payload]).select();
-  
-  btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post to Class'; btn.disabled = false;
-  
-  if(error) return toast('DB Error: ' + error.message, 'error');
-  
-  if(data) NOTICES.unshift(data[0]);
-  closeModal('create-notice-modal');
-  renderPage('t-notices');
-  toast('Notice posted successfully! 📢');
-};
-
-window.viewNoticeThread = function(noticeId) {
-  const notice = NOTICES.find(n => String(n.id) === String(noticeId));
-  const comments = NOTICE_COMMENTS.filter(c => String(c.notice_id) === String(noticeId));
-  
-  if(!document.getElementById('view-notice-modal')) {
-    const m = document.createElement('div');
-    m.className = 'lms-modal'; m.id = 'view-notice-modal';
-    document.body.appendChild(m);
-  }
-  
-  const m = document.getElementById('view-notice-modal');
-  m.dataset.currentNotice = noticeId; 
-
-  m.innerHTML = `
-    <div class="lms-modal-box" style="max-width: 650px; height: 85vh; display: flex; flex-direction: column;">
-      <div class="modal-h" style="flex-shrink:0;">
-        <h3><i class="fas fa-clipboard-list" style="color:var(--primary);margin-right:6px;"></i>Notice Details</h3>
-        <button onclick="closeModal('view-notice-modal')"><i class="fas fa-times"></i></button>
-      </div>
-      
-      <div class="modal-body" style="overflow-y:auto; flex:1; padding-bottom:1rem;">
-        <div style="background:#f8fafc; padding:1.5rem; border-radius:10px; border:1px solid var(--lms-border); margin-bottom:1.5rem;">
-          <h4 style="margin:0 0 0.5rem 0; font-size:1.2rem; color:var(--text);">${notice.title}</h4>
-          <div style="font-size:0.8rem; color:var(--lms-muted); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem;">
-            <i class="fas fa-user-circle"></i> Posted by ${notice.author_name} on ${fmtDate(notice.created_at || new Date())}
-          </div>
-          <p style="font-size:0.95rem; line-height:1.6; color:var(--text); white-space:pre-wrap; margin:0;">${notice.content}</p>
-        </div>
-
-        <h5 style="margin:0 0 1rem 0; color:var(--primary); font-size:1rem; border-bottom:2px solid var(--lms-surface); padding-bottom:0.5rem;">Class Discussion</h5>
-        
-        <div id="notice-comments-list" style="display:flex; flex-direction:column; gap:1rem;">
-          ${comments.length === 0 ? '<p style="color:var(--lms-muted); font-size:0.85rem; text-align:center; padding:1rem;">No questions or comments yet. Start the discussion!</p>' : 
-            comments.map(c => {
-              const isTeacher = c.user_role === 'teacher' || c.user_role === 'admin';
-              const isMe = c.user_id === currentUser.id;
-              
-              return `
-              <div style="display:flex; gap:0.8rem; align-items:flex-start; ${isMe ? 'flex-direction:row-reverse;' : ''}">
-                <div style="width:34px; height:34px; border-radius:50%; background:${isTeacher ? 'var(--primary)' : 'var(--accent)'}; color:${isTeacher ? '#fff' : 'var(--primary)'}; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:bold; flex-shrink:0;">${getInitials(c.user_name)}</div>
-                
-                <div style="background:${isTeacher ? '#eff6ff' : (isMe ? '#fffbeb' : '#f1f5f9')}; padding:0.8rem 1rem; border-radius:12px; border:1px solid ${isTeacher ? '#bfdbfe' : (isMe ? '#fde68a' : '#e2e8f0')}; max-width:85%;">
-                  <div style="display:flex; justify-content:space-between; gap:1rem; margin-bottom:0.4rem; align-items:center;">
-                    <strong style="font-size:0.8rem; color:var(--text);">${c.user_name} ${isTeacher ? '<i class="fas fa-check-circle" style="color:var(--lms-blue); margin-left:4px;" title="Staff"></i>' : ''}</strong>
-                    <span style="font-size:0.7rem; color:var(--lms-muted);">${fmtDate(c.created_at || new Date())}</span>
-                  </div>
-                  <div style="font-size:0.9rem; color:var(--text); line-height:1.5;">${c.text}</div>
-                </div>
-              </div>
-            `}).join('')}
-        </div>
-      </div>
-      
-      <div style="padding:1rem 1.5rem; background:#fff; border-top:1px solid var(--lms-border); flex-shrink:0; display:flex; gap:0.8rem; align-items:center;">
-        <input type="text" id="new-comment-text" placeholder="Type a question or reply..." style="flex:1; padding:0.8rem 1.2rem; border:1px solid var(--lms-border); border-radius:99px; outline:none; font-family:var(--font-lms); background:#f8fafc;" onkeydown="if(event.key==='Enter') addNoticeComment('${notice.id}')">
-        <button class="btn-lms-primary" style="width:45px; height:45px; border-radius:50%; padding:0; min-height:0; display:flex; align-items:center; justify-content:center; flex-shrink:0; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="addNoticeComment('${notice.id}')"><i class="fas fa-paper-plane"></i></button>
-      </div>
-    </div>
-  `;
-  openModal('view-notice-modal');
-
-  setTimeout(() => {
-    const body = m.querySelector('.modal-body');
-    if(body) body.scrollTop = body.scrollHeight;
-  }, 10);
-};
-
-window.addNoticeComment = async function(noticeId) {
-  if (!supabaseClient) return toast('Database connection missing!', 'error');
-  
-  const input = document.getElementById('new-comment-text');
-  const text = input.value.trim();
-  if(!text) return;
-
-  input.disabled = true;
-
-  const payload = {
-    notice_id: noticeId,
-    user_id: currentUser.id,
-    user_name: currentUser.name,
-    user_role: currentUser.role,
-    text: text
-  };
-
-  const { data, error } = await supabaseClient.from('notice_comments').insert([payload]).select();
-
-  input.disabled = false;
-  input.value = '';
-  input.focus();
-
-  if(error) return toast('DB Error: ' + error.message, 'error');
-
-  if(data) NOTICE_COMMENTS.push(data[0]);
-  viewNoticeThread(noticeId); 
-};
-
-/* ====================== REAL-TIME LISTENERS ====================== */
-let realtimeChannel = null;
-
-function setupRealtimeListeners() {
-  if (!supabaseClient) return;
-
-  if (realtimeChannel) supabaseClient.removeChannel(realtimeChannel);
-
-  realtimeChannel = supabaseClient.channel('lms-realtime-channel')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'submissions' }, payload => {
-      const { eventType, new: newRec, old: oldRec } = payload;
-      if (eventType === 'INSERT') { SUBMISSIONS.unshift(newRec); if(currentUser.role === 'teacher') toast('New submission received! 📥'); } 
-      else if (eventType === 'UPDATE') { const idx = SUBMISSIONS.findIndex(s => String(s.id) === String(newRec.id)); if (idx !== -1) SUBMISSIONS[idx] = newRec; } 
-      else if (eventType === 'DELETE') { SUBMISSIONS = SUBMISSIONS.filter(s => String(s.id) !== String(oldRec.id)); }
-      refreshUI();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'assignments' }, payload => {
-      const { eventType, new: newRec, old: oldRec } = payload;
-      if (eventType === 'INSERT') { ASSIGNMENTS.unshift(mapAssignment(newRec)); if(currentUser.role === 'student') toast('New assignment posted! 📚'); } 
-      else if (eventType === 'UPDATE') { const idx = ASSIGNMENTS.findIndex(a => String(a.id) === String(newRec.id)); if (idx !== -1) ASSIGNMENTS[idx] = mapAssignment(newRec); } 
-      else if (eventType === 'DELETE') { ASSIGNMENTS = ASSIGNMENTS.filter(a => String(a.id) !== String(oldRec.id)); }
-      refreshUI();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'quizzes' }, payload => {
-      const { eventType, new: newRec, old: oldRec } = payload;
-      if (eventType === 'INSERT') { QUIZZES.unshift(newRec); if(currentUser.role === 'student') toast('New Quiz Published! ⏱️'); } 
-      else if (eventType === 'UPDATE') { const idx = QUIZZES.findIndex(q => q.id === newRec.id); if (idx !== -1) QUIZZES[idx] = newRec; } 
-      else if (eventType === 'DELETE') { QUIZZES = QUIZZES.filter(q => q.id !== oldRec.id); }
-      refreshUI();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'quiz_submissions' }, payload => {
-      const { eventType, new: newRec, old: oldRec } = payload;
-      if (eventType === 'INSERT') { QUIZ_SUBMISSIONS.unshift(newRec); } 
-      else if (eventType === 'UPDATE') { const idx = QUIZ_SUBMISSIONS.findIndex(q => q.id === newRec.id); if (idx !== -1) QUIZ_SUBMISSIONS[idx] = newRec; } 
-      else if (eventType === 'DELETE') { QUIZ_SUBMISSIONS = QUIZ_SUBMISSIONS.filter(q => q.id !== oldRec.id); }
-      refreshUI();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records' }, payload => {
-      const { eventType, new: newRec, old: oldRec } = payload;
-      if (eventType === 'INSERT') { ATTENDANCE_RECORDS.unshift(newRec); } 
-      else if (eventType === 'UPDATE') { const idx = ATTENDANCE_RECORDS.findIndex(a => String(a.id) === String(newRec.id)); if (idx !== -1) ATTENDANCE_RECORDS[idx] = newRec; } 
-      else if (eventType === 'DELETE') { ATTENDANCE_RECORDS = ATTENDANCE_RECORDS.filter(a => String(a.id) !== String(oldRec.id)); }
-      refreshUI();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notices' }, payload => {
-      const { eventType, new: newRec, old: oldRec } = payload;
-      if (eventType === 'INSERT') { NOTICES.unshift(newRec); if(currentUser.role === 'student') toast('New Class Notice! 📢'); } 
-      else if (eventType === 'UPDATE') { const idx = NOTICES.findIndex(n => String(n.id) === String(newRec.id)); if (idx !== -1) NOTICES[idx] = newRec; } 
-      else if (eventType === 'DELETE') { NOTICES = NOTICES.filter(n => String(n.id) !== String(oldRec.id)); }
-      refreshUI();
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'notice_comments' }, payload => {
-      const { eventType, new: newRec } = payload;
-      if (eventType === 'INSERT') { 
-        NOTICE_COMMENTS.push(newRec);
-        const modal = document.getElementById('view-notice-modal');
-        if (modal && modal.classList.contains('open') && modal.dataset.currentNotice === String(newRec.notice_id)) {
-          viewNoticeThread(newRec.notice_id);
-        }
-      } 
-      refreshUI();
-    })
-    .subscribe();
-}
-
-function refreshUI() {
-  buildDashboard(); 
-  if (currentPage) renderPage(currentPage);
-}
-
-/* ====================== INIT ====================== */
-document.addEventListener('DOMContentLoaded', async () => {
-  const y=document.getElementById('year');
-  if(y) y.textContent=new Date().getFullYear();
-
-  const transferSelect = document.getElementById('transfer-class-select');
-  if (transferSelect) transferSelect.innerHTML = SCHOOL_CLASSES.map(c => '<option value="' + c + '">' + c + '</option>').join('');
-
-  const savedUser = localStorage.getItem('lms_user');
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    currentRole = currentUser.role;
-    
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('lms-dashboard').classList.add('active');
-    document.querySelector('.navbar').style.display = 'none';
-    document.querySelector('footer').style.display = 'none';
-    const wa = document.querySelector('.whatsapp-btn'); if(wa) wa.style.display = 'none';
-    const btt = document.getElementById('backToTop'); if(btt) btt.style.display = 'none';
-    
-    await fetchAllData();
-    setupRealtimeListeners(); 
-    buildDashboard();
-  }
-});
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; align-
