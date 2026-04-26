@@ -1153,12 +1153,12 @@ const pages = {
       <button class="btn-outline" style="width: 100%; border-style: dashed; padding: 0.8rem; border-radius: 8px;" onclick="addTimetableRow()"><i class="fas fa-plus"></i> Add New Time Slot</button>
     </div>
   </div>
-  <div style="background:#fef9c3; color:#a16207; padding:1rem; border-radius:8px; margin-top:1rem; font-size:0.85rem; display:flex; gap:0.5rem; align-items:center;">
+ 
+   <div style="background:#fef9c3; color:#a16207; padding:1rem; border-radius:8px; margin-top:1rem; font-size:0.85rem; display:flex; gap:0.5rem; align-items:center;">
     <i class="fas fa-info-circle"></i>
     <span><strong>Tip:</strong> You can type any custom subject! To create a full-row break, simply type <strong>BREAK</strong> or <strong>LUNCH</strong> across all 5 days in a row.</span>
   </div>`;
-}
-};
+},
 
 'a-events':() => `
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
@@ -1171,24 +1171,26 @@ const pages = {
         const d = new Date(e.event_date);
         const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
         const day = d.getDate().toString().padStart(2, '0');
-        return `
+        return \`
         <div style="background:#fff; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; align-items:center; padding: 1.5rem; gap: 1.5rem; flex-wrap:wrap;">
           <div style="background:var(--primary); color:#fff; border-radius:8px; padding:1rem; text-align:center; min-width:80px; flex-shrink:0;">
-            <div style="font-size:1.8rem; font-weight:bold; line-height:1;">${day}</div>
-            <div style="font-size:0.8rem; letter-spacing:1px; margin-top:4px;">${month}</div>
+            <div style="font-size:1.8rem; font-weight:bold; line-height:1;">\${day}</div>
+            <div style="font-size:0.8rem; letter-spacing:1px; margin-top:4px;">\${month}</div>
           </div>
           <div style="flex:1; min-width:200px;">
-            <strong style="font-size:1.15rem; display:block; margin-bottom:0.4rem; color:var(--text);">${e.title}</strong>
-            <p style="font-size:0.9rem; color:var(--lms-muted); margin:0;">${e.description || 'No description provided.'}</p>
+            <strong style="font-size:1.15rem; display:block; margin-bottom:0.4rem; color:var(--text);">\${e.title}</strong>
+            <p style="font-size:0.9rem; color:var(--lms-muted); margin:0;">\${e.description || 'No description provided.'}</p>
           </div>
           <div style="display:flex; gap:0.5rem; margin-left:auto;">
-            <button class="btn-outline" style="padding:0.5rem 1rem; border-radius:6px;" onclick="openEventModal('${e.id}')"><i class="fas fa-edit"></i> Edit</button>
-            <button class="btn-danger" style="padding:0.5rem 1rem; border-radius:6px;" onclick="deleteEvent('${e.id}')"><i class="fas fa-trash"></i></button>
+            <button class="btn-outline" style="padding:0.5rem 1rem; border-radius:6px;" onclick="openEventModal('\${e.id}')"><i class="fas fa-edit"></i> Edit</button>
+            <button class="btn-danger" style="padding:0.5rem 1rem; border-radius:6px;" onclick="deleteEvent('\${e.id}')"><i class="fas fa-trash"></i></button>
           </div>
         </div>
-      `}).join('')}
+      \`}).join('')}
   </div>
-`,
+`
+};
+
 
 /* ====================== ADMIN SPECIFIC FUNCTIONS ====================== */
 window.openAdminUserModal = function(roleType) {
