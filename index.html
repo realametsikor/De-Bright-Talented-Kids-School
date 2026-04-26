@@ -511,8 +511,38 @@
     } catch(gErr) {
       console.error("Failed to load recent moments:", gErr);
     }
+      // 3. FETCH UPCOMING EVENTS
+    try {
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .order('event_date', { ascending: true })
+        .limit(3); // Grab up to 3 upcoming events
+        
+      const eventsContainer = document.getElementById('dynamic-events-container');
+      
+      if (eventsContainer && eventsData && eventsData.length > 0) {
+        eventsContainer.innerHTML = eventsData.map(ev => {
+          // Parse date to get short month and day number
+          const d = new Date(ev.event_date);
+          const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+          const day = d.getDate().toString().padStart(2, '0');
+          
+          return `
+            <div class="event-card">
+              <div class="event-date"><span>${day}</span><small>${month}</small></div>
+              <div class="event-details"><h4>${ev.title}</h4><p>${ev.description || ''}</p></div>
+            </div>
+          `;
+        }).join('');
+      } else if (eventsContainer) {
+        eventsContainer.innerHTML = '<p style="text-align:center; color:#888;">No upcoming events scheduled at the moment.</p>';
+      }
+    } catch(eErr) {
+      console.error("Failed to load events:", eErr);
+    }
+
   });
 </script>
-
 </body>
 </html>
