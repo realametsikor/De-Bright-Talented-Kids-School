@@ -1332,13 +1332,26 @@ window.deleteArticle = async function(id) {
 
 window.saveSiteSettings = async function() {
   if(!supabaseClient) return toast('Database connection missing', 'error');
+
+  const popupListRaw = document.getElementById('set-popup-list').value;
+  const popupListArray = popupListRaw ? popupListRaw.split('\n').map(item => item.trim()).filter(item => item.length > 0) : [];
+
   const payload = {
     school_name: document.getElementById('set-school').value.trim(),
     contact_phone: document.getElementById('set-phone').value.trim(),
     contact_email: document.getElementById('set-email').value.trim(),
     current_term: document.getElementById('set-term').value.trim(),
     academic_year: document.getElementById('set-year').value.trim(),
-    homepage_announcement: document.getElementById('set-ann').value.trim()
+    homepage_announcement: document.getElementById('set-ann').value.trim(),
+    
+    // New Popup Fields
+    popup_active: document.getElementById('set-popup-active').checked,
+    popup_badge: document.getElementById('set-popup-badge').value.trim(),
+    popup_title: document.getElementById('set-popup-title').value.trim(),
+    popup_desc: document.getElementById('set-popup-desc').value.trim(),
+    popup_list: popupListArray,
+    popup_btn_text: document.getElementById('set-popup-btn-text').value.trim(),
+    popup_btn_link: document.getElementById('set-popup-btn-link').value.trim()
   };
   
   const { error } = await supabaseClient.from('site_settings').update(payload).eq('id', 1);
