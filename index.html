@@ -303,9 +303,10 @@
   window.addEventListener('load', async function() {
     // Slight delay ensures the Supabase client mapped in script.js is fully initialized 
     setTimeout(async () => {
-      if (window.supabaseClient) {
+      // Corrected: Checking the globally scoped variable directly, not the window object
+      if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         try {
-          const { data, error } = await window.supabaseClient
+          const { data, error } = await supabaseClient
             .from('site_settings')
             .select('*')
             .eq('id', 1)
@@ -325,6 +326,7 @@
                 li.style.marginBottom = '0.6rem';
                 li.style.color = '#334155';
                 li.style.fontWeight = '600';
+                // Using standard HTML icons to maintain the professional aesthetic requested
                 li.innerHTML = '<i class="fas fa-check-circle" style="color: #facc15; margin-right: 8px;"></i> ' + b.trim();
                 bulletsContainer.appendChild(li);
               });
