@@ -569,7 +569,7 @@ const pages = {
         <div class="lms-form-group"><label>Badge Text</label><input type="text" id="set-popup-badge" value="${SITE_SETTINGS.popup_badge || ''}" placeholder="e.g. HIRING"></div>
         <div class="lms-form-group"><label>Title</label><input type="text" id="set-popup-title" value="${SITE_SETTINGS.popup_title || ''}" placeholder="e.g. Teachers Needed"></div>
         <div class="lms-form-group"><label>Description</label><textarea id="set-popup-desc" rows="3" placeholder="Popup message...">${SITE_SETTINGS.popup_desc || ''}</textarea></div>
-        <div class="lms-form-group"><label>List Items (One item per line)</label><textarea id="set-popup-list" rows="4" placeholder="Pre-School / Creche\nPrimary Department\nJ.H.S Subject Teachers">${SITE_SETTINGS.popup_list ? SITE_SETTINGS.popup_list.join('\\n') : ''}</textarea></div>
+        <div class="lms-form-group"><label>List Items (Press Enter for new line)</label><textarea id="set-popup-list" rows="4" placeholder="Pre-School / Creche\nPrimary Department\nJ.H.S Subject Teachers">${Array.isArray(SITE_SETTINGS.popup_list) ? SITE_SETTINGS.popup_list.join('\n') : ''}</textarea></div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
           <div class="lms-form-group"><label>Button Text</label><input type="text" id="set-popup-btn-text" value="${SITE_SETTINGS.popup_btn_text || ''}" placeholder="e.g. Apply Now"></div>
           <div class="lms-form-group"><label>Button Link</label><input type="text" id="set-popup-btn-link" value="${SITE_SETTINGS.popup_btn_link || ''}" placeholder="e.g. tel:+233..."></div>
@@ -579,7 +579,6 @@ const pages = {
     <button class="btn-lms-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Configurations</button>
   </div>
 `,
-
 
 /* STUDENT ATTENDANCE PAGE */
 's-attendance':() => {
