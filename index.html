@@ -451,24 +451,21 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
-    // Initialize Supabase (Same credentials used in your LMS portal)
     const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     try {
       const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-      
       const modal = document.getElementById('vacancy-modal');
       
       if (modal && data) {
         if (data.popup_active) {
-          // If active, map the dynamic content
           if(data.popup_badge) modal.querySelector('.badge').textContent = data.popup_badge;
           if(data.popup_title) modal.querySelector('#vacancy-title').textContent = data.popup_title;
           if(data.popup_desc) modal.querySelector('.vacancy-body p').textContent = data.popup_desc;
           
-          if(data.popup_list && data.popup_list.length > 0) {
+          if(data.popup_list && Array.isArray(data.popup_list) && data.popup_list.length > 0) {
             const ul = modal.querySelector('.vacancy-list');
             ul.innerHTML = data.popup_list.map(item => '<li><i class="fas fa-check-circle"></i> ' + item + '</li>').join('');
           }
@@ -477,7 +474,6 @@
           if(data.popup_btn_text) btn.textContent = data.popup_btn_text;
           if(data.popup_btn_link) btn.href = data.popup_btn_link;
         } else {
-          // If inactive, forcefully remove the modal from the DOM so existing scripts can't trigger it
           modal.style.setProperty('display', 'none', 'important');
           modal.remove(); 
         }
@@ -487,6 +483,7 @@
     }
   });
 </script>
+
 
 </body>
 </html>
