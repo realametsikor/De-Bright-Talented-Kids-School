@@ -2598,6 +2598,65 @@ function refreshUI() {
   if (currentPage) renderPage(currentPage);
 }
 
+/* ====================== GALLERY ACTIONS ====================== */
+window.openGalleryUploadModal = function() {
+  if(!document.getElementById('admin-gallery-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'admin-gallery-modal';
+    document.body.appendChild(m);
+  }
+  document.getElementById('admin-gallery-modal').innerHTML = `
+    <div class="lms-modal-box" style="max-width:500px;">
+      <div class="modal-h"><h3><i class="fas fa-image" style="color:var(--primary);margin-right:6px;"></i>Upload New Photo</h3><button onclick="closeModal('admin-gallery-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="lms-form-group"><label>Photo Title/Caption</label><input type="text" id="gal-title" placeholder="e.g. 2026 Sports Day"></div>
+        <div class="lms-form-group"><label>Select Image</label><input type="file" id="gal-file" accept="image/*" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #fff;"></div>
+        <button class="btn-lms-primary" id="btn-save-gal" style="width:100%; margin-top:1rem; padding: 0.8rem;" onclick="saveGalleryImage()"><i class="fas fa-upload"></i> Upload to Gallery</button>
+      </div>
+    </div>`;
+  openModal('admin-gallery-modal');
+};
+
+window.saveGalleryImage = async function() {
+  if(!supabaseClient) return toast('Database connection missing', 'error');
+  const title = document.getElementById('gal-title').value.trim();
+  const fileInput = document.getElementById('gal-file');
+  const btn = document.getElementById('btn-save-gal');
+  
+  if(fileInput.files.length === 0) return toast('Please select an image file.', 'error');
+  
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+  btn.disabled = true;
+  
+  const file = fileInput.files[0];
+  const filePath = `gallery/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+  
+  const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
+  if(uploadError) { btn.innerHTML = '<i class="fas fa-upload"></i> Upload to Gallery'; btn.disabled = false; return toast(uploadError.message, 'error'); }
+  
+  const { data: urlData } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
+  
+  const { data, error } = await supabaseClient.from('gallery_images').insert([{ image_url: urlData.publicUrl, title: title }]).select();
+  
+  if(error) { btn.innerHTML = '<i class="fas fa-upload"></i> Upload to Gallery'; btn.disabled = false; return toast(error.message, 'error'); }
+  
+  if(data) GALLERY_DB.unshift(data[0]);
+  closeModal('admin-gallery-modal');
+  renderPage('a-gallery');
+  toast('Photo uploaded successfully!');
+};
+
+window.deleteGalleryImage = async function(id) {
+  if(!supabaseClient) return;
+  if(confirm('Are you sure you want to delete this photo from the public gallery?')) {
+    const { error } = await supabaseClient.from('gallery_images').delete().eq('id', id);
+    if(error) return toast(error.message, 'error');
+    GALLERY_DB = GALLERY_DB.filter(img => String(img.id) !== String(id));
+    renderPage('a-gallery');
+    toast('Image deleted.');
+  }
+};
+
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded', async () => {
   const y=document.getElementById('year');
