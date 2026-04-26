@@ -267,21 +267,21 @@
 </div>
 
 <div class="lms-modal" id="homepage-popup-modal">
-  <div class="lms-modal-box" style="max-width: 400px; text-align: center; padding: 2.5rem 2rem; position: relative; border-radius: 16px;">
-    <button onclick="document.getElementById('homepage-popup-modal').classList.remove('open')" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8;"><i class="fas fa-times"></i></button>
+  <div class="lms-modal-box" style="max-width: 420px; text-align: center; padding: 2.5rem 2.5rem; position: relative; border-radius: 16px; border-top: 6px solid #facc15;">
+    <button onclick="closeModal('homepage-popup-modal')" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8;"><i class="fas fa-times"></i></button>
     
     <div style="margin-bottom: 1rem;">
-      <span style="background: #edf7ed; color: #4ade80; padding: 4px 12px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Notice</span>
+      <span style="background: #dcfce7; color: #166534; padding: 5px 14px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">HIRING</span>
     </div>
     
-    <h2 id="popup-title-display" style="color: var(--primary); font-size: 1.8rem; margin-bottom: 1rem; font-family: var(--font-lms-heading);">Title</h2>
+    <h2 id="popup-title-display" style="color: #0f172a; font-size: 1.8rem; margin-bottom: 1rem; font-family: var(--font-lms-heading), 'Poppins', sans-serif;"></h2>
     
-    <p id="popup-text-display" style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;">Loading content...</p>
+    <p id="popup-text-display" style="color: #64748b; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;"></p>
     
     <ul id="popup-bullets-display" style="list-style: none; padding: 0; margin: 0 auto 2rem; text-align: left; display: inline-block;">
       </ul>
     
-    <a href="#" id="popup-btn-display" class="btn-lms-primary" style="display: block; width: fit-content; margin: 0 auto; text-decoration: none; padding: 0.8rem 2rem; border-radius: 99px; font-weight: 600; box-shadow: 0 4px 15px rgba(13, 59, 102, 0.2);">Apply Now</a>
+    <a href="#" id="popup-btn-display" style="display: inline-block; background-color: #0f172a; color: white; text-decoration: none; padding: 0.8rem 2.5rem; border-radius: 99px; font-weight: 600; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2);"></a>
   </div>
 </div>
 
@@ -301,9 +301,12 @@
 
 <script>
   window.addEventListener('load', async function() {
+    // Only display popup once per browser session to maintain good UX
+    if (sessionStorage.getItem('lms_popup_viewed')) return;
+
     // Slight delay ensures the Supabase client mapped in script.js is fully initialized 
     setTimeout(async () => {
-      // Corrected: Checking the globally scoped variable directly, not the window object
+      // Direct check against the globally scoped variable initialized by your script.js
       if (typeof supabaseClient !== 'undefined' && supabaseClient) {
         try {
           const { data, error } = await supabaseClient
@@ -313,37 +316,43 @@
             .single();
 
           if (data && data.popup_enabled) {
-            document.getElementById('popup-title-display').textContent = data.popup_title || 'Notice';
+            document.getElementById('popup-title-display').textContent = data.popup_title || '';
             document.getElementById('popup-text-display').textContent = data.popup_text || '';
             
             const bulletsContainer = document.getElementById('popup-bullets-display');
-            bulletsContainer.innerHTML = ''; // Clear fallback 
+            bulletsContainer.innerHTML = ''; 
             
             if (data.popup_bullets) {
               const bullets = data.popup_bullets.split(',');
               bullets.forEach(b => {
+                const text = b.trim();
+                // Prevent rendering empty bullets if a trailing comma was left in settings
+                if (text === '') return; 
+                
                 const li = document.createElement('li');
                 li.style.marginBottom = '0.6rem';
                 li.style.color = '#334155';
                 li.style.fontWeight = '600';
-                // Using standard HTML icons to maintain the professional aesthetic requested
-                li.innerHTML = '<i class="fas fa-check-circle" style="color: #facc15; margin-right: 8px;"></i> ' + b.trim();
+                li.innerHTML = '<i class="fas fa-check-circle" style="color: #facc15; margin-right: 8px;"></i> ' + text;
                 bulletsContainer.appendChild(li);
               });
             }
             
             const btn = document.getElementById('popup-btn-display');
-            btn.textContent = data.popup_btn_text || 'Click Here';
+            btn.textContent = data.popup_btn_text || 'Continue';
             btn.href = data.popup_btn_link || '#';
 
-            // Trigger the modal
+            // Trigger modal display
             document.getElementById('homepage-popup-modal').classList.add('open');
+            
+            // Mark as viewed in session storage
+            sessionStorage.setItem('lms_popup_viewed', 'true');
           }
         } catch (err) {
           console.error("Popup fetch error:", err);
         }
       }
-    }, 600); // Trigger after the standard 600ms preloader
+    }, 600);
   });
 </script>
 
