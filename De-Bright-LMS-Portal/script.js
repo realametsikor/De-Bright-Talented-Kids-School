@@ -1357,9 +1357,10 @@ window.saveSiteSettings = async function() {
   if(error) return toast(error.message, 'error');
   
   SITE_SETTINGS = { ...SITE_SETTINGS, ...payload };
-  toast('Global Settings Updated! ✅');
+  toast('Global Settings Updated!');
   buildDashboard();
 };
+
 
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
 function injectAssignmentModal() {
