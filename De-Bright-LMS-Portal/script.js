@@ -2978,8 +2978,6 @@ window.generateAIQuiz = async function(id) {
 
   try {
     const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
-    
-    // THE FIX: Updated the URL to point to the active 'gemini-2.5-flash' model
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
@@ -3003,7 +3001,6 @@ window.generateAIQuiz = async function(id) {
 
     let jsonText = data.candidates[0].content.parts[0].text;
     
-    // BOMB-PROOF JSON CLEANUP: Forcefully strip markdown and isolate the array
     jsonText = jsonText.replace(/```json/gi, '').replace(/```/gi, '').trim();
     const arrayStart = jsonText.indexOf('[');
     const arrayEnd = jsonText.lastIndexOf(']');
@@ -3020,48 +3017,80 @@ window.generateAIQuiz = async function(id) {
        throw new Error("Parsed data is not an array.");
     }
 
-    renderAutoQuiz(quizData);
+    // Pass the material title to the renderer so it looks professional in the header
+    renderAutoQuiz(quizData, r.title);
     
   } catch(e) {
     console.error("AI Quiz Generation Failed:", e);
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
     btn.disabled = false;
-    
     toast('Error: ' + e.message, 'error');
   }
 };
 
-window.renderAutoQuiz = function(quizData) {
-  const container = document.getElementById('ai-quiz-container');
-  container.style.textAlign = 'left';
-  container.style.background = '#fff';
-  container.style.border = '1px solid var(--lms-border)';
-  
-  let html = `<h3 style="color:var(--primary); margin-bottom:1.5rem; border-bottom:2px solid #eff6ff; padding-bottom:1rem;"><i class="fas fa-robot"></i> AI Knowledge Check</h3>`;
-  
-  quizData.forEach((q, idx) => {
-    html += `
-      <div style="margin-bottom: 1.5rem;">
-        <strong style="display:block; font-size:1.05rem; margin-bottom:0.8rem;">${idx + 1}. ${q.q}</strong>
-        <div style="display:flex; flex-direction:column; gap:0.5rem;" id="ai-q-${idx}">
-          ${q.options.map((opt, oIdx) => `
-            <button onclick="checkAIAnswer(this, ${idx}, ${oIdx}, ${q.answer})" style="padding:0.8rem 1rem; text-align:left; border:1px solid var(--lms-border); border-radius:8px; background:#f8fafc; cursor:pointer; transition:all 0.2s; outline:none;">
-              ${opt}
-            </button>
-          `).join('')}
-        </div>
-      </div>
-    `;
-  });
+window.renderAutoQuiz = function(quizData, materialTitle) {
+  // 1. Force close the reading material modal so they can't cheat
+  const readerModal = document.getElementById('resource-reader-modal');
+  if(readerModal) readerModal.classList.remove('open');
 
-  container.innerHTML = html;
+  // 2. Create the professional full-screen quiz overlay
+  if(!document.getElementById('ai-quiz-overlay')) {
+    const d = document.createElement('div');
+    d.id = 'ai-quiz-overlay';
+    d.style = "display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#f8fafc; z-index:9999; overflow-y:auto;";
+    document.body.appendChild(d);
+  }
+
+  const overlay = document.getElementById('ai-quiz-overlay');
+  
+  // Setup state to track their grades
+  window.currentAIQuizState = { score: 0, total: quizData.length, answered: 0 };
+
+  overlay.innerHTML = `
+    <div style="background:#fff; padding:1rem 2rem; box-shadow:0 2px 10px rgba(0,0,0,0.05); position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin:0; font-size:1.2rem; color:var(--primary);"><i class="fas fa-robot" style="color:var(--accent); margin-right:8px;"></i>AI Knowledge Check</h2>
+      <button onclick="document.getElementById('ai-quiz-overlay').style.display='none'; document.body.style.overflow='';" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--lms-muted);"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div style="max-width:800px; margin:2rem auto; padding:0 1rem; padding-bottom:100px;">
+      <div style="text-align:center; margin-bottom: 2rem;">
+         <span class="chip blue" style="font-size:0.85rem; margin-bottom:0.5rem; padding: 6px 12px;">${materialTitle}</span>
+         <h3 style="color:var(--lms-muted); font-size:1rem; font-weight:500;">Answer all questions below to see your final score.</h3>
+      </div>
+
+      ${quizData.map((q, idx) => `
+        <div class="ai-q-card" style="background:#fff; padding:2rem; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.04); margin-bottom: 1.5rem; border: 1px solid var(--lms-border);">
+          <h3 style="margin-top:0; font-size:1.15rem; line-height:1.6; color:var(--text);"><span style="color:var(--accent); margin-right:8px; font-weight:800;">${idx + 1}.</span> ${q.q}</h3>
+          <div style="display:flex; flex-direction:column; gap:0.8rem; margin-top:1.5rem;" id="ai-q-opts-${idx}">
+            ${q.options.map((opt, oIdx) => `
+              <button onclick="checkAIAnswer(this, ${idx}, ${oIdx}, ${q.answer})" style="padding:1.2rem 1.5rem; text-align:left; border:2px solid var(--lms-border); border-radius:10px; background:#f8fafc; cursor:pointer; transition:all 0.2s; outline:none; font-size:1.05rem; color:var(--text); font-family:var(--font-lms);" onmouseover="if(!this.disabled) this.style.borderColor='var(--primary)'" onmouseout="if(!this.disabled) this.style.borderColor='var(--lms-border)'">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+
+      <!-- HIDDEN RESULTS CARD (Shows when finished) -->
+      <div id="ai-quiz-results" style="display:none; text-align:center; background:#fff; padding:3rem 2rem; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.08); border-top:5px solid var(--accent); margin-top:3rem;">
+         <h2 style="font-size:2rem; color:var(--primary); margin-bottom:0.5rem;">Quiz Complete!</h2>
+         <p style="color:var(--lms-muted); font-size:1rem; margin-bottom:1.5rem;" id="ai-final-msg"></p>
+         <div style="font-size:4rem; font-weight:800; color:var(--primary); margin-bottom:2rem; background:var(--lms-surface); display:inline-block; padding:1rem 3rem; border-radius:16px;" id="ai-final-score">0 / 3</div>
+         <br>
+         <button class="btn-lms-primary" style="padding:1rem 3rem; font-size:1.1rem; border-radius:99px; box-shadow:0 4px 15px rgba(10,37,64,0.2);" onclick="document.getElementById('ai-quiz-overlay').style.display='none'; document.body.style.overflow='';"><i class="fas fa-check"></i> Finish & Close</button>
+      </div>
+    </div>
+  `;
+
+  overlay.style.display = 'block';
+  document.body.style.overflow = 'hidden'; // Prevents background scrolling behind the quiz
 };
 
 window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
-  const parent = document.getElementById(`ai-q-${qIdx}`);
+  const parent = document.getElementById(`ai-q-opts-${qIdx}`);
   const buttons = parent.querySelectorAll('button');
-  
-  // Disable all buttons in this question after selection
+
+  // Lock in the answers so they can't change it
   buttons.forEach(b => {
     b.disabled = true;
     b.style.cursor = 'default';
@@ -3071,17 +3100,43 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
     btn.style.background = '#dcfce7';
     btn.style.borderColor = '#22c55e';
     btn.style.color = '#15803d';
-    btn.innerHTML += ' <i class="fas fa-check-circle" style="float:right;"></i>';
+    btn.innerHTML += ' <i class="fas fa-check-circle" style="float:right; font-size:1.3rem;"></i>';
+    window.currentAIQuizState.score++;
   } else {
     btn.style.background = '#fee2e2';
     btn.style.borderColor = '#ef4444';
     btn.style.color = '#b91c1c';
-    btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right;"></i>';
-    
-    // Highlight the correct one so the student learns the answer
+    btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right; font-size:1.3rem;"></i>';
+
+    // Highlight the correct answer so they learn from the mistake
     buttons[correctIdx].style.background = '#dcfce7';
     buttons[correctIdx].style.borderColor = '#22c55e';
     buttons[correctIdx].style.color = '#15803d';
+    buttons[correctIdx].innerHTML += ' <i class="fas fa-check-circle" style="float:right; font-size:1.3rem;"></i>';
+  }
+
+  window.currentAIQuizState.answered++;
+
+  // Reveal the Score Card if all questions are answered
+  if (window.currentAIQuizState.answered === window.currentAIQuizState.total) {
+    setTimeout(() => {
+        const resDiv = document.getElementById('ai-quiz-results');
+        const score = window.currentAIQuizState.score;
+        const total = window.currentAIQuizState.total;
+        const pct = score / total;
+
+        document.getElementById('ai-final-score').innerHTML = `${score} <span style="color:var(--lms-muted); font-size:2.5rem;">/ ${total}</span>`;
+
+        let msg = "Good effort! Review the material and try again.";
+        if (pct === 1) msg = "Perfect score! You have mastered this material. 🏆";
+        else if (pct >= 0.6) msg = "Great job! You have a solid understanding. 👍";
+
+        document.getElementById('ai-final-msg').innerHTML = msg;
+        resDiv.style.display = 'block';
+
+        // Auto-scroll the student down to see their score
+        resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 800); // Slight delay so they can see if their last answer was right or wrong
   }
 };
 
