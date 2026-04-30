@@ -2826,27 +2826,46 @@ window.openResourceManager = function() {
   }
   
   const availableQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
+  
+  // Build datalist for subjects so they can click or type
+  let datalistHTML = '<datalist id="res-subject-list">';
+  SUBJECTS.forEach(s => { datalistHTML += `<option value="${s.name}">`; });
+  datalistHTML += '</datalist>';
 
   document.getElementById('resource-manager-modal').innerHTML = `
     <div class="lms-modal-box" style="max-width:700px;">
       <div class="modal-h"><h3><i class="fas fa-book" style="color:var(--accent);margin-right:6px;"></i>Create Reading Material</h3><button onclick="closeModal('resource-manager-modal')"><i class="fas fa-times"></i></button></div>
       <div class="modal-body">
+        ${datalistHTML}
         <div class="lms-form-group"><label>Material Title</label><input type="text" id="res-title" placeholder="e.g. Chapter 1: The Solar System"></div>
+        
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
-          <div class="lms-form-group"><label>Subject</label><select id="res-subject">${SUBJECTS.map(s=>`<option value="${s.name}">${s.name}</option>`).join('')}</select></div>
-          <div class="lms-form-group"><label>Link to Quiz (Optional)</label>
-            <select id="res-quiz-link">
-              <option value="">-- No Quiz --</option>
-              ${availableQuizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('')}
-            </select>
+          <div class="lms-form-group">
+            <label>Subject</label>
+            <input type="text" id="res-subject" list="res-subject-list" placeholder="Select or type custom subject..." style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--lms-border); border-radius: 10px; font-family: var(--font-lms);">
+          </div>
+          <div class="lms-form-group">
+            <label>Upload Ebook/File (Optional)</label>
+            <input type="file" id="res-file" accept=".pdf,.doc,.docx,.epub" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
           </div>
         </div>
+
         <div class="lms-form-group">
-          <label>In-App Reading Content</label>
-          <textarea id="res-content" rows="10" placeholder="Type or paste the chapter content here. Students will read this in the app..." style="line-height:1.6; font-size:1rem; padding: 1rem;"></textarea>
+          <label>In-App Reading Content (Optional if file attached)</label>
+          <textarea id="res-content" rows="6" placeholder="Type or paste the chapter content here. Students will read this directly in the app..." style="line-height:1.6; font-size:1rem; padding: 1rem;"></textarea>
         </div>
+
+        <div style="background: #f8fafc; border: 1px solid var(--lms-border); border-radius: 10px; padding: 1.2rem; margin-bottom: 1rem;">
+          <label style="display:flex; align-items:center; gap:0.5rem; color:var(--primary); font-size: 0.9rem; font-weight:700; margin-bottom:0.3rem;"><i class="fas fa-stopwatch" style="color:var(--accent);"></i> Knowledge Check Integration</label>
+          <p style="font-size:0.8rem; color:var(--lms-muted); margin-bottom:0.8rem;">Link an active quiz to automatically prompt students after they finish reading.</p>
+          <select id="res-quiz-link" style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--lms-border); border-radius:8px; font-family:var(--font-lms); font-size:0.9rem; outline:none; cursor:pointer; background: #fff;">
+            <option value="">-- No Quiz Linked --</option>
+            ${availableQuizzes.map(q => `<option value="${q.id}">${q.title} (${q.duration} mins)</option>`).join('')}
+          </select>
+        </div>
+
         <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
-          <button class="btn-lms-primary" id="btn-save-res" style="flex:1;" onclick="saveResource()"><i class="fas fa-save"></i> Publish Material</button>
+          <button class="btn-lms-primary" id="btn-save-res" style="flex:1;" onclick="saveResource()"><i class="fas fa-upload"></i> Publish Material</button>
         </div>
       </div>
     </div>`;
@@ -2857,24 +2876,43 @@ window.saveResource = async function() {
   if(!supabaseClient) return toast('Database error', 'error');
   const btn = document.getElementById('btn-save-res');
   const title = document.getElementById('res-title').value.trim();
-  const subject = document.getElementById('res-subject').value;
+  const subject = document.getElementById('res-subject').value.trim();
   const content = document.getElementById('res-content').value.trim();
   const linkedQuiz = document.getElementById('res-quiz-link').value;
+  const fileInput = document.getElementById('res-file');
 
-  if(!title || !content) return toast('Title and content are required', 'error');
+  if(!title || !subject) return toast('Title and Subject are required', 'error');
+  if(!content && fileInput.files.length === 0) return toast('Please provide either text content or upload a file.', 'error');
 
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
   btn.disabled = true;
 
+  let fileUrl = null;
+  
+  // Handle the file upload if a file was selected
+  if(fileInput.files.length > 0) {
+    const file = fileInput.files[0];
+    const filePath = `resources/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+    const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
+    
+    if(uploadError) {
+      btn.innerHTML = '<i class="fas fa-upload"></i> Publish Material'; btn.disabled = false;
+      return toast('File upload failed: ' + uploadError.message, 'error');
+    }
+    const { data: publicUrlData } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
+    fileUrl = publicUrlData.publicUrl;
+  }
+
   const payload = {
     title, subject, content,
+    file_url: fileUrl,
     class: currentUser.class,
     author_name: currentUser.name,
     linked_quiz_id: linkedQuiz || null
   };
 
   const { data, error } = await supabaseClient.from('resources').insert([payload]).select();
-  if(error) { btn.innerHTML = 'Publish Material'; btn.disabled = false; return toast(error.message, 'error'); }
+  if(error) { btn.innerHTML = '<i class="fas fa-upload"></i> Publish Material'; btn.disabled = false; return toast(error.message, 'error'); }
 
   if(data) RESOURCES.unshift(data[0]);
   closeModal('resource-manager-modal');
@@ -2915,6 +2953,25 @@ window.openResourceReader = function(id) {
     }
   }
 
+  let fileBlock = '';
+  if (r.file_url) {
+     const isPDF = r.file_url.toLowerCase().includes('.pdf');
+     fileBlock = `
+       <div style="margin-bottom: 2rem; padding: 1.5rem; background: #fff; border: 1px solid var(--lms-border); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+         <div style="display:flex; align-items:center; gap: 1rem;">
+            <div style="width:48px; height:48px; background:var(--lms-red); color:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">
+               <i class="fas ${isPDF ? 'fa-file-pdf' : 'fa-file-alt'}"></i>
+            </div>
+            <div>
+              <strong style="display:block; color:var(--text); font-size:1rem;">Attached Document</strong>
+              <span style="color:var(--lms-muted); font-size:0.8rem;">Click to open and read full screen</span>
+            </div>
+         </div>
+         <a href="${r.file_url}" target="_blank" class="btn-outline" style="text-decoration:none;"><i class="fas fa-external-link-alt"></i> Open File</a>
+       </div>
+     `;
+  }
+
   document.getElementById('resource-reader-modal').innerHTML = `
     <div class="lms-modal-box" style="max-width: 800px; height: 90vh; display: flex; flex-direction: column; background: #fffcf8;">
       <div class="modal-h" style="background: #fffcf8; border-bottom: 1px solid #eaeaea;">
@@ -2924,13 +2981,18 @@ window.openResourceReader = function(id) {
       <div class="modal-body" style="overflow-y: auto; padding: 2rem 3rem; flex: 1;">
         <h1 style="font-family: 'Merriweather', serif; font-size: 2rem; color: #111; margin-bottom: 0.5rem; line-height: 1.3;">${r.title}</h1>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 2.5rem; text-transform: uppercase; letter-spacing: 1px;">By ${r.author_name}</div>
-        <div style="font-family: 'Georgia', serif; font-size: 1.15rem; line-height: 1.8; color: #222; white-space: pre-wrap;">${r.content}</div>
+        
+        ${fileBlock}
+        
+        ${r.content ? `<div style="font-family: 'Georgia', serif; font-size: 1.15rem; line-height: 1.8; color: #222; white-space: pre-wrap;">${r.content}</div>` : ''}
+        
         ${quizBanner}
       </div>
     </div>
   `;
   openModal('resource-reader-modal');
 };
+
 
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded', async () => {
