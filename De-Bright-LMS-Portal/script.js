@@ -2964,36 +2964,47 @@ window.openResourceReader = function(id) {
   openModal('resource-reader-modal');
 };
 
-/* --- CLAUDE AI SECURE AUTO-QUIZ GENERATOR --- */
+/* --- GOOGLE GEMINI AI AUTO-QUIZ GENERATOR --- */
 window.generateAIQuiz = async function(id) {
   const r = RESOURCES.find(x => String(x.id) === String(id));
   const btn = document.getElementById('ai-quiz-btn');
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading material & writing questions...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating questions...';
   btn.disabled = true;
 
   const prompt = `You are a strict teacher. Read the following text and generate exactly 3 multiple-choice questions to test the student.
-  Return ONLY a raw JSON array. No markdown, no introductory text. 
-  Format: [{"q": "Question?", "options": ["A", "B", "C", "D"], "answer": 1}] (where answer is the index 0-3 of the correct option).
+  Return ONLY a raw JSON array. No markdown formatting, no introductory text, no backticks. 
+  Format: [{"q": "Question text?", "options": ["A", "B", "C", "D"], "answer": 1}] (where answer is the index 0-3 of the correct option).
   Text: ${r.content.substring(0, 4000)}`;
 
   try {
-    const response = await fetch('/api/generate-quiz', {
+    const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt })
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { response_mime_type: "application/json" }
+      })
     });
 
-    if (!response.ok) throw new Error('Secure API Request Failed');
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Gemini API Error: ${errText}`);
+    }
     
-    // Gemini returns the parsed array directly from our new serverless function
-    const quizData = await response.json();
+    const data = await response.json();
+    let jsonText = data.candidates[0].content.parts[0].text;
+    
+    const quizData = JSON.parse(jsonText);
     renderAutoQuiz(quizData);
     
   } catch(e) {
-    console.error(e);
+    console.error("AI Quiz Generation Failed:", e);
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
     btn.disabled = false;
-    toast('Failed to generate quiz. Please check server logs.', 'error');
+    toast('Failed to generate quiz. Please try again.', 'error');
   }
 };
 
