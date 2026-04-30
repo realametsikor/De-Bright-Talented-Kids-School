@@ -1125,7 +1125,6 @@ const pages = {
               <span style="font-size:0.8rem; color:var(--lms-muted);">${fmtDate(r.created_at)}</span>
             </div>
             <strong style="font-size:1.1rem; color:var(--text);">${r.title}</strong>
-            ${r.linked_quiz_id ? `<div style="margin-top:8px; font-size:0.8rem; color:var(--lms-green);"><i class="fas fa-link"></i> Linked to Quiz</div>` : ''}
           </div>
           <div style="display:flex; gap:0.5rem; margin-top:auto;">
             <button class="btn-outline" style="flex:1; padding:0.5rem; border-radius:6px;" onclick="openResourceReader('${r.id}')"><i class="fas fa-book-reader"></i> Preview</button>
@@ -1135,6 +1134,7 @@ const pages = {
       `).join('')}
   </div>`;
 },
+
 
 't-attendance':() => {
   const today = new Date().toISOString().split('T')[0];
