@@ -2978,7 +2978,8 @@ window.generateAIQuiz = async function(id) {
 
   try {
     const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // THE FIX: Using the approved Free-Tier model for 2026
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -2991,7 +2992,7 @@ window.generateAIQuiz = async function(id) {
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`API Error: ${response.status}`);
+      throw new Error(`API Error ${response.status}: ${errText}`);
     }
     
     const data = await response.json();
@@ -3026,7 +3027,13 @@ window.generateAIQuiz = async function(id) {
     console.error("AI Quiz Generation Failed:", e);
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
     btn.disabled = false;
-    toast('Error: ' + e.message, 'error');
+    
+    // Clean, readable error handling so we know exactly what is wrong
+    let errMsg = e.message;
+    if (errMsg.includes('403')) errMsg = "403 Forbidden: API Key does not have access to this model (Free Tier restriction).";
+    if (errMsg.includes('404')) errMsg = "404 Not Found: The AI model version is retired.";
+    
+    toast('Error: ' + errMsg, 'error');
   }
 };
 
@@ -3092,7 +3099,7 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
   const parent = document.getElementById(`ai-q-opts-${qIdx}`);
   const buttons = parent.querySelectorAll('button');
 
-  // Lock in the answers
+  // Lock in the answers so they can't change it
   buttons.forEach(b => {
     b.disabled = true;
     b.style.cursor = 'default';
@@ -3110,6 +3117,7 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
     btn.style.color = '#b91c1c';
     btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right; font-size:1.3rem;"></i>';
 
+    // Highlight the correct answer so they learn from the mistake
     buttons[correctIdx].style.background = '#dcfce7';
     buttons[correctIdx].style.borderColor = '#22c55e';
     buttons[correctIdx].style.color = '#15803d';
@@ -3135,6 +3143,7 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
         document.getElementById('ai-final-msg').innerHTML = msg;
         resDiv.style.display = 'block';
 
+        // Auto-scroll the student down to see their score
         resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 800); 
   }
