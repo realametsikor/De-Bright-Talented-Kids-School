@@ -2964,7 +2964,7 @@ window.openResourceReader = function(id) {
   openModal('resource-reader-modal');
 };
 
-/* ====================== GOOGLE GEMINI AI AUTO-QUIZ GENERATOR ====================== */
+/* ====================== SECURE VERCEL AI AUTO-QUIZ GENERATOR ====================== */
 window.generateAIQuiz = async function(id) {
   const r = RESOURCES.find(x => String(x.id) === String(id));
   const btn = document.getElementById('ai-quiz-btn');
@@ -2977,72 +2977,39 @@ window.generateAIQuiz = async function(id) {
   Text: ${r.content.substring(0, 4000)}`;
 
   try {
-    const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
-    // THE FIX: Using the approved Free-Tier model for 2026
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-    const response = await fetch(url, {
+    // Calling your secure Vercel backend
+    const response = await fetch('/api/generate-quiz', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { response_mime_type: "application/json" }
-      })
+      body: JSON.stringify({ prompt: prompt })
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`API Error ${response.status}: ${errText}`);
+      throw new Error(`Server Error: ${response.status}`);
     }
     
-    const data = await response.json();
-    
-    if (!data.candidates || data.candidates.length === 0) {
-        throw new Error("AI returned an empty response.");
-    }
-
-    let jsonText = data.candidates[0].content.parts[0].text;
-    
-    // BOMB-PROOF JSON CLEANUP
-    jsonText = jsonText.replace(/```json/gi, '').replace(/```/gi, '').trim();
-    const arrayStart = jsonText.indexOf('[');
-    const arrayEnd = jsonText.lastIndexOf(']');
-    
-    if (arrayStart !== -1 && arrayEnd !== -1) {
-        jsonText = jsonText.substring(arrayStart, arrayEnd + 1);
-    } else {
-        throw new Error("AI did not return a valid array structure.");
-    }
-    
-    const quizData = JSON.parse(jsonText);
+    // The backend already parsed the JSON, so we just receive it directly
+    const quizData = await response.json();
     
     if(!Array.isArray(quizData)) {
-       throw new Error("Parsed data is not an array.");
+       throw new Error("Parsed data from server is not an array.");
     }
 
-    // Pass the material title to the renderer so it looks professional in the header
+    // Launch the full-screen Quiz UI
     renderAutoQuiz(quizData, r.title);
     
   } catch(e) {
     console.error("AI Quiz Generation Failed:", e);
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
     btn.disabled = false;
-    
-    // Clean, readable error handling so we know exactly what is wrong
-    let errMsg = e.message;
-    if (errMsg.includes('403')) errMsg = "403 Forbidden: API Key does not have access to this model (Free Tier restriction).";
-    if (errMsg.includes('404')) errMsg = "404 Not Found: The AI model version is retired.";
-    
-    toast('Error: ' + errMsg, 'error');
+    toast('Error: ' + e.message, 'error');
   }
 };
 
 window.renderAutoQuiz = function(quizData, materialTitle) {
-  // 1. Force close the reading material modal so they can't cheat
   const readerModal = document.getElementById('resource-reader-modal');
   if(readerModal) readerModal.classList.remove('open');
 
-  // 2. Create the professional full-screen quiz overlay
   if(!document.getElementById('ai-quiz-overlay')) {
     const d = document.createElement('div');
     d.id = 'ai-quiz-overlay';
@@ -3051,8 +3018,6 @@ window.renderAutoQuiz = function(quizData, materialTitle) {
   }
 
   const overlay = document.getElementById('ai-quiz-overlay');
-  
-  // Setup state to track their grades
   window.currentAIQuizState = { score: 0, total: quizData.length, answered: 0 };
 
   overlay.innerHTML = `
@@ -3080,7 +3045,6 @@ window.renderAutoQuiz = function(quizData, materialTitle) {
         </div>
       `).join('')}
 
-      <!-- HIDDEN RESULTS CARD (Shows when finished) -->
       <div id="ai-quiz-results" style="display:none; text-align:center; background:#fff; padding:3rem 2rem; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.08); border-top:5px solid var(--accent); margin-top:3rem;">
          <h2 style="font-size:2rem; color:var(--primary); margin-bottom:0.5rem;">Quiz Complete!</h2>
          <p style="color:var(--lms-muted); font-size:1rem; margin-bottom:1.5rem;" id="ai-final-msg"></p>
@@ -3099,7 +3063,6 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
   const parent = document.getElementById(`ai-q-opts-${qIdx}`);
   const buttons = parent.querySelectorAll('button');
 
-  // Lock in the answers so they can't change it
   buttons.forEach(b => {
     b.disabled = true;
     b.style.cursor = 'default';
@@ -3117,7 +3080,6 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
     btn.style.color = '#b91c1c';
     btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right; font-size:1.3rem;"></i>';
 
-    // Highlight the correct answer so they learn from the mistake
     buttons[correctIdx].style.background = '#dcfce7';
     buttons[correctIdx].style.borderColor = '#22c55e';
     buttons[correctIdx].style.color = '#15803d';
@@ -3126,7 +3088,6 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
 
   window.currentAIQuizState.answered++;
 
-  // Reveal the Score Card if all questions are answered
   if (window.currentAIQuizState.answered === window.currentAIQuizState.total) {
     setTimeout(() => {
         const resDiv = document.getElementById('ai-quiz-results');
@@ -3143,7 +3104,6 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
         document.getElementById('ai-final-msg').innerHTML = msg;
         resDiv.style.display = 'block';
 
-        // Auto-scroll the student down to see their score
         resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 800); 
   }
