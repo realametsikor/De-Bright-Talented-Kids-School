@@ -136,7 +136,7 @@ function launchPortal() {
 async function fetchAllData(){
   if(!supabaseClient) return;
   try {
-    const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes, teachRes, artRes, setRes, galRes, evRes] = await Promise.all([
+        const [asgn, subs, stdRes, repRes, qzRes, qzSubRes, attRes, notRes, comRes, subjRes, gradesRes, classRes, teachRes, artRes, setRes, galRes, evRes, resData] = await Promise.all([
       supabaseClient.from('assignments').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('submissions').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('students').select('*').order('name',{ascending:true}), 
@@ -153,7 +153,8 @@ async function fetchAllData(){
       supabaseClient.from('articles').select('*').order('created_at',{ascending:false}),
       supabaseClient.from('site_settings').select('*').eq('id', 1).single(),
       supabaseClient.from('gallery_images').select('*').order('created_at',{ascending:false}),
-      supabaseClient.from('events').select('*').order('event_date',{ascending:true})
+      supabaseClient.from('events').select('*').order('event_date',{ascending:true}),
+      supabaseClient.from('resources').select('*').order('created_at',{ascending:false})
     ]);
 
     if(asgn.data) ASSIGNMENTS = asgn.data.map(mapAssignment);
