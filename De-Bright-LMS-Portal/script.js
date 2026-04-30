@@ -2977,24 +2977,18 @@ window.generateAIQuiz = async function(id) {
   Text: ${r.content.substring(0, 4000)}`;
 
   try {
-    // SECURE CALL: This routes to your Vercel Serverless Function instead of exposing the API key!
     const response = await fetch('/api/generate-quiz', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: prompt })
     });
 
     if (!response.ok) throw new Error('Secure API Request Failed');
     
-    const data = await response.json();
-    let jsonText = data.content[0].text;
-    
-    jsonText = jsonText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
-    const quizData = JSON.parse(jsonText);
-    
+    // Gemini returns the parsed array directly from our new serverless function
+    const quizData = await response.json();
     renderAutoQuiz(quizData);
+    
   } catch(e) {
     console.error(e);
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
