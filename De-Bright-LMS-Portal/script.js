@@ -1087,8 +1087,54 @@ const pages = {
 
 's-notices':()=>buildNotices(),
 't-notices':()=>buildNotices(true),
-'s-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & downloads</span></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>`,
-'t-resources':()=>`<div class="page-header" style="margin-bottom:2rem;"><h2>Resource Library</h2></div><div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">Library Ready</h3></div>`,
+'s-resources': () => {
+  const classRes = RESOURCES.filter(r => r.class === currentUser.class || r.class === 'All');
+  return `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Study Resources</h2><span style="color:var(--lms-muted);">Course materials & chapters</span></div>
+  <div style="display: flex; flex-direction: column; gap: 1rem;">
+    ${classRes.length === 0 ? '<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><i class="fas fa-folder-open" style="font-size:3rem;color:var(--lms-blue);margin-bottom:1rem;"></i><h3 style="color:var(--primary);">No Resources Yet</h3></div>' : 
+      classRes.map(r => `
+        <div style="background:#fff; border-radius:12px; padding:1.5rem; box-shadow:0 4px 15px rgba(0,0,0,0.03); border-left:5px solid var(--primary); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+          <div>
+            <span class="chip blue" style="margin-bottom:8px;">${r.subject}</span>
+            <strong style="font-size:1.15rem; display:block; color:var(--text); margin-bottom:4px;">${r.title}</strong>
+            <span style="font-size:0.85rem; color:var(--lms-muted);"><i class="fas fa-user-edit"></i> ${r.author_name}</span>
+          </div>
+          <div>
+            <button class="btn-lms-primary" style="padding:0.6rem 1.5rem; border-radius:8px; background:var(--primary);" onclick="openResourceReader('${r.id}')"><i class="fas fa-book-reader"></i> Read Now</button>
+          </div>
+        </div>
+      `).join('')}
+  </div>`;
+},
+
+'t-resources': () => {
+  const classRes = RESOURCES.filter(r => r.class === currentUser.class || currentUser.role === 'admin');
+  return `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
+    <div><h2>Resource Library</h2><span style="color:var(--lms-muted);">Author and manage reading materials</span></div>
+    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px;" onclick="openResourceManager()"><i class="fas fa-plus"></i> Create Material</button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    ${classRes.length === 0 ? `<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No materials published yet.</p></div>` : 
+      classRes.map(r => `
+        <div style="background:#fff; padding:1.5rem; border-radius:12px; border-left:5px solid var(--lms-blue); box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column; gap:1rem;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+              <span class="chip blue">${r.subject}</span>
+              <span style="font-size:0.8rem; color:var(--lms-muted);">${fmtDate(r.created_at)}</span>
+            </div>
+            <strong style="font-size:1.1rem; color:var(--text);">${r.title}</strong>
+            ${r.linked_quiz_id ? `<div style="margin-top:8px; font-size:0.8rem; color:var(--lms-green);"><i class="fas fa-link"></i> Linked to Quiz</div>` : ''}
+          </div>
+          <div style="display:flex; gap:0.5rem; margin-top:auto;">
+            <button class="btn-outline" style="flex:1; padding:0.5rem; border-radius:6px;" onclick="openResourceReader('${r.id}')"><i class="fas fa-book-reader"></i> Preview</button>
+            <button class="btn-danger" style="padding:0.5rem; border-radius:6px;" onclick="deleteResource('${r.id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      `).join('')}
+  </div>`;
+},
 
 't-attendance':() => {
   const today = new Date().toISOString().split('T')[0];
