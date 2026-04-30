@@ -2977,9 +2977,10 @@ window.generateAIQuiz = async function(id) {
   Text: ${r.content.substring(0, 4000)}`;
 
   try {
-    // Your Gemini API Key
     const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    
+    // THE FIX: Updated the URL to point to the active 'gemini-2.5-flash' model
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -3026,7 +3027,6 @@ window.generateAIQuiz = async function(id) {
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
     btn.disabled = false;
     
-    // Prints the exact error message to your screen so we can see what broke
     toast('Error: ' + e.message, 'error');
   }
 };
