@@ -2817,6 +2817,120 @@ window.deleteEvent = async function(id) {
     renderPage('a-events'); toast('Event deleted.', 'error');
   }
 };
+/* ====================== RESOURCE MANAGER (KINDLE READER & UPLOADER) ====================== */
+window.openResourceManager = function() {
+  if(!document.getElementById('resource-manager-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'resource-manager-modal';
+    document.body.appendChild(m);
+  }
+  
+  const availableQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
+
+  document.getElementById('resource-manager-modal').innerHTML = `
+    <div class="lms-modal-box" style="max-width:700px;">
+      <div class="modal-h"><h3><i class="fas fa-book" style="color:var(--accent);margin-right:6px;"></i>Create Reading Material</h3><button onclick="closeModal('resource-manager-modal')"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body">
+        <div class="lms-form-group"><label>Material Title</label><input type="text" id="res-title" placeholder="e.g. Chapter 1: The Solar System"></div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem;">
+          <div class="lms-form-group"><label>Subject</label><select id="res-subject">${SUBJECTS.map(s=>`<option value="${s.name}">${s.name}</option>`).join('')}</select></div>
+          <div class="lms-form-group"><label>Link to Quiz (Optional)</label>
+            <select id="res-quiz-link">
+              <option value="">-- No Quiz --</option>
+              ${availableQuizzes.map(q => `<option value="${q.id}">${q.title}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <div class="lms-form-group">
+          <label>In-App Reading Content</label>
+          <textarea id="res-content" rows="10" placeholder="Type or paste the chapter content here. Students will read this in the app..." style="line-height:1.6; font-size:1rem; padding: 1rem;"></textarea>
+        </div>
+        <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
+          <button class="btn-lms-primary" id="btn-save-res" style="flex:1;" onclick="saveResource()"><i class="fas fa-save"></i> Publish Material</button>
+        </div>
+      </div>
+    </div>`;
+  openModal('resource-manager-modal');
+};
+
+window.saveResource = async function() {
+  if(!supabaseClient) return toast('Database error', 'error');
+  const btn = document.getElementById('btn-save-res');
+  const title = document.getElementById('res-title').value.trim();
+  const subject = document.getElementById('res-subject').value;
+  const content = document.getElementById('res-content').value.trim();
+  const linkedQuiz = document.getElementById('res-quiz-link').value;
+
+  if(!title || !content) return toast('Title and content are required', 'error');
+
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
+  btn.disabled = true;
+
+  const payload = {
+    title, subject, content,
+    class: currentUser.class,
+    author_name: currentUser.name,
+    linked_quiz_id: linkedQuiz || null
+  };
+
+  const { data, error } = await supabaseClient.from('resources').insert([payload]).select();
+  if(error) { btn.innerHTML = 'Publish Material'; btn.disabled = false; return toast(error.message, 'error'); }
+
+  if(data) RESOURCES.unshift(data[0]);
+  closeModal('resource-manager-modal');
+  renderPage('t-resources');
+  toast('Material published successfully!');
+};
+
+window.deleteResource = async function(id) {
+  if(confirm('Permanently delete this material?')) {
+    await supabaseClient.from('resources').delete().eq('id', id);
+    RESOURCES = RESOURCES.filter(r => r.id !== id);
+    renderPage('t-resources');
+    toast('Material removed.', 'error');
+  }
+};
+
+window.openResourceReader = function(id) {
+  const r = RESOURCES.find(x => String(x.id) === String(id));
+  if(!r) return;
+
+  if(!document.getElementById('resource-reader-modal')) {
+    const m = document.createElement('div');
+    m.className = 'lms-modal'; m.id = 'resource-reader-modal';
+    document.body.appendChild(m);
+  }
+
+  let quizBanner = '';
+  if (r.linked_quiz_id) {
+    const linkedQuiz = QUIZZES.find(q => q.id === r.linked_quiz_id);
+    if (linkedQuiz) {
+      quizBanner = `
+        <div style="margin-top: 3rem; padding: 2rem; background: var(--lms-surface); border-radius: 12px; text-align: center; border: 2px dashed var(--accent);">
+          <h3 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-tasks"></i> Ready to test your knowledge?</h3>
+          <p style="color: var(--lms-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Your teacher has assigned a quiz for this material.</p>
+          <button class="btn-lms-primary" style="padding: 0.8rem 2rem; font-size: 1.1rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(251, 192, 45, 0.3); background: var(--accent); color: var(--primary);" onclick="closeModal('resource-reader-modal'); startQuizPlayer('${linkedQuiz.id}')">Start Quiz Now</button>
+        </div>
+      `;
+    }
+  }
+
+  document.getElementById('resource-reader-modal').innerHTML = `
+    <div class="lms-modal-box" style="max-width: 800px; height: 90vh; display: flex; flex-direction: column; background: #fffcf8;">
+      <div class="modal-h" style="background: #fffcf8; border-bottom: 1px solid #eaeaea;">
+        <h3 style="font-family: 'Merriweather', serif; color: #333;"><i class="fas fa-book-open" style="color:var(--lms-muted); margin-right:8px;"></i>${r.subject}</h3>
+        <button onclick="closeModal('resource-reader-modal')"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; padding: 2rem 3rem; flex: 1;">
+        <h1 style="font-family: 'Merriweather', serif; font-size: 2rem; color: #111; margin-bottom: 0.5rem; line-height: 1.3;">${r.title}</h1>
+        <div style="font-size: 0.9rem; color: #666; margin-bottom: 2.5rem; text-transform: uppercase; letter-spacing: 1px;">By ${r.author_name}</div>
+        <div style="font-family: 'Georgia', serif; font-size: 1.15rem; line-height: 1.8; color: #222; white-space: pre-wrap;">${r.content}</div>
+        ${quizBanner}
+      </div>
+    </div>
+  `;
+  openModal('resource-reader-modal');
+};
 
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded', async () => {
