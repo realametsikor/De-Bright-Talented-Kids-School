@@ -173,7 +173,8 @@ async function fetchAllData(){
     if(setRes && setRes.data) SITE_SETTINGS = setRes.data;
     if(galRes && galRes.data) GALLERY_DB = galRes.data;
     if(evRes && evRes.data) EVENTS_DB = evRes.data;
-    
+    if(resData && resData.data) RESOURCES = resData.data;
+
     if(classRes && classRes.data) {
       TIMETABLE = classRes.data.timetable_data || [];
       TT_TIMES = classRes.data.timetable_times || [];
