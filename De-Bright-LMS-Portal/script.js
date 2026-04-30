@@ -2817,7 +2817,8 @@ window.deleteEvent = async function(id) {
     renderPage('a-events'); toast('Event deleted.', 'error');
   }
 };
-/* ====================== RESOURCE MANAGER (KINDLE READER & UPLOADER) ====================== */
+
+/* ====================== RESOURCE MANAGER (IN-APP READER & SECURE AI QUIZ) ====================== */
 window.openResourceManager = function() {
   if(!document.getElementById('resource-manager-modal')) {
     const m = document.createElement('div');
@@ -2825,9 +2826,6 @@ window.openResourceManager = function() {
     document.body.appendChild(m);
   }
   
-  const availableQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
-  
-  // Build datalist for subjects so they can click or type
   let datalistHTML = '<datalist id="res-subject-list">';
   SUBJECTS.forEach(s => { datalistHTML += `<option value="${s.name}">`; });
   datalistHTML += '</datalist>';
@@ -2845,23 +2843,14 @@ window.openResourceManager = function() {
             <input type="text" id="res-subject" list="res-subject-list" placeholder="Select or type custom subject..." style="width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--lms-border); border-radius: 10px; font-family: var(--font-lms);">
           </div>
           <div class="lms-form-group">
-            <label>Upload Ebook/File (Optional)</label>
-            <input type="file" id="res-file" accept=".pdf,.doc,.docx,.epub" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
+            <label>Upload Ebook/File</label>
+            <input type="file" id="res-file" accept=".pdf,.doc,.docx,.epub,.png,.jpg" style="padding: 0.5rem; border: 1px dashed var(--lms-border); border-radius: 8px; width: 100%; background: #f8fafc;">
           </div>
         </div>
 
         <div class="lms-form-group">
-          <label>In-App Reading Content (Optional if file attached)</label>
-          <textarea id="res-content" rows="6" placeholder="Type or paste the chapter content here. Students will read this directly in the app..." style="line-height:1.6; font-size:1rem; padding: 1rem;"></textarea>
-        </div>
-
-        <div style="background: #f8fafc; border: 1px solid var(--lms-border); border-radius: 10px; padding: 1.2rem; margin-bottom: 1rem;">
-          <label style="display:flex; align-items:center; gap:0.5rem; color:var(--primary); font-size: 0.9rem; font-weight:700; margin-bottom:0.3rem;"><i class="fas fa-stopwatch" style="color:var(--accent);"></i> Knowledge Check Integration</label>
-          <p style="font-size:0.8rem; color:var(--lms-muted); margin-bottom:0.8rem;">Link an active quiz to automatically prompt students after they finish reading.</p>
-          <select id="res-quiz-link" style="width:100%; padding:0.75rem 1rem; border:1.5px solid var(--lms-border); border-radius:8px; font-family:var(--font-lms); font-size:0.9rem; outline:none; cursor:pointer; background: #fff;">
-            <option value="">-- No Quiz Linked --</option>
-            ${availableQuizzes.map(q => `<option value="${q.id}">${q.title} (${q.duration} mins)</option>`).join('')}
-          </select>
+          <label>In-App Reading Content (Required for AI Quiz)</label>
+          <textarea id="res-content" rows="6" placeholder="Type or paste the chapter content here. The AI will use this text to automatically generate quiz questions for the students..." style="line-height:1.6; font-size:1rem; padding: 1rem;"></textarea>
         </div>
 
         <div style="margin-top:1.2rem;display:flex;gap:.7rem;">
@@ -2878,7 +2867,6 @@ window.saveResource = async function() {
   const title = document.getElementById('res-title').value.trim();
   const subject = document.getElementById('res-subject').value.trim();
   const content = document.getElementById('res-content').value.trim();
-  const linkedQuiz = document.getElementById('res-quiz-link').value;
   const fileInput = document.getElementById('res-file');
 
   if(!title || !subject) return toast('Title and Subject are required', 'error');
@@ -2889,12 +2877,10 @@ window.saveResource = async function() {
 
   let fileUrl = null;
   
-  // Handle the file upload if a file was selected
   if(fileInput.files.length > 0) {
     const file = fileInput.files[0];
     const filePath = `resources/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
     const { error: uploadError } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
-    
     if(uploadError) {
       btn.innerHTML = '<i class="fas fa-upload"></i> Publish Material'; btn.disabled = false;
       return toast('File upload failed: ' + uploadError.message, 'error');
@@ -2907,8 +2893,7 @@ window.saveResource = async function() {
     title, subject, content,
     file_url: fileUrl,
     class: currentUser.class,
-    author_name: currentUser.name,
-    linked_quiz_id: linkedQuiz || null
+    author_name: currentUser.name
   };
 
   const { data, error } = await supabaseClient.from('resources').insert([payload]).select();
@@ -2939,58 +2924,135 @@ window.openResourceReader = function(id) {
     document.body.appendChild(m);
   }
 
-  let quizBanner = '';
-  if (r.linked_quiz_id) {
-    const linkedQuiz = QUIZZES.find(q => q.id === r.linked_quiz_id);
-    if (linkedQuiz) {
-      quizBanner = `
-        <div style="margin-top: 3rem; padding: 2rem; background: var(--lms-surface); border-radius: 12px; text-align: center; border: 2px dashed var(--accent);">
-          <h3 style="color: var(--primary); margin-bottom: 0.5rem;"><i class="fas fa-tasks"></i> Ready to test your knowledge?</h3>
-          <p style="color: var(--lms-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Your teacher has assigned a quiz for this material.</p>
-          <button class="btn-lms-primary" style="padding: 0.8rem 2rem; font-size: 1.1rem; border-radius: 99px; box-shadow: 0 4px 15px rgba(251, 192, 45, 0.3); background: var(--accent); color: var(--primary);" onclick="closeModal('resource-reader-modal'); startQuizPlayer('${linkedQuiz.id}')">Start Quiz Now</button>
-        </div>
-      `;
-    }
+  let fileViewer = '';
+  if (r.file_url) {
+     const ext = r.file_url.split('.').pop().toLowerCase();
+     if (['png', 'jpg', 'jpeg', 'gif'].includes(ext)) {
+         fileViewer = `<img src="${r.file_url}" style="width:100%; border-radius:12px; margin-bottom:1.5rem; border:1px solid var(--lms-border);">`;
+     } else {
+         fileViewer = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(r.file_url)}&embedded=true" style="width:100%; height:65vh; border:1px solid var(--lms-border); border-radius:12px; margin-bottom:1.5rem; background:#f8fafc;"></iframe>`;
+     }
   }
 
-  let fileBlock = '';
-  if (r.file_url) {
-     const isPDF = r.file_url.toLowerCase().includes('.pdf');
-     fileBlock = `
-       <div style="margin-bottom: 2rem; padding: 1.5rem; background: #fff; border: 1px solid var(--lms-border); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-         <div style="display:flex; align-items:center; gap: 1rem;">
-            <div style="width:48px; height:48px; background:var(--lms-red); color:#fff; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.5rem;">
-               <i class="fas ${isPDF ? 'fa-file-pdf' : 'fa-file-alt'}"></i>
-            </div>
-            <div>
-              <strong style="display:block; color:var(--text); font-size:1rem;">Attached Document</strong>
-              <span style="color:var(--lms-muted); font-size:0.8rem;">Click to open and read full screen</span>
-            </div>
-         </div>
-         <a href="${r.file_url}" target="_blank" class="btn-outline" style="text-decoration:none;"><i class="fas fa-external-link-alt"></i> Open File</a>
-       </div>
-     `;
+  let aiBanner = '';
+  if (r.content && r.content.length > 50) {
+    aiBanner = `
+      <div id="ai-quiz-container" style="margin-top: 3rem; padding: 2rem; background: #eff6ff; border-radius: 12px; text-align: center; border: 2px dashed #3b82f6;">
+        <h3 style="color: #1e40af; margin-bottom: 0.5rem;"><i class="fas fa-robot"></i> Test Your Knowledge</h3>
+        <p style="color: #3b82f6; font-size: 0.9rem; margin-bottom: 1.5rem;">Have the De-Bright AI generate a quick custom quiz based on what you just read.</p>
+        <button id="ai-quiz-btn" class="btn-lms-primary" style="padding: 0.8rem 2rem; font-size: 1.1rem; border-radius: 99px; background: #2563eb; color: #fff;" onclick="generateAIQuiz('${r.id}')"><i class="fas fa-bolt"></i> Generate Auto-Quiz</button>
+      </div>
+    `;
   }
 
   document.getElementById('resource-reader-modal').innerHTML = `
-    <div class="lms-modal-box" style="max-width: 800px; height: 90vh; display: flex; flex-direction: column; background: #fffcf8;">
-      <div class="modal-h" style="background: #fffcf8; border-bottom: 1px solid #eaeaea;">
+    <div class="lms-modal-box" style="max-width: 850px; height: 95vh; display: flex; flex-direction: column; background: #fffcf8;">
+      <div class="modal-h" style="background: #fffcf8; border-bottom: 1px solid #eaeaea; flex-shrink: 0;">
         <h3 style="font-family: 'Merriweather', serif; color: #333;"><i class="fas fa-book-open" style="color:var(--lms-muted); margin-right:8px;"></i>${r.subject}</h3>
         <button onclick="closeModal('resource-reader-modal')"><i class="fas fa-times"></i></button>
       </div>
-      <div class="modal-body" style="overflow-y: auto; padding: 2rem 3rem; flex: 1;">
+      <div class="modal-body" style="overflow-y: auto; padding: 2rem; flex: 1;">
         <h1 style="font-family: 'Merriweather', serif; font-size: 2rem; color: #111; margin-bottom: 0.5rem; line-height: 1.3;">${r.title}</h1>
         <div style="font-size: 0.9rem; color: #666; margin-bottom: 2.5rem; text-transform: uppercase; letter-spacing: 1px;">By ${r.author_name}</div>
         
-        ${fileBlock}
-        
+        ${fileViewer}
         ${r.content ? `<div style="font-family: 'Georgia', serif; font-size: 1.15rem; line-height: 1.8; color: #222; white-space: pre-wrap;">${r.content}</div>` : ''}
-        
-        ${quizBanner}
+        ${aiBanner}
       </div>
     </div>
   `;
   openModal('resource-reader-modal');
+};
+
+/* --- CLAUDE AI SECURE AUTO-QUIZ GENERATOR --- */
+window.generateAIQuiz = async function(id) {
+  const r = RESOURCES.find(x => String(x.id) === String(id));
+  const btn = document.getElementById('ai-quiz-btn');
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Reading material & writing questions...';
+  btn.disabled = true;
+
+  const prompt = `You are a strict teacher. Read the following text and generate exactly 3 multiple-choice questions to test the student.
+  Return ONLY a raw JSON array. No markdown, no introductory text. 
+  Format: [{"q": "Question?", "options": ["A", "B", "C", "D"], "answer": 1}] (where answer is the index 0-3 of the correct option).
+  Text: ${r.content.substring(0, 4000)}`;
+
+  try {
+    // SECURE CALL: This routes to your Vercel Serverless Function instead of exposing the API key!
+    const response = await fetch('/api/generate-quiz', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt: prompt })
+    });
+
+    if (!response.ok) throw new Error('Secure API Request Failed');
+    
+    const data = await response.json();
+    let jsonText = data.content[0].text;
+    
+    jsonText = jsonText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+    const quizData = JSON.parse(jsonText);
+    
+    renderAutoQuiz(quizData);
+  } catch(e) {
+    console.error(e);
+    btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
+    btn.disabled = false;
+    toast('Failed to generate quiz. Please check server logs.', 'error');
+  }
+};
+
+window.renderAutoQuiz = function(quizData) {
+  const container = document.getElementById('ai-quiz-container');
+  container.style.textAlign = 'left';
+  container.style.background = '#fff';
+  container.style.border = '1px solid var(--lms-border)';
+  
+  let html = `<h3 style="color:var(--primary); margin-bottom:1.5rem; border-bottom:2px solid #eff6ff; padding-bottom:1rem;"><i class="fas fa-robot"></i> AI Knowledge Check</h3>`;
+  
+  quizData.forEach((q, idx) => {
+    html += `
+      <div style="margin-bottom: 1.5rem;">
+        <strong style="display:block; font-size:1.05rem; margin-bottom:0.8rem;">${idx + 1}. ${q.q}</strong>
+        <div style="display:flex; flex-direction:column; gap:0.5rem;" id="ai-q-${idx}">
+          ${q.options.map((opt, oIdx) => `
+            <button onclick="checkAIAnswer(this, ${idx}, ${oIdx}, ${q.answer})" style="padding:0.8rem 1rem; text-align:left; border:1px solid var(--lms-border); border-radius:8px; background:#f8fafc; cursor:pointer; transition:all 0.2s; outline:none;">
+              ${opt}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+};
+
+window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
+  const parent = document.getElementById(`ai-q-${qIdx}`);
+  const buttons = parent.querySelectorAll('button');
+  
+  buttons.forEach(b => {
+    b.disabled = true;
+    b.style.cursor = 'default';
+  });
+
+  if (selectedIdx === correctIdx) {
+    btn.style.background = '#dcfce7';
+    btn.style.borderColor = '#22c55e';
+    btn.style.color = '#15803d';
+    btn.innerHTML += ' <i class="fas fa-check-circle" style="float:right;"></i>';
+  } else {
+    btn.style.background = '#fee2e2';
+    btn.style.borderColor = '#ef4444';
+    btn.style.color = '#b91c1c';
+    btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right;"></i>';
+    
+    buttons[correctIdx].style.background = '#dcfce7';
+    buttons[correctIdx].style.borderColor = '#22c55e';
+    buttons[correctIdx].style.color = '#15803d';
+  }
 };
 
 
