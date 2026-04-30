@@ -2964,7 +2964,7 @@ window.openResourceReader = function(id) {
   openModal('resource-reader-modal');
 };
 
-/* --- GOOGLE GEMINI AI AUTO-QUIZ GENERATOR --- */
+/* ====================== GOOGLE GEMINI AI AUTO-QUIZ GENERATOR ====================== */
 window.generateAIQuiz = async function(id) {
   const r = RESOURCES.find(x => String(x.id) === String(id));
   const btn = document.getElementById('ai-quiz-btn');
@@ -2978,13 +2978,14 @@ window.generateAIQuiz = async function(id) {
 
   try {
     const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { response_mime_type: "application/json" }
       })
     });
 
@@ -3001,6 +3002,7 @@ window.generateAIQuiz = async function(id) {
 
     let jsonText = data.candidates[0].content.parts[0].text;
     
+    // BOMB-PROOF JSON CLEANUP
     jsonText = jsonText.replace(/```json/gi, '').replace(/```/gi, '').trim();
     const arrayStart = jsonText.indexOf('[');
     const arrayEnd = jsonText.lastIndexOf(']');
@@ -3054,7 +3056,7 @@ window.renderAutoQuiz = function(quizData, materialTitle) {
 
     <div style="max-width:800px; margin:2rem auto; padding:0 1rem; padding-bottom:100px;">
       <div style="text-align:center; margin-bottom: 2rem;">
-         <span class="chip blue" style="font-size:0.85rem; margin-bottom:0.5rem; padding: 6px 12px;">${materialTitle}</span>
+         <span class="chip blue" style="font-size:0.85rem; margin-bottom:0.5rem; padding: 6px 12px; display:inline-block;">${materialTitle || 'Reading Material'}</span>
          <h3 style="color:var(--lms-muted); font-size:1rem; font-weight:500;">Answer all questions below to see your final score.</h3>
       </div>
 
@@ -3083,14 +3085,14 @@ window.renderAutoQuiz = function(quizData, materialTitle) {
   `;
 
   overlay.style.display = 'block';
-  document.body.style.overflow = 'hidden'; // Prevents background scrolling behind the quiz
+  document.body.style.overflow = 'hidden'; 
 };
 
 window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
   const parent = document.getElementById(`ai-q-opts-${qIdx}`);
   const buttons = parent.querySelectorAll('button');
 
-  // Lock in the answers so they can't change it
+  // Lock in the answers
   buttons.forEach(b => {
     b.disabled = true;
     b.style.cursor = 'default';
@@ -3108,7 +3110,6 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
     btn.style.color = '#b91c1c';
     btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right; font-size:1.3rem;"></i>';
 
-    // Highlight the correct answer so they learn from the mistake
     buttons[correctIdx].style.background = '#dcfce7';
     buttons[correctIdx].style.borderColor = '#22c55e';
     buttons[correctIdx].style.color = '#15803d';
@@ -3134,9 +3135,8 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
         document.getElementById('ai-final-msg').innerHTML = msg;
         resDiv.style.display = 'block';
 
-        // Auto-scroll the student down to see their score
         resDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 800); // Slight delay so they can see if their last answer was right or wrong
+    }, 800); 
   }
 };
 
