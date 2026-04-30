@@ -2972,11 +2972,12 @@ window.generateAIQuiz = async function(id) {
   btn.disabled = true;
 
   const prompt = `You are a strict teacher. Read the following text and generate exactly 3 multiple-choice questions to test the student.
-  Return ONLY a raw JSON array. No markdown formatting, no introductory text, no backticks. 
-  Format: [{"q": "Question text?", "options": ["A", "B", "C", "D"], "answer": 1}] (where answer is the index 0-3 of the correct option).
+  Return ONLY a raw JSON array. No markdown, no introductory text, no backticks.
+  Format: [{"q": "Question?", "options": ["A", "B", "C", "D"], "answer": 1}]
   Text: ${r.content.substring(0, 4000)}`;
 
   try {
+    // Your Gemini API Key
     const apiKey = 'AIzaSyDJd6hazzMmyvXeFK40odYKZhS27lHi1X8'; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -2984,27 +2985,49 @@ window.generateAIQuiz = async function(id) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { response_mime_type: "application/json" }
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      throw new Error(`Gemini API Error: ${errText}`);
+      throw new Error(`API Error: ${response.status}`);
     }
     
     const data = await response.json();
+    
+    if (!data.candidates || data.candidates.length === 0) {
+        throw new Error("AI returned an empty response.");
+    }
+
     let jsonText = data.candidates[0].content.parts[0].text;
     
+    // BOMB-PROOF JSON CLEANUP: Forcefully strip markdown and isolate the array
+    jsonText = jsonText.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    const arrayStart = jsonText.indexOf('[');
+    const arrayEnd = jsonText.lastIndexOf(']');
+    
+    if (arrayStart !== -1 && arrayEnd !== -1) {
+        jsonText = jsonText.substring(arrayStart, arrayEnd + 1);
+    } else {
+        throw new Error("AI did not return a valid array structure.");
+    }
+    
     const quizData = JSON.parse(jsonText);
+    
+    if(!Array.isArray(quizData)) {
+       throw new Error("Parsed data is not an array.");
+    }
+
     renderAutoQuiz(quizData);
     
   } catch(e) {
     console.error("AI Quiz Generation Failed:", e);
     btn.innerHTML = '<i class="fas fa-bolt"></i> Generate Auto-Quiz';
     btn.disabled = false;
-    toast('Failed to generate quiz. Please try again.', 'error');
+    
+    // Prints the exact error message to your screen so we can see what broke
+    toast('Error: ' + e.message, 'error');
   }
 };
 
@@ -3038,6 +3061,7 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
   const parent = document.getElementById(`ai-q-${qIdx}`);
   const buttons = parent.querySelectorAll('button');
   
+  // Disable all buttons in this question after selection
   buttons.forEach(b => {
     b.disabled = true;
     b.style.cursor = 'default';
@@ -3054,6 +3078,7 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
     btn.style.color = '#b91c1c';
     btn.innerHTML += ' <i class="fas fa-times-circle" style="float:right;"></i>';
     
+    // Highlight the correct one so the student learns the answer
     buttons[correctIdx].style.background = '#dcfce7';
     buttons[correctIdx].style.borderColor = '#22c55e';
     buttons[correctIdx].style.color = '#15803d';
