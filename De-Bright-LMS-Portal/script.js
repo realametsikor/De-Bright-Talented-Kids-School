@@ -894,107 +894,70 @@ const pages = {
     </div>
   </div>`,
 
+'t-dashboard':()=> {
+  const myClassStudents = STUDENTS_DB.filter(s => s.class === currentUser.class);[span_2](start_span)[span_2](end_span)
+  const pendingGrading = SUBMISSIONS.filter(s => s.status !== 'graded' && (s.class === currentUser.class || myClassStudents.some(st => String(st.id) === String(s.student_id)))).length;[span_3](start_span)[span_3](end_span)
+  const totalAsgn = ASSIGNMENTS.length;[span_4](start_span)[span_4](end_span)
 
-'t-dashboard':()=>`
-  <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, var(--primary)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
+  return `
+  <!-- Upgraded Teacher Header -->
+  <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, #1e40af); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
     <div class="wb-text">
-      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📋 Class Teacher — ${currentUser.class}</div>
-      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Good day, ${currentUser.name.split(' ')[1]||currentUser.name}! 👩‍🏫</h2>
+      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📋 Class Lead — ${currentUser.class}</div>[span_5](start_span)[span_5](end_span)
+      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Keep up the great work, ${currentUser.name.split(' ')[1]||currentUser.name}! 🍎</h2>[span_6](start_span)[span_6](end_span)
+      <p style="opacity: 0.9; margin-top: 0.5rem;">You have <strong>${pendingGrading}</strong> submissions waiting for your feedback today.</p>[span_7](start_span)[span_7](end_span)
     </div>
-    <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-chalkboard-teacher"></i></div>
+    <div class="wb-icon" style="font-size: 4rem; opacity: 0.2;"><i class="fas fa-chalkboard-teacher"></i></div>
   </div>
+
+  <!-- Primary Stats -->
   <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-gold);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #fef9c3; color: #a16207; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-users"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${STUDENTS_DB.filter(s=>s.class===currentUser.class).length}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${myClassStudents.length}</div></div>[span_8](start_span)[span_8](end_span)
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-tasks"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Assignments</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${ASSIGNMENTS.length}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Assignments</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${totalAsgn}</div></div>[span_9](start_span)[span_9](end_span)
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-red);">
-      <div class="sc-icon" style="width: 48px; height: 48px; background: #fef2f2; color: var(--lms-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-inbox"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Submissions</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${SUBMISSIONS.filter(s=>s.class===currentUser.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class===currentUser.class).length}</div></div>
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #fef2f2; color: var(--lms-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-marker"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Needs Grading</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${pendingGrading}</div></div>[span_10](start_span)[span_10](end_span)
     </div>
-  </div>`,
-
-'t-assignments': () => `
-  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center;">
-    <div>
-      <h2>Assignments</h2>
-      <span style="color:var(--lms-muted);">${ASSIGNMENTS.length} published assignments</span>
-    </div>
-    <button class="btn-lms-primary" style="padding: 0.6rem 1.2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openAssignmentModal()"><i class="fas fa-plus"></i> Create New</button>
   </div>
-  <div style="display: flex; flex-direction: column; gap: 1rem;">
-    ${ASSIGNMENTS.length === 0 ? '<div class="empty-state" style="padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No assignments published yet.</p></div>' : 
-      ASSIGNMENTS.map(a => `
-        <div style="background: #fff; padding: 1.5rem; border-radius: 12px; border-left: 5px solid var(--lms-${a.color || 'blue'}); box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center;">
-          <div style="flex: 1; min-width: 250px;">
-              <div style="display: flex; gap: 0.8rem; align-items: center; margin-bottom: 0.6rem;">
-                <span class="chip ${a.color || 'blue'}">${a.subject}</span>
-                <span style="font-size: 0.75rem; color: var(--lms-muted); font-weight: 600; text-transform: uppercase;"><i class="fas fa-clock"></i> Due: ${fmtDate(a.due) || 'No date'}</span>
-              </div>
-              <strong style="font-size: 1.15rem; color: var(--text); display: block; margin-bottom: 0.4rem;">${a.title}</strong>
-              <p style="font-size: 0.9rem; color: #64748b; margin: 0; line-height: 1.5;">${a.desc || 'No description provided.'}</p>
-              ${a.attachment_url ? `<div style="margin-top:0.6rem;"><a href="${a.attachment_url}" target="_blank" style="font-size:0.8rem; color:var(--primary); text-decoration:none;"><i class="fas fa-file-download"></i> Attached File</a></div>` : ''}
-          </div>
-          <div style="display: flex; gap: 0.5rem;">
-            <button class="btn-outline" style="padding: 0.5rem 1rem; border-radius: 8px;" onclick="openAssignmentModal('${a.id}')"><i class="fas fa-edit"></i> Edit</button>
-            <button class="btn-danger" style="padding: 0.5rem 1rem; border-radius: 8px;" onclick="deleteAssignment('${a.id}')"><i class="fas fa-trash"></i></button>
-          </div>
-        </div>
-      `).join('')
-    }
-  </div>`,
 
-'t-submissions':()=>{
-  const classSubmissions = SUBMISSIONS.filter(s => s.class === currentUser.class || (STUDENTS_DB.find(st=>String(st.id)===String(s.student_id))||{}).class === currentUser.class);
-  return `
-  <div class="page-header" style="margin-bottom: 2rem;"><h2>Submissions Inbox</h2><span style="color:var(--lms-muted);">Review and grade student work for ${currentUser.class}</span></div>
-  <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
-    <div style="overflow-x: auto;">
-      <table class="lms-tbl" style="width: 100%; min-width: 600px;">
-        <thead style="background: var(--lms-surface);">
-          <tr><th style="padding: 1rem; text-align:left;">Student</th><th style="text-align:left;">Assignment Details</th><th>Status</th><th style="text-align:center;">Action</th></tr>
-        </thead>
-        <tbody>
-          ${classSubmissions.length === 0 ? '<tr><td colspan="4" style="text-align:center;padding:3rem;color:var(--lms-muted);">No submissions received yet.</td></tr>' : 
-            classSubmissions.map((sub) => {
-              const asgn = ASSIGNMENTS.find(a => String(a.id) === String(sub.assignment_id));
-              return `
-              <tr style="border-bottom: 1px solid var(--lms-border);">
-                <td style="padding: 1rem;">
-                  <div style="display:flex;align-items:center;gap:.8rem;">
-                    <div class="std-av" style="width:32px;height:32px;font-size:.8rem;">${getInitials(sub.student_name)}</div>
-                    <div><strong style="display:block;font-size:.9rem;">${sub.student_name}</strong><span style="font-size:.75rem;color:var(--lms-muted);">${sub.student_id}</span></div>
-                  </div>
-                </td>
-                <td>
-                  <strong style="font-size:0.9rem; display:block; color:var(--primary);">${asgn ? asgn.title : 'Unknown Assignment'}</strong>
-                  ${sub.comments ? `<div style="font-size:0.75rem; color:var(--lms-muted); margin-top:4px;">"<i>${sub.comments}</i>"</div>` : ''}
-                  
-                  <div style="display:flex; gap:0.5rem; margin-top: 8px;">
-                    ${sub.typed_response ? `<button class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;" onclick="viewTypedResponse('${sub.id}')"><i class="fas fa-align-left"></i> Read Text</button>` : ''}
-                    ${sub.file_url ? `<a href="${sub.file_url}" target="_blank" class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;text-decoration:none;"><i class="fas fa-paperclip"></i> File</a>` : ''}
-                    ${sub.link ? `<a href="${sub.link}" target="_blank" class="btn-outline" style="padding:0.2rem 0.6rem;font-size:0.7rem;border-radius:4px;text-decoration:none;"><i class="fas fa-link"></i> Link</a>` : ''}
-                  </div>
-                </td>
-                <td style="text-align:center;"><span class="chip ${sub.status==='graded'?'green':'gold'}">${sub.status==='graded'?'Graded':'Needs Grading'}</span></td>
-                <td style="text-align:center; padding: 1rem;">
-                  ${sub.status === 'graded' 
-                    ? `<div style="font-size:0.85rem; color:var(--lms-green); font-weight:bold; margin-bottom:4px;"><i class="fas fa-check-circle"></i> Graded: ${sub.grade || ''}</div>
-                       <button class="btn-outline" style="padding:0.3rem 0.6rem;font-size:0.7rem;border-radius:4px;" onclick="openGradeModal('${sub.id}')"><i class="fas fa-edit"></i> Edit Grade</button>` 
-                    : `<button class="btn-lms-primary" style="padding:0.5rem 1rem;font-size:0.8rem;border-radius:6px;width:100%; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.2);" onclick="openGradeModal('${sub.id}')"><i class="fas fa-marker"></i> Grade Work</button>`
-                  }
-                </td>
-              </tr>
-            `}).join('')}
-        </tbody>
-      </table>
+  <!-- NEW UI: Teacher Quick Actions & Syllabus Progress -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    
+    <!-- Syllabus Progress Card -->
+    <div class="panel" style="border-radius: 16px; padding: 1.5rem; background: #fff; border: 1px solid var(--lms-border); box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+      <h3 style="margin: 0 0 1.2rem 0; font-size: 1.1rem; color: var(--primary); font-family: var(--font-lms-heading);"><i class="fas fa-stream"></i> Term 2 Syllabus Progress</h3>[span_11](start_span)[span_11](end_span)
+      <div style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600;"><span>Overall Completion</span><span>65%</span></div>
+        <div style="height: 12px; background: #f1f5f9; border-radius: 99px; overflow: hidden;"><div style="width: 65%; height: 100%; background: var(--lms-green); border-radius: 99px;"></div></div>[span_12](start_span)[span_12](end_span)
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+         <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; color: var(--lms-green);"><i class="fas fa-check-circle"></i> Unit 1: Algebra Fundamentals</div>
+         <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; color: var(--lms-blue);"><i class="fas fa-spinner fa-spin"></i> Unit 2: Geometry & Shapes</div>
+         <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; color: var(--lms-muted);"><i class="far fa-circle"></i> Unit 3: Data & Probability</div>
+      </div>
     </div>
-  </div>`
+
+    <!-- AI Teacher Tools -->
+    <div style="background: #0a2540; padding: 1.5rem; border-radius: 16px; color: white; box-shadow: 0 8px 25px rgba(10, 37, 64, 0.2); position: relative; overflow: hidden;">
+      <i class="fas fa-robot" style="position: absolute; bottom: -10px; right: -10px; font-size: 5rem; opacity: 0.1;"></i>
+      <h3 style="margin: 0 0 1rem 0; font-family: var(--font-lms-heading); font-size: 1.1rem;"><i class="fas fa-magic" style="color: var(--accent);"></i> AI Co-Pilot</h3>[span_13](start_span)[span_13](end_span)
+      <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 1.5rem;">Use the power of Gemini to speed up your lesson preparation and student analysis.</p>[span_14](start_span)[span_14](end_span)
+      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <button class="btn-lms-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.6rem; font-size: 0.85rem; text-align: left; width: 100%; border-radius: 8px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="toast('Opening AI Lesson Planner...')"><i class="fas fa-file-invoice"></i> Draft a Lesson Plan</button>[span_15](start_span)[span_15](end_span)
+        <button class="btn-lms-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.6rem; font-size: 0.85rem; text-align: left; width: 100%; border-radius: 8px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="toast('Opening Performance Analyzer...')"><i class="fas fa-chart-line"></i> Analyze Class Scores</button>[span_16](start_span)[span_16](end_span)
+      </div>
+    </div>
+
+  </div>
+  `;
 },
+
 
 /* --- TEACHER QUIZ PAGE --- */
 't-quiz': () => {
