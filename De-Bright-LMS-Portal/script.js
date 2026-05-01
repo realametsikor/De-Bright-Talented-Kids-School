@@ -779,25 +779,32 @@ const pages = {
   </div>`
 },
 
-'s-ai':()=>`
+''s-ai':()=>`
   <div style="height: calc(100vh - 180px); background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;">
     <div style="padding: 1.5rem; background: var(--primary); color: white; display: flex; align-items: center; gap: 1rem;">
       <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤖</div>
       <div>
         <h3 style="margin: 0; font-size: 1.2rem; font-family: var(--font-lms-heading);">De-Bright AI Tutor</h3>
-        <span style="font-size: 0.8rem; opacity: 0.8;">Powered by Gemini</span>
+        <span style="font-size: 0.8rem; opacity: 0.8;">Powered by Claude AI</span>
       </div>
     </div>
-    <div style="flex: 1; padding: 2rem; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 1.5rem;">
+    
+    <!-- ADDED ID: ai-chat-window -->
+    <div id="ai-chat-window" style="flex: 1; padding: 2rem; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 1.5rem;">
       <div style="align-self: flex-start; max-width: 80%; background: #fff; padding: 1rem 1.5rem; border-radius: 0 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 0.95rem; line-height: 1.5; color: var(--text);">
         Hello ${currentUser.name.split(' ')[0]}! I am your personal AI study assistant. Do you need help with your assignments or preparing for a quiz?
       </div>
     </div>
+    
     <div style="padding: 1.5rem; background: #fff; border-top: 1px solid var(--lms-border); display: flex; gap: 1rem;">
-      <input type="text" placeholder="Ask a question..." style="flex: 1; padding: 1rem 1.5rem; border: 1px solid var(--lms-border); border-radius: 99px; outline: none; font-family: var(--font-lms); font-size: 0.95rem; background: #f8fafc;">
-      <button style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.3);"><i class="fas fa-paper-plane"></i></button>
+      <!-- ADDED ID AND ONKEYDOWN EVENT -->
+      <input type="text" id="ai-chat-input" placeholder="Ask a question..." onkeydown="if(event.key==='Enter') window.sendAiTutorMsg()" style="flex: 1; padding: 1rem 1.5rem; border: 1px solid var(--lms-border); border-radius: 99px; outline: none; font-family: var(--font-lms); font-size: 0.95rem; background: #f8fafc;">
+      
+      <!-- ADDED ONCLICK EVENT -->
+      <button onclick="window.sendAiTutorMsg()" style="width: 50px; height: 50px; border-radius: 50%; background: var(--primary); color: white; border: none; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(13, 59, 102, 0.3);"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>`,
+
 
 't-dashboard':()=>`
   <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, var(--primary)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
