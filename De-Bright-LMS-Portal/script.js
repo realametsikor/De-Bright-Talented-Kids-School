@@ -785,7 +785,7 @@ const pages = {
       <div style="width: 45px; height: 45px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤖</div>
       <div>
         <h3 style="margin: 0; font-size: 1.2rem; font-family: var(--font-lms-heading);">De-Bright AI Tutor</h3>
-        <span style="font-size: 0.8rem; opacity: 0.8;">Powered by Claude AI</span>
+        <span style="font-size: 0.8rem; opacity: 0.8;">Powered by Gemini</span>
       </div>
     </div>
     
