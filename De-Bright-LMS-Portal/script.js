@@ -437,13 +437,11 @@ window.viewPrintableTimetable = function() {
 const pages = {
 
 's-dashboard': () => {
-  // 1. Calculate Stats
-  const pendingAssignments = ASSIGNMENTS.filter(a => !SUBMISSIONS.some(s => String(s.assignment_id) === String(a.id) && s.student_id === currentUser.id)).length;
-  const pendingQuizzes = QUIZZES.filter(q => q.class === currentUser.class && q.status === 'active' && !QUIZ_SUBMISSIONS.some(qs => qs.quiz_id === q.id && qs.student_id === currentUser.id)).length;
-  const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id);
-  const attRate = myAtt.length > 0 ? Math.round((myAtt.filter(a => a.status === 'present').length / myAtt.length) * 100) : 100;
+  const pendingAssignments = ASSIGNMENTS.filter(a => !SUBMISSIONS.some(s => String(s.assignment_id) === String(a.id) && s.student_id === currentUser.id)).length;[span_3](start_span)[span_3](end_span)
+  const pendingQuizzes = QUIZZES.filter(q => q.class === currentUser.class && q.status === 'active' && !QUIZ_SUBMISSIONS.some(qs => qs.quiz_id === q.id && qs.student_id === currentUser.id)).length;[span_4](start_span)[span_4](end_span)
+  const myAtt = ATTENDANCE_RECORDS.filter(a => a.student_id === currentUser.id);[span_5](start_span)[span_5](end_span)
+  const attRate = myAtt.length > 0 ? Math.round((myAtt.filter(a => a.status === 'present').length / myAtt.length) * 100) : 100;[span_6](start_span)[span_6](end_span)
 
-  // 2. Daily Motivation Logic (Changes automatically based on the day of the year)
   const quotes = [
     "Education is the most powerful weapon which you can use to change the world. — Nelson Mandela",
     "The future belongs to those who prepare for it today. — Malcolm X",
@@ -452,121 +450,96 @@ const pages = {
     "Success is no accident. It is hard work, perseverance, and learning. — Pelé",
     "Believe you can and you're halfway there. — Theodore Roosevelt"
   ];
-  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-  const dailyQuote = quotes[dayOfYear % quotes.length];
-  const quoteText = dailyQuote.split(' — ')[0];
-  const quoteAuthor = dailyQuote.split(' — ')[1];
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);[span_7](start_span)[span_7](end_span)
+  const dailyQuote = quotes[dayOfYear % quotes.length];[span_8](start_span)[span_8](end_span)
+  const quoteText = dailyQuote.split(' — ')[0];[span_9](start_span)[span_9](end_span)
+  const quoteAuthor = dailyQuote.split(' — ')[1];[span_10](start_span)[span_10](end_span)
 
   return `
-  <!-- Welcome Banner -->
   <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, var(--primary)); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
     <div class="wb-text">
-      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">🎓 Class ${currentUser.class}</div>
-      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Welcome back, ${currentUser.name.split(' ')[0]}! 🚀</h2>
+      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">🎓 Class ${currentUser.class}</div>[span_11](start_span)[span_11](end_span)
+      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Welcome back, ${currentUser.name.split(' ')[0]}! 🚀</h2>[span_12](start_span)[span_12](end_span)
     </div>
     <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-user-graduate"></i></div>
   </div>
 
-  <!-- Top Stat Cards -->
   <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-tasks"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Pending Work</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${pendingAssignments}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Pending Work</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${pendingAssignments}</div></div>[span_13](start_span)[span_13](end_span)
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--accent);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #fffbeb; color: #b45309; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-question-circle"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Active Quizzes</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${pendingQuizzes}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Active Quizzes</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${pendingQuizzes}</div></div>[span_14](start_span)[span_14](end_span)
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-user-check"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Attendance Rate</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${attRate}%</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Attendance Rate</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${attRate}%</div></div>[span_15](start_span)[span_15](end_span)
     </div>
   </div>
 
-  <!-- NEW UI: Motivation & Quick Actions -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-    
-    <!-- Daily Motivation Card -->
     <div style="background: linear-gradient(135deg, var(--accent), #f59e0b); padding: 2rem; border-radius: 16px; color: var(--primary); box-shadow: 0 4px 15px rgba(251, 192, 45, 0.3); display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden;">
       <i class="fas fa-quote-left" style="position: absolute; top: -10px; left: -10px; font-size: 6rem; opacity: 0.1;"></i>
-      <h3 style="margin: 0 0 1rem 0; font-family: var(--font-lms-heading); font-size: 1.3rem; z-index: 1;"><i class="fas fa-lightbulb" style="color: #fff;"></i> Daily Motivation</h3>
-      <p style="font-size: 1.1rem; font-weight: 600; line-height: 1.6; margin: 0; z-index: 1;">"${quoteText}"</p>
-      <span style="display: block; margin-top: 1rem; font-size: 0.9rem; font-weight: 800; z-index: 1;">— ${quoteAuthor}</span>
+      <h3 style="margin: 0 0 1rem 0; font-family: var(--font-lms-heading); font-size: 1.3rem; z-index: 1;"><i class="fas fa-lightbulb" style="color: #fff;"></i> Daily Motivation</h3>[span_16](start_span)[span_16](end_span)
+      <p style="font-size: 1.1rem; font-weight: 600; line-height: 1.6; margin: 0; z-index: 1;">"${quoteText}"</p>[span_17](start_span)[span_17](end_span)
+      <span style="display: block; margin-top: 1rem; font-size: 0.9rem; font-weight: 800; z-index: 1;">— ${quoteAuthor}</span>[span_18](start_span)[span_18](end_span)
     </div>
 
-    <!-- Quick Actions Panel -->
     <div style="background: #fff; padding: 1.5rem; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid var(--lms-border);">
-      <h3 style="margin: 0 0 1rem 0; font-family: var(--font-lms-heading); font-size: 1.1rem; color: var(--primary);">Quick Actions</h3>
+      <h3 style="margin: 0 0 1rem 0; font-family: var(--font-lms-heading); font-size: 1.1rem; color: var(--primary);">Quick Actions</h3>[span_19](start_span)[span_19](end_span)
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-        
-        <button onclick="showPage('s-assignments', document.querySelector('[onclick*=\\'s-assignments\\']'))" style="background: var(--lms-surface); border: 1.5px solid transparent; padding: 1rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; font-family: var(--font-lms);" onmouseover="this.style.borderColor='var(--lms-blue)'; this.style.color='var(--lms-blue)';" onmouseout="this.style.borderColor='transparent'; this.style.color='var(--text)';">
-          <div style="width: 40px; height: 40px; background: #eff6ff; color: var(--lms-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"><i class="fas fa-pencil-alt"></i></div>
-          Do Homework
-        </button>
-        
-        <button onclick="showPage('s-ai', document.querySelector('[onclick*=\\'s-ai\\']'))" style="background: var(--lms-surface); border: 1.5px solid transparent; padding: 1rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; font-family: var(--font-lms);" onmouseover="this.style.borderColor='var(--lms-purple)'; this.style.color='var(--lms-purple)';" onmouseout="this.style.borderColor='transparent'; this.style.color='var(--text)';">
-          <div style="width: 40px; height: 40px; background: #f5f3ff; color: var(--lms-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"><i class="fas fa-robot"></i></div>
-          Ask AI Tutor
-        </button>
-
-        <button onclick="showPage('s-resources', document.querySelector('[onclick*=\\'s-resources\\']'))" style="background: var(--lms-surface); border: 1.5px solid transparent; padding: 1rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; font-family: var(--font-lms);" onmouseover="this.style.borderColor='var(--lms-green)'; this.style.color='var(--lms-green)';" onmouseout="this.style.borderColor='transparent'; this.style.color='var(--text)';">
-          <div style="width: 40px; height: 40px; background: #f0fdf4; color: var(--lms-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"><i class="fas fa-book-reader"></i></div>
-          Read Books
-        </button>
-
-        <button onclick="showPage('s-timetable', document.querySelector('[onclick*=\\'s-timetable\\']'))" style="background: var(--lms-surface); border: 1.5px solid transparent; padding: 1rem; border-radius: 12px; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; font-family: var(--font-lms);" onmouseover="this.style.borderColor='var(--accent)'; this.style.color='var(--primary)';" onmouseout="this.style.borderColor='transparent'; this.style.color='var(--text)';">
-          <div style="width: 40px; height: 40px; background: #fffbeb; color: #b45309; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"><i class="fas fa-calendar-alt"></i></div>
-          Timetable
-        </button>
-        
+        <button onclick="showPage('s-assignments')" style="background: var(--lms-surface); border: 1.5px solid transparent; padding: 1rem; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; font-family: var(--font-lms);">
+          <div style="width: 40px; height: 40px; background: #eff6ff; color: var(--lms-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-pencil-alt"></i></div>Do Homework</button>[span_20](start_span)[span_20](end_span)
+        <button onclick="showPage('s-ai')" style="background: var(--lms-surface); border: 1.5px solid transparent; padding: 1rem; border-radius: 12px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--text); font-weight: 600; font-family: var(--font-lms);">
+          <div style="width: 40px; height: 40px; background: #f5f3ff; color: var(--lms-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-robot"></i></div>Ask AI Tutor</button>[span_21](start_span)[span_21](end_span)
       </div>
     </div>
-  </div>
-  `;
+  </div>\`;
 },
 
-'a-dashboard':() => `
+'a-dashboard':() => \`
   <div class="welcome-banner" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
     <div class="wb-text">
-      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">🔒 Root Access</div>
-      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">System Administrator</h2>
+      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">🔒 Root Access</div>[span_22](start_span)[span_22](end_span)
+      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">System Administrator</h2>[span_23](start_span)[span_23](end_span)
     </div>
     <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-shield-alt"></i></div>
   </div>
   <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-user-graduate"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">\${STUDENTS_DB.length}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${STUDENTS_DB.length}</div></div>[span_24](start_span)[span_24](end_span)
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-chalkboard-teacher"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Teachers</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">\${TEACHERS_DB.length}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Teachers</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${TEACHERS_DB.length}</div></div>[span_25](start_span)[span_25](end_span)
     </div>
     <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-purple);">
       <div class="sc-icon" style="width: 48px; height: 48px; background: #f5f3ff; color: var(--lms-purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-newspaper"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Published Articles</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">\${ARTICLES_DB.length}</div></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Published Articles</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${ARTICLES_DB.length}</div></div>[span_26](start_span)[span_26](end_span)
     </div>
-  </div>
-`,
+  </div>\`,
 
-'a-users':() => `
+'a-users':() => \`
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-    <div><h2>User Management</h2><span style="color:var(--lms-muted);">Add, edit, or remove users globally</span></div>
+    <div><h2>User Management</h2><span style="color:var(--lms-muted);">Add, edit, or remove users globally</span></div>[span_27](start_span)[span_27](end_span)
     <div style="display:flex;gap:0.5rem;">
-      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-blue);" onclick="openAdminUserModal('teacher')"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</button>
-      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-green); border-color:var(--lms-green);" onclick="openAdminUserModal('student')"><i class="fas fa-user-graduate"></i> Add Student</button>
+      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-blue);" onclick="openAdminUserModal('teacher')"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</button>[span_28](start_span)[span_28](end_span)
+      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-green); border-color:var(--lms-green);" onclick="openAdminUserModal('student')"><i class="fas fa-user-graduate"></i> Add Student</button>[span_29](start_span)[span_29](end_span)
     </div>
   </div>
   
   <div style="display:grid; grid-template-columns: 1fr; gap: 2rem;">
     <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
       <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
-        <h3 style="margin:0;"><i class="fas fa-chalkboard-teacher" style="color:var(--lms-blue); margin-right:8px;"></i> Staff Directory</h3>
+        <h3 style="margin:0;"><i class="fas fa-chalkboard-teacher" style="color:var(--lms-blue); margin-right:8px;"></i> Staff Directory</h3>[span_30](start_span)[span_30](end_span)
       </div>
       <div style="overflow-x: auto;">
         <table class="lms-tbl" style="width: 100%; min-width: 600px;">
           <thead style="background: var(--lms-surface);">
-            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class Assigned</th><th style="text-align:center;">Action</th></tr>
+            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class Assigned</th><th style="text-align:center;">Action</th></tr>[span_31](start_span)[span_31](end_span)
           </thead>
           <tbody>
             \${TEACHERS_DB.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--lms-muted);">No teachers found.</td></tr>' : 
@@ -585,12 +558,12 @@ const pages = {
 
     <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
       <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
-        <h3 style="margin:0;"><i class="fas fa-user-graduate" style="color:var(--lms-green); margin-right:8px;"></i> Student Directory</h3>
+        <h3 style="margin:0;"><i class="fas fa-user-graduate" style="color:var(--lms-green); margin-right:8px;"></i> Student Directory</h3>[span_32](start_span)[span_32](end_span)
       </div>
       <div style="overflow-x: auto;">
         <table class="lms-tbl" style="width: 100%; min-width: 600px;">
           <thead style="background: var(--lms-surface);">
-            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class</th><th>Contact</th><th style="text-align:center;">Action</th></tr>
+            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class</th><th>Contact</th><th style="text-align:center;">Action</th></tr>[span_33](start_span)[span_33](end_span)
           </thead>
           <tbody>
             \${STUDENTS_DB.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--lms-muted);">No students found.</td></tr>' : 
@@ -607,19 +580,18 @@ const pages = {
         </table>
       </div>
     </div>
-  </div>
-`,
+  </div>\`,
 
-'a-articles':() => `
+'a-articles':() => \`
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-    <div><h2>Content Management System</h2><span style="color:var(--lms-muted);">Write and publish articles to the main website</span></div>
-    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openArticleModal()"><i class="fas fa-pen"></i> Draft New Article</button>
+    <div><h2>Content Management System</h2><span style="color:var(--lms-muted);">Write and publish articles to the main website</span></div>[span_34](start_span)[span_34](end_span)
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openArticleModal()"><i class="fas fa-pen"></i> Draft New Article</button>[span_35](start_span)[span_35](end_span)
   </div>
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-    \${ARTICLES_DB.length === 0 ? \`<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No articles published yet.</p></div>\` : 
+    \${ARTICLES_DB.length === 0 ? \\\`<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No articles published yet.</p></div>\\\` : 
       ARTICLES_DB.map(a => \`
         <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column;">
-          \${a.cover_image ? \`<img src="\${a.cover_image}" style="width:100%; height:160px; object-fit:cover; border-bottom:1px solid var(--lms-border);">\` : \`<div style="width:100%; height:160px; background:var(--lms-surface); display:flex; align-items:center; justify-content:center; color:var(--lms-muted);"><i class="fas fa-image fa-2x"></i></div>\`}
+          \${a.cover_image ? \\\`<img src="\${a.cover_image}" style="width:100%; height:160px; object-fit:cover; border-bottom:1px solid var(--lms-border);">\\\` : \\\`<div style="width:100%; height:160px; background:var(--lms-surface); display:flex; align-items:center; justify-content:center; color:var(--lms-muted);"><i class="fas fa-image fa-2x"></i></div>\\\`}
           <div style="padding:1.5rem; flex:1; display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
               <div>
@@ -637,13 +609,12 @@ const pages = {
           </div>
         </div>
       \`).join('')}
-  </div>
-`,
+  </div>\`,
 
-'a-gallery':() => `
+'a-gallery':() => \`
   <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
-    <div><h2>Gallery Management</h2><span style="color:var(--lms-muted);">Upload and manage school photos</span></div>
-    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openGalleryUploadModal()"><i class="fas fa-upload"></i> Upload Photo</button>
+    <div><h2>Gallery Management</h2><span style="color:var(--lms-muted);">Upload and manage school photos</span></div>[span_36](start_span)[span_36](end_span)
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openGalleryUploadModal()"><i class="fas fa-upload"></i> Upload Photo</button>[span_37](start_span)[span_37](end_span)
   </div>
   <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
     \${GALLERY_DB.length === 0 ? '<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No images in gallery.</p></div>' : 
@@ -656,51 +627,28 @@ const pages = {
           </div>
         </div>
       \`).join('')}
-  </div>
-`,
+  </div>\`,
 
-'a-settings':() => `
-  <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
+'a-settings':() => \`
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>[span_38](start_span)[span_38](end_span)
   <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
     <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
       <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
-        <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
+        <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>[span_39](start_span)[span_39](end_span)
       </div>
       <div style="padding: 1.5rem;">
-        <div class="lms-form-group"><label>School Name</label><input type="text" id="set-school" value="\${SITE_SETTINGS.school_name || ''}"></div>
-        <div class="lms-form-group"><label>Contact Phone</label><input type="text" id="set-phone" value="\${SITE_SETTINGS.contact_phone || ''}"></div>
-        <div class="lms-form-group"><label>Contact Email</label><input type="email" id="set-email" value="\${SITE_SETTINGS.contact_email || ''}"></div>
+        <div class="lms-form-group"><label>School Name</label><input type="text" id="set-school" value="\${SITE_SETTINGS.school_name || ''}"></div>[span_40](start_span)[span_40](end_span)
+        <div class="lms-form-group"><label>Contact Phone</label><input type="text" id="set-phone" value="\${SITE_SETTINGS.contact_phone || ''}"></div>[span_41](start_span)[span_41](end_span)
+        <div class="lms-form-group"><label>Contact Email</label><input type="email" id="set-email" value="\${SITE_SETTINGS.contact_email || ''}"></div>[span_42](start_span)[span_42](end_span)
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
-          <div class="lms-form-group"><label>Current Term</label><input type="text" id="set-term" value="\${SITE_SETTINGS.current_term || ''}"></div>
-          <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="\${SITE_SETTINGS.academic_year || ''}"></div>
+          <div class="lms-form-group"><label>Current Term</label><input type="text" id="set-term" value="\${SITE_SETTINGS.current_term || ''}"></div>[span_43](start_span)[span_43](end_span)
+          <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="\${SITE_SETTINGS.academic_year || ''}"></div>[span_44](start_span)[span_44](end_span)
         </div>
-        <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">\${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>
+        <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">\${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>[span_45](start_span)[span_45](end_span)
       </div>
     </div>
-
-    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
-      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
-        <h3 style="margin:0;"><i class="fas fa-window-restore" style="color:var(--lms-muted); margin-right:8px;"></i> Homepage Popup Settings</h3>
-      </div>
-      <div style="padding: 1.5rem;">
-        <div class="lms-form-group" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; background: var(--lms-surface); padding: 1rem; border-radius: 8px;">
-            <input type="checkbox" id="set-popup-active" \${SITE_SETTINGS.popup_active ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;">
-            <label for="set-popup-active" style="margin:0; cursor:pointer; font-weight: bold; color: var(--text);">Enable Popup on Homepage</label>
-        </div>
-        <div class="lms-form-group"><label>Badge Text</label><input type="text" id="set-popup-badge" value="\${SITE_SETTINGS.popup_badge || ''}" placeholder="e.g. HIRING"></div>
-        <div class="lms-form-group"><label>Title</label><input type="text" id="set-popup-title" value="\${SITE_SETTINGS.popup_title || ''}" placeholder="e.g. Teachers Needed"></div>
-        <div class="lms-form-group"><label>Description</label><textarea id="set-popup-desc" rows="3" placeholder="Popup message...">\${SITE_SETTINGS.popup_desc || ''}</textarea></div>
-        <div class="lms-form-group"><label>List Items (Press Enter for new line)</label><textarea id="set-popup-list" rows="4" placeholder="Pre-School / Creche\\nPrimary Department\\nJ.H.S Subject Teachers">\${Array.isArray(SITE_SETTINGS.popup_list) ? SITE_SETTINGS.popup_list.join('\\n') : ''}</textarea></div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
-          <div class="lms-form-group"><label>Button Text</label><input type="text" id="set-popup-btn-text" value="\${SITE_SETTINGS.popup_btn_text || ''}" placeholder="e.g. Apply Now"></div>
-          <div class="lms-form-group"><label>Button Link</label><input type="text" id="set-popup-btn-link" value="\${SITE_SETTINGS.popup_btn_link || ''}" placeholder="e.g. tel:+233..."></div>
-        </div>
-      </div>
-    </div>
-    <button class="btn-lms-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Configurations</button>
-  </div>
-`,
-
+    <button class="btn-lms-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Configurations</button>[span_46](start_span)[span_46](end_span)
+  </div>\`,
 
 /* STUDENT ATTENDANCE PAGE */
 's-attendance':() => {
