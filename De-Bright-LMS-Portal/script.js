@@ -3165,20 +3165,29 @@ window.sendAiTutorMsg = async function() {
             throw new Error(errData.error || 'Failed to fetch from AI');
         }
         
-        // Parse Anthropic's response
+          // Parse Gemini's response
         const data = await res.json();
-        const aiText = data.content[0].text; 
+        let aiText = data.content[0].text; 
+        
+        // --- ADDED: Quick Markdown to HTML Converter ---
+        let formattedText = aiText
+            .replace(/(^|\n)\*\s/g, '$1• ')                   // Convert asterisk bullets to neat dots
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to bold HTML
+            .replace(/\*(.*?)\*/g, '<em>$1</em>');            // Convert *text* to italic HTML
+        // ----------------------------------------------
         
         // 5. Show AI response on screen
         chatWindow.insertAdjacentHTML('beforeend', `
             <div style="align-self: flex-start; max-width: 80%; background: #fff; padding: 1rem 1.5rem; border-radius: 0 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 0.95rem; line-height: 1.5; color: var(--text); white-space: pre-wrap;">
-                ${aiText}
+                ${formattedText}
             </div>
         `);
         
-        // Save AI reply to history so it remembers context for the next question
+        // Save raw AI reply to history so it remembers context
         window.lmsChatHistory.push({ role: "assistant", content: aiText });
         chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        
         
     } catch (err) {
         console.error("AI Tutor Error:", err);
