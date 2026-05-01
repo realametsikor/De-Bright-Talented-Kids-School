@@ -777,6 +777,7 @@ const pages = {
         </div>
       `}).join('')}
   </div>`
+},
 
 's-ai':()=>`
   <div style="height: calc(100vh - 180px); background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden;">
