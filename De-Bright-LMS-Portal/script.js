@@ -527,6 +527,179 @@ const pages = {
 
 'a-dashboard':() => `
   <div class="welcome-banner" style="background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
+    <div class="wb-text">
+      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">🔒 Root Access</div>
+      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">System Administrator</h2>
+    </div>
+    <div class="wb-icon" style="font-size: 4rem; opacity: 0.8;"><i class="fas fa-shield-alt"></i></div>
+  </div>
+  <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-user-graduate"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">\${STUDENTS_DB.length}</div></div>
+    </div>
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-green);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #f0fdf4; color: var(--lms-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-chalkboard-teacher"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Total Teachers</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">\${TEACHERS_DB.length}</div></div>
+    </div>
+    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-purple);">
+      <div class="sc-icon" style="width: 48px; height: 48px; background: #f5f3ff; color: var(--lms-purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-newspaper"></i></div>
+      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Published Articles</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">\${ARTICLES_DB.length}</div></div>
+    </div>
+  </div>
+`,
+
+'a-users':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>User Management</h2><span style="color:var(--lms-muted);">Add, edit, or remove users globally</span></div>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-blue);" onclick="openAdminUserModal('teacher')"><i class="fas fa-chalkboard-teacher"></i> Add Teacher</button>
+      <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px; background:var(--lms-green); border-color:var(--lms-green);" onclick="openAdminUserModal('student')"><i class="fas fa-user-graduate"></i> Add Student</button>
+    </div>
+  </div>
+  
+  <div style="display:grid; grid-template-columns: 1fr; gap: 2rem;">
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-chalkboard-teacher" style="color:var(--lms-blue); margin-right:8px;"></i> Staff Directory</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+          <thead style="background: var(--lms-surface);">
+            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class Assigned</th><th style="text-align:center;">Action</th></tr>
+          </thead>
+          <tbody>
+            \${TEACHERS_DB.length === 0 ? '<tr><td colspan="4" style="text-align:center; padding:2rem; color:var(--lms-muted);">No teachers found.</td></tr>' : 
+              TEACHERS_DB.map(t => \`
+              <tr style="border-bottom: 1px solid var(--lms-border);">
+                <td style="padding: 1rem; font-weight:600;">\${t.id}</td>
+                <td><div style="display:flex;align-items:center;gap:.8rem;"><div class="std-av">\${t.initials}</div><strong>\${t.name}</strong></div></td>
+                <td><span class="chip blue">\${t.class_assigned || 'None'}</span></td>
+                <td style="text-align:center;"><button class="btn-danger" style="padding:.4rem .8rem;font-size:.75rem;" onclick="deleteTeacher('\${t.id}')"><i class="fas fa-trash"></i> Delete</button></td>
+              </tr>
+              \`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-user-graduate" style="color:var(--lms-green); margin-right:8px;"></i> Student Directory</h3>
+      </div>
+      <div style="overflow-x: auto;">
+        <table class="lms-tbl" style="width: 100%; min-width: 600px;">
+          <thead style="background: var(--lms-surface);">
+            <tr><th style="padding: 1rem;">ID</th><th>Name</th><th>Class</th><th>Contact</th><th style="text-align:center;">Action</th></tr>
+          </thead>
+          <tbody>
+            \${STUDENTS_DB.length === 0 ? '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--lms-muted);">No students found.</td></tr>' : 
+              STUDENTS_DB.map(s => \`
+              <tr style="border-bottom: 1px solid var(--lms-border);">
+                <td style="padding: 1rem; font-weight:600;">\${s.id}</td>
+                <td><strong>\${s.name}</strong></td>
+                <td><span class="chip green">\${s.class}</span></td>
+                <td>\${s.parent_contact}</td>
+                <td style="text-align:center;"><button class="btn-danger" style="padding:.4rem .8rem;font-size:.75rem;" onclick="deleteStudent('\${s.id}', true)"><i class="fas fa-trash"></i> Delete</button></td>
+              </tr>
+              \`).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+`,
+
+'a-articles':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>Content Management System</h2><span style="color:var(--lms-muted);">Write and publish articles to the main website</span></div>
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openArticleModal()"><i class="fas fa-pen"></i> Draft New Article</button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    \${ARTICLES_DB.length === 0 ? \`<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No articles published yet.</p></div>\` : 
+      ARTICLES_DB.map(a => \`
+        <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column;">
+          \${a.cover_image ? \`<img src="\${a.cover_image}" style="width:100%; height:160px; object-fit:cover; border-bottom:1px solid var(--lms-border);">\` : \`<div style="width:100%; height:160px; background:var(--lms-surface); display:flex; align-items:center; justify-content:center; color:var(--lms-muted);"><i class="fas fa-image fa-2x"></i></div>\`}
+          <div style="padding:1.5rem; flex:1; display:flex; flex-direction:column;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.8rem;">
+              <div>
+                 <span class="chip \${a.status==='published'?'green':'grey'}">\${a.status==='published'?'Published':'Draft'}</span>
+                 <span style="font-size:0.75rem; color:var(--lms-muted); margin-left:8px; font-weight:bold;">\${a.category || 'School Update'}</span>
+              </div>
+              <span style="font-size:0.75rem; color:var(--lms-muted);">\${fmtDate(a.created_at)}</span>
+            </div>
+            <strong style="font-size:1.1rem; margin-bottom:0.5rem; color:var(--text); line-height:1.4;">\${a.title}</strong>
+            <p style="font-size:0.85rem; color:var(--lms-muted); margin-bottom:1rem; flex:1;">\${a.excerpt || 'No excerpt provided.'}</p>
+            <div style="display:flex; gap:0.5rem; margin-top:auto;">
+              <button class="btn-outline" style="flex:1; padding:0.5rem; border-radius:6px;" onclick="openArticleModal('\${a.id}')"><i class="fas fa-edit"></i> Edit</button>
+              <button class="btn-danger" style="padding:0.5rem; border-radius:6px;" onclick="deleteArticle('\${a.id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      \`).join('')}
+  </div>
+`,
+
+'a-gallery':() => `
+  <div class="page-header" style="margin-bottom: 2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div><h2>Gallery Management</h2><span style="color:var(--lms-muted);">Upload and manage school photos</span></div>
+    <button class="btn-lms-primary" style="padding:.6rem 1.2rem; border-radius:8px;" onclick="openGalleryUploadModal()"><i class="fas fa-upload"></i> Upload Photo</button>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;">
+    \${GALLERY_DB.length === 0 ? '<div class="empty-state" style="grid-column: 1 / -1; padding:4rem;background:#fff;border-radius:12px;text-align:center;"><p>No images in gallery.</p></div>' : 
+      GALLERY_DB.map(img => \`
+        <div style="background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.04); display:flex; flex-direction:column;">
+          <img src="\${img.image_url}" style="width:100%; height:180px; object-fit:cover; border-bottom:1px solid var(--lms-border);">
+          <div style="padding:1rem; display:flex; justify-content:space-between; align-items:center;">
+            <strong style="font-size:1rem; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="\${img.title || 'Untitled'}">\${img.title || 'Untitled'}</strong>
+            <button class="btn-danger" style="padding:0.4rem 0.6rem; border-radius:6px; flex-shrink:0;" onclick="deleteGalleryImage('\${img.id}')" title="Delete Image"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      \`).join('')}
+  </div>
+`,
+
+'a-settings':() => `
+  <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
+  <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
+      </div>
+      <div style="padding: 1.5rem;">
+        <div class="lms-form-group"><label>School Name</label><input type="text" id="set-school" value="\${SITE_SETTINGS.school_name || ''}"></div>
+        <div class="lms-form-group"><label>Contact Phone</label><input type="text" id="set-phone" value="\${SITE_SETTINGS.contact_phone || ''}"></div>
+        <div class="lms-form-group"><label>Contact Email</label><input type="email" id="set-email" value="\${SITE_SETTINGS.contact_email || ''}"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="lms-form-group"><label>Current Term</label><input type="text" id="set-term" value="\${SITE_SETTINGS.current_term || ''}"></div>
+          <div class="lms-form-group"><label>Academic Year</label><input type="text" id="set-year" value="\${SITE_SETTINGS.academic_year || ''}"></div>
+        </div>
+        <div class="lms-form-group"><label>Homepage Announcement</label><textarea id="set-ann" rows="3" placeholder="Will display a banner on the main website...">\${SITE_SETTINGS.homepage_announcement || ''}</textarea></div>
+      </div>
+    </div>
+
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-window-restore" style="color:var(--lms-muted); margin-right:8px;"></i> Homepage Popup Settings</h3>
+      </div>
+      <div style="padding: 1.5rem;">
+        <div class="lms-form-group" style="display:flex; align-items:center; gap:0.5rem; margin-bottom:1rem; background: var(--lms-surface); padding: 1rem; border-radius: 8px;">
+            <input type="checkbox" id="set-popup-active" \${SITE_SETTINGS.popup_active ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;">
+            <label for="set-popup-active" style="margin:0; cursor:pointer; font-weight: bold; color: var(--text);">Enable Popup on Homepage</label>
+        </div>
+        <div class="lms-form-group"><label>Badge Text</label><input type="text" id="set-popup-badge" value="\${SITE_SETTINGS.popup_badge || ''}" placeholder="e.g. HIRING"></div>
+        <div class="lms-form-group"><label>Title</label><input type="text" id="set-popup-title" value="\${SITE_SETTINGS.popup_title || ''}" placeholder="e.g. Teachers Needed"></div>
+        <div class="lms-form-group"><label>Description</label><textarea id="set-popup-desc" rows="3" placeholder="Popup message...">\${SITE_SETTINGS.popup_desc || ''}</textarea></div>
+        <div class="lms-form-group"><label>List Items (Press Enter for new line)</label><textarea id="set-popup-list" rows="4" placeholder="Pre-School / Creche\\nPrimary Department\\nJ.H.S Subject Teachers">\${Array.isArray(SITE_SETTINGS.popup_list) ? SITE_SETTINGS.popup_list.join('\\n') : ''}</textarea></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="lms-form-group"><label>Button Text</label><input type="text" id="set-popup-btn-text" value="\${SITE_SETTINGS.popup_btn_text || ''}" placeholder="e.g. Apply Now"></div>
+          <div class="lms-form-group"><label>Button Link</label><input type="text" id="set-popup-btn-link" value="\${SITE_SETTINGS.popup_btn_link || ''}" placeholder="e.g. tel:+233..."></div>
+        </div>
+      </div>
+    </div>
+    <button class="btn-lms-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Configurations</button>
+  </div>
+`,
 
 
 /* STUDENT ATTENDANCE PAGE */
