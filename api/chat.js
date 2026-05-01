@@ -1,21 +1,19 @@
 // File: api/chat.js
 
-module.exports = async function(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
   try {
     const { messages } = req.body;
+    
+    // IMPORTANT: If you pasted your actual key directly into generate-quiz.js, 
+    // you must paste it here too! Example: const apiKey = 'AIza...';
     const apiKey = process.env.GEMINI_API_KEY;
 
-    // --- NEW DEBUG TRAP ---
     if (!apiKey || apiKey === 'undefined') {
-      console.error("CRITICAL VERCEL ERROR: GEMINI_API_KEY is missing or undefined in chat.js!");
+      console.error("CRITICAL VERCEL ERROR: GEMINI_API_KEY is missing in chat.js!");
       return res.status(500).json({ error: 'Server configuration error: API key missing.' });
     }
-    console.log(`Chat Key Check: Starts with ${apiKey.substring(0, 4)}, Length is ${apiKey.length}`);
-    // ----------------------
 
     // 1. Convert frontend history to Gemini's format
     const geminiHistory = messages.map(msg => ({
@@ -38,20 +36,22 @@ module.exports = async function(req, res) {
       })
     });
 
-    const data = await geminiRes.json();
-
     if (!geminiRes.ok) {
-      throw new Error(data.error?.message || 'Gemini API Error');
+      const errText = await geminiRes.text();
+      console.error('Gemini Raw Error:', errText);
+      throw new Error(`Gemini API Error: ${errText}`);
     }
 
+    const data = await geminiRes.json();
+    
     // Extract the text from Gemini's response
     const aiText = data.candidates[0].content.parts[0].text;
 
     // 4. Return it in the exact JSON shape your frontend is currently expecting
-    res.status(200).json({ content: [{ text: aiText }] });
+    return res.status(200).json({ content: [{ text: aiText }] });
     
   } catch (error) {
     console.error('Chat API Error:', error);
-    res.status(500).json({ error: error.message || 'Failed to generate response' });
+    return res.status(500).json({ error: error.message || 'Failed to generate response' });
   }
-};
+}
