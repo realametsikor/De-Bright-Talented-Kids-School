@@ -9,9 +9,13 @@ module.exports = async function(req, res) {
     const { messages } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
-      return res.status(500).json({ error: 'Gemini API key missing' });
+    // --- NEW DEBUG TRAP ---
+    if (!apiKey || apiKey === 'undefined') {
+      console.error("CRITICAL VERCEL ERROR: GEMINI_API_KEY is missing or undefined in chat.js!");
+      return res.status(500).json({ error: 'Server configuration error: API key missing.' });
     }
+    console.log(`Chat Key Check: Starts with ${apiKey.substring(0, 4)}, Length is ${apiKey.length}`);
+    // ----------------------
 
     // 1. Convert frontend history to Gemini's format
     const geminiHistory = messages.map(msg => ({
