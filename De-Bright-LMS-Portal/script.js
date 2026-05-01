@@ -3116,6 +3116,77 @@ window.checkAIAnswer = function(btn, qIdx, selectedIdx, correctIdx) {
   }
 };
 
+/* ====================== AI TUTOR LOGIC ====================== */
+window.lmsChatHistory = []; // Stores the conversation context
+
+window.sendAiTutorMsg = async function() {
+    const inputEl = document.getElementById('ai-chat-input');
+    const chatWindow = document.getElementById('ai-chat-window');
+    const text = inputEl.value.trim();
+    
+    if (!text) return;
+    
+    // 1. Instantly show the user's message on screen
+    chatWindow.insertAdjacentHTML('beforeend', `
+        <div style="align-self: flex-end; max-width: 80%; background: var(--primary); color: white; padding: 1rem 1.5rem; border-radius: 16px 16px 0 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-size: 0.95rem; line-height: 1.5;">
+            ${text}
+        </div>
+    `);
+    
+    // Clear input & scroll down
+    inputEl.value = '';
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    
+    // 2. Add message to API history
+    window.lmsChatHistory.push({ role: "user", content: text });
+    
+    // 3. Show a "Typing..." indicator
+    const typingId = 'typing-' + Date.now();
+    chatWindow.insertAdjacentHTML('beforeend', `
+        <div id="${typingId}" style="align-self: flex-start; max-width: 80%; background: #fff; padding: 1rem 1.5rem; border-radius: 0 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 0.95rem; color: var(--lms-muted);">
+            <i class="fas fa-circle-notch fa-spin"></i> AI is thinking...
+        </div>
+    `);
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+    
+    // 4. Send to backend
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: window.lmsChatHistory })
+        });
+        
+        // Remove typing indicator
+        document.getElementById(typingId).remove();
+        
+        if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.error || 'Failed to fetch from AI');
+        }
+        
+        // Parse Anthropic's response
+        const data = await res.json();
+        const aiText = data.content[0].text; 
+        
+        // 5. Show AI response on screen
+        chatWindow.insertAdjacentHTML('beforeend', `
+            <div style="align-self: flex-start; max-width: 80%; background: #fff; padding: 1rem 1.5rem; border-radius: 0 16px 16px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); font-size: 0.95rem; line-height: 1.5; color: var(--text); white-space: pre-wrap;">
+                ${aiText}
+            </div>
+        `);
+        
+        // Save AI reply to history so it remembers context for the next question
+        window.lmsChatHistory.push({ role: "assistant", content: aiText });
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+    } catch (err) {
+        console.error("AI Tutor Error:", err);
+        document.getElementById(typingId)?.remove();
+        toast('Error connecting to AI Tutor. Check Vercel logs!', 'error');
+    }
+};
+
 
 /* ====================== INIT ====================== */
 document.addEventListener('DOMContentLoaded', async () => {
