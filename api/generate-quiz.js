@@ -5,9 +5,14 @@ export default async function handler(req, res) {
   if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
 
   try {
+    // Safely grabbing the key from Vercel
     const apiKey = process.env.GEMINI_API_KEY;
     
-    // THE FIX: Pointing to the active Free Tier model
+    if (!apiKey || apiKey === 'undefined') {
+      console.error("CRITICAL VERCEL ERROR: GEMINI_API_KEY is missing in generate-quiz.js!");
+      return res.status(500).json({ error: 'Server configuration error: API key missing.' });
+    }
+    
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
