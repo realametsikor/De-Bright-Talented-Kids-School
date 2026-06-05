@@ -117,17 +117,24 @@ html, body {
 
 .hero::before {
   content: ""; position: absolute; inset: 0;
-  background: 
+  /* Use the exact original gradient shading and scaling logic */
+  background-image: 
     linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-    var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/115% auto no-repeat;
+    var(--dynamic-hero-bg, url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'));
+  background-position: center;
+  background-size: 115% auto;
+  background-repeat: no-repeat;
   opacity: 1; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
 
 @media (min-width: 768px) {
   .hero::before { 
-    background: 
+    background-image: 
       linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-      var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/cover no-repeat; 
+      var(--dynamic-hero-bg, url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'));
+    background-position: center;
+    background-size: 45% auto; 
+    background-repeat: no-repeat;
   }
 }
 
