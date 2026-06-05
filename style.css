@@ -110,7 +110,7 @@ html, body {
 /* ===================== HERO ===================== */
 .hero {
   height: 92vh; position: relative; 
-  background-color: #ffffff; 
+  background-color: #0a2540; 
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
