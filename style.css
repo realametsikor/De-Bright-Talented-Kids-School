@@ -110,7 +110,7 @@ html, body {
 /* ===================== HERO ===================== */
 .hero {
   height: 92vh; position: relative; 
-  background-color: #ffffff; 
+  background-color: #0a2540; /* Fix applied */
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
@@ -127,7 +127,7 @@ html, body {
   .hero::before { 
     background: 
       linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-      url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/45% auto no-repeat; 
+      url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/cover no-repeat; /* Fix applied */
   }
 }
 
