@@ -544,5 +544,59 @@
 
   });
 </script>
+  <div class="lms-modal" id="homepage-popup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); z-index: 9999; align-items: center; justify-content: center;">
+  <div style="background: #1e293b; width: 100%; max-width: 420px; text-align: center; padding: 2.5rem; position: relative; border-radius: 12px; border-top: 4px solid #facc15; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+    <button onclick="document.getElementById('homepage-popup-modal').style.display='none'" style="position: absolute; top: 15px; right: 15px; background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: #94a3b8;"><i class="fas fa-times"></i></button>
+    <div style="margin-bottom: 1rem;">
+      <span style="background: rgba(74, 222, 128, 0.1); color: #4ade80; padding: 5px 14px; border-radius: 99px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">NOTICE</span>
+    </div>
+    <h2 id="popup-title-display" style="color: #f8fafc; font-size: 1.8rem; margin-bottom: 1rem; font-family: 'Poppins', sans-serif;"></h2>
+    <p id="popup-text-display" style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.6;"></p>
+    <ul id="popup-bullets-display" style="list-style: none; padding: 0; margin: 0 auto 2rem; text-align: left; display: inline-block;"></ul>
+    <a href="#" id="popup-btn-display" style="display: inline-block; background-color: #3b82f6; color: white; text-decoration: none; padding: 0.8rem 2.5rem; border-radius: 8px; font-weight: 600; transition: background 0.2s;"></a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  window.addEventListener('load', async function() {
+    if (sessionStorage.getItem('lms_popup_viewed')) return;
+
+    const sbUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+    const sbKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
+    const client = window.supabase.createClient(sbUrl, sbKey);
+
+    try {
+      const { data, error } = await client.from('site_settings').select('*').eq('id', 1).single();
+      if (data && data.popup_enabled) {
+        document.getElementById('popup-title-display').textContent = data.popup_title || '';
+        document.getElementById('popup-text-display').textContent = data.popup_text || '';
+        
+        const bulletsContainer = document.getElementById('popup-bullets-display');
+        if (data.popup_bullets) {
+          data.popup_bullets.split(',').forEach(b => {
+            if (b.trim() === '') return;
+            const li = document.createElement('li');
+            li.style.marginBottom = '0.6rem';
+            li.style.color = '#cbd5e1';
+            li.style.fontWeight = '600';
+            li.innerHTML = '<i class="fas fa-check-circle" style="color: #facc15; margin-right: 8px;"></i> ' + b.trim();
+            bulletsContainer.appendChild(li);
+          });
+        }
+        
+        const btn = document.getElementById('popup-btn-display');
+        btn.textContent = data.popup_btn_text || 'Continue';
+        btn.href = data.popup_btn_link || '#';
+
+        const modal = document.getElementById('homepage-popup-modal');
+        modal.style.display = 'flex';
+        sessionStorage.setItem('lms_popup_viewed', 'true');
+      }
+    } catch (err) {
+      console.error("Popup fetch error:", err);
+    }
+  });
+</script>
 </body>
 </html>
