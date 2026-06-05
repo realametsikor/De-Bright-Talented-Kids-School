@@ -662,6 +662,7 @@ const pages = {
 'a-settings':() => `
   <div class="page-header" style="margin-bottom: 2rem;"><h2>Global Settings</h2><span style="color:var(--lms-muted);">Update system parameters</span></div>
   <div style="max-width: 600px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+    
     <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
       <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
         <h3 style="margin:0;"><i class="fas fa-cogs" style="color:var(--lms-muted); margin-right:8px;"></i> Configuration</h3>
@@ -697,6 +698,33 @@ const pages = {
         </div>
       </div>
     </div>
+
+    <div class="panel" style="border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); overflow: hidden;">
+      <div class="panel-head" style="padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--lms-border);">
+        <h3 style="margin:0;"><i class="fas fa-images" style="color:var(--lms-muted); margin-right:8px;"></i> Website Assets (Images)</h3>
+      </div>
+      <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.2rem;">
+        <div class="lms-form-group" style="margin:0;">
+          <label>School Logo (Favicon, Navbar, Print Watermark)</label>
+          <div style="display:flex; gap:1rem; align-items:center;">
+            <img src="${SITE_SETTINGS.logo_url || 'https://placehold.co/100x100/f8fafc/94a3b8?text=Logo'}" style="width:60px; height:60px; object-fit:contain; border-radius:8px; border:1px solid var(--lms-border); background:#f8fafc;">
+            <input type="file" id="set-logo" accept="image/*" style="flex:1; padding:0.6rem; border:1px dashed var(--lms-border); border-radius:8px; background:#fff;">
+          </div>
+        </div>
+        <div class="lms-form-group" style="margin:0;">
+          <label>Main Background Image (Hero & Portal)</label>
+          <input type="file" id="set-hero-bg" accept="image/*" style="padding:0.6rem; border:1px dashed var(--lms-border); border-radius:8px; background:#fff; width: 100%;">
+          ${SITE_SETTINGS.hero_bg_url ? `<small style="color:var(--lms-green); display:block; margin-top:6px;"><i class="fas fa-check"></i> Image active</small>` : ''}
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; padding-top: 1rem; border-top: 1px solid var(--lms-border);">
+          <div class="lms-form-group" style="margin:0;"><label>Talent Card 1 (ICT)</label><input type="file" id="set-t1" accept="image/*" style="padding:0.5rem; border:1px dashed var(--lms-border); border-radius:8px; background:#fff; width: 100%;"></div>
+          <div class="lms-form-group" style="margin:0;"><label>Talent Card 2 (Sports)</label><input type="file" id="set-t2" accept="image/*" style="padding:0.5rem; border:1px dashed var(--lms-border); border-radius:8px; background:#fff; width: 100%;"></div>
+          <div class="lms-form-group" style="margin:0;"><label>Talent Card 3 (Arts)</label><input type="file" id="set-t3" accept="image/*" style="padding:0.5rem; border:1px dashed var(--lms-border); border-radius:8px; background:#fff; width: 100%;"></div>
+          <div class="lms-form-group" style="margin:0;"><label>Talent Card 4 (Culture)</label><input type="file" id="set-t4" accept="image/*" style="padding:0.5rem; border:1px dashed var(--lms-border); border-radius:8px; background:#fff; width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
     <button class="btn-lms-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Configurations</button>
   </div>
 `,
