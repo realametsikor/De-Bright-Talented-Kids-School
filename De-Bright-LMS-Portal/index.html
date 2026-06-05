@@ -276,6 +276,138 @@
 }
 </style>
 
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // 1. FETCH SITE SETTINGS (Dynamic Assets & Popup)
+    try {
+      const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
+      
+      if (data) {
+        /* --- DYNAMIC ASSET INJECTION --- */
+        // Apply Global Logos
+        if (data.logo_url) {
+          document.querySelectorAll('.dynamic-logo').forEach(img => img.src = data.logo_url);
+          const fav = document.getElementById('dynamic-favicon'); if(fav) fav.href = data.logo_url;
+          const appIcon = document.getElementById('dynamic-apple-icon'); if(appIcon) appIcon.href = data.logo_url;
+        }
+        
+        // Apply Hero Background
+        if (data.hero_bg_url) {
+          document.documentElement.style.setProperty('--dynamic-hero-bg', `url(${data.hero_bg_url})`);
+        }
+        
+        // Apply Talent Cards
+        if (data.talent_1_url) { const img = document.getElementById('talent-img-1'); if(img) img.src = data.talent_1_url; }
+        if (data.talent_2_url) { const img = document.getElementById('talent-img-2'); if(img) img.src = data.talent_2_url; }
+        if (data.talent_3_url) { const img = document.getElementById('talent-img-3'); if(img) img.src = data.talent_3_url; }
+        if (data.talent_4_url) { const img = document.getElementById('talent-img-4'); if(img) img.src = data.talent_4_url; }
+
+
+        /* --- HOMEPAGE POPUP LOGIC --- */
+        const modal = document.getElementById('homepage-popup-modal');
+        if (modal) {
+          // If popup is active and hasn't been viewed in this session
+          if (data.popup_active && !sessionStorage.getItem('lms_popup_viewed')) {
+            
+            document.getElementById('popup-title-display').textContent = data.popup_title || '';
+            document.getElementById('popup-text-display').textContent = data.popup_desc || data.popup_text || '';
+            
+            // Format checkmark bullets
+            const bulletsContainer = document.getElementById('popup-bullets-display');
+            if (data.popup_list) {
+              let items = [];
+              if (typeof data.popup_list === 'string') {
+                try { items = JSON.parse(data.popup_list); if(!Array.isArray(items)) items = [data.popup_list]; } 
+                catch(e) { items = [data.popup_list]; }
+              } else if (Array.isArray(data.popup_list)) {
+                items = data.popup_list;
+              }
+              items = items.flatMap(item => String(item).split(/\\n|\n/)).map(item => item.trim()).filter(item => item.length > 0);
+              
+              if (items.length > 0) {
+                bulletsContainer.innerHTML = items.map(item => '<li style="margin-bottom:0.6rem; color:#cbd5e1; font-weight:600;"><i class="fas fa-check-circle" style="color:#facc15; margin-right:8px;"></i> ' + item + '</li>').join('');
+              }
+            }
+            
+            // Format Button
+            const btn = document.getElementById('popup-btn-display');
+            btn.textContent = data.popup_btn_text || 'Continue';
+            btn.href = data.popup_btn_link || '#';
+
+            // Show modal
+            modal.style.display = 'flex';
+            sessionStorage.setItem('lms_popup_viewed', 'true');
+            
+          } else {
+            // Remove modal from DOM if disabled
+            modal.style.setProperty('display', 'none', 'important');
+          }
+        }
+      }
+    } catch(err) {
+      console.error("Failed to load settings:", err);
+    }
+
+    // 2. FETCH RECENT MOMENTS (Latest 5 Images)
+    try {
+      const { data: galleryData, error: galleryError } = await supabase
+        .from('gallery_images')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(5);
+        
+      const momentsGrid = document.getElementById('dynamic-recent-moments');
+      
+      if (momentsGrid && galleryData && galleryData.length > 0) {
+        momentsGrid.innerHTML = galleryData.map((img, index) => `
+          <div class="moment-item ${index === 0 ? 'featured' : ''}">
+            <img src="${img.image_url}" alt="${img.title || 'School Moment'}" loading="lazy">
+          </div>
+        `).join('');
+      } else if (momentsGrid) {
+        momentsGrid.innerHTML = '<p style="grid-column: 1/-1; text-align:center; color:#888;">No recent moments to display.</p>';
+      }
+    } catch(gErr) {
+      console.error("Failed to load recent moments:", gErr);
+    }
+
+    // 3. FETCH UPCOMING EVENTS
+    try {
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .order('event_date', { ascending: true })
+        .limit(3); 
+        
+      const eventsContainer = document.getElementById('dynamic-events-container');
+      
+      if (eventsContainer && eventsData && eventsData.length > 0) {
+        eventsContainer.innerHTML = eventsData.map(ev => {
+          const d = new Date(ev.event_date);
+          const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
+          const day = d.getDate().toString().padStart(2, '0');
+          
+          return `
+            <div class="event-card">
+              <div class="event-date"><span>${day}</span><small>${month}</small></div>
+              <div class="event-details"><h4>${ev.title}</h4><p>${ev.description || ''}</p></div>
+            </div>
+          `;
+        }).join('');
+      } else if (eventsContainer) {
+        eventsContainer.innerHTML = '<p style="text-align:center; color:#888;">No upcoming events scheduled at the moment.</p>';
+      }
+    } catch(eErr) {
+      console.error("Failed to load events:", eErr);
+    }
+  });
+</script>
+</body>
+</html>
 <script defer src="/main.js"></script>
 <script defer src="/De-Bright-LMS-Portal/script.js?v=10.0"></script>
