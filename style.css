@@ -119,7 +119,7 @@ html, body {
   content: ""; position: absolute; inset: 0;
   background: 
     linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-    url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/115% auto no-repeat;
+    var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/115% auto no-repeat;
   opacity: 1; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
 }
 
@@ -127,10 +127,20 @@ html, body {
   .hero::before { 
     background: 
       linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-      url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') center/45% auto no-repeat; 
+      var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/cover no-repeat; 
   }
 }
 
+.portal-section { 
+  min-height: 85vh; 
+  background: linear-gradient(rgba(10,37,64,.85),rgba(10,37,64,.9)), var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/cover; 
+  display: flex; align-items: center; justify-content: center; padding: 2rem; 
+}
+
+.page-hero { 
+  background: linear-gradient(rgba(10,37,64,.6), rgba(10,37,64,.7)), var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/cover; 
+  padding: 7rem 5% 9rem; text-align: center; color: white; position: relative; 
+}
 .hero::after {
   content: "";
   position: absolute; bottom: -1px; left: 0; width: 100%;
