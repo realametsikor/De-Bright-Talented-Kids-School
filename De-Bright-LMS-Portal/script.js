@@ -953,67 +953,7 @@ const pages = {
   `;
 },
 
-  return `
-  <!-- Upgraded Teacher Header -->
-  <div class="welcome-banner" style="background: linear-gradient(135deg, #0f172a, #1e40af); border-radius: 16px; padding: 2rem; color: white; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 2rem;">
-    <div class="wb-text">
-      <div class="wb-tag" style="background: rgba(255,255,255,0.15); padding: 4px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 600; display: inline-block; margin-bottom: 0.8rem;">📋 Class Lead — ${currentUser.class}</div>[span_5](start_span)[span_5](end_span)
-      <h2 style="font-size: 1.8rem; margin: 0; font-family: var(--font-lms-heading);">Keep up the great work, ${currentUser.name.split(' ')[1]||currentUser.name}! 🍎</h2>[span_6](start_span)[span_6](end_span)
-      <p style="opacity: 0.9; margin-top: 0.5rem;">You have <strong>${pendingGrading}</strong> submissions waiting for your feedback today.</p>[span_7](start_span)[span_7](end_span)
-    </div>
-    <div class="wb-icon" style="font-size: 4rem; opacity: 0.2;"><i class="fas fa-chalkboard-teacher"></i></div>
-  </div>
-
-  <!-- Primary Stats -->
-  <div class="stats-row" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-gold);">
-      <div class="sc-icon" style="width: 48px; height: 48px; background: #fef9c3; color: #a16207; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-users"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Students</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${myClassStudents.length}</div></div>[span_8](start_span)[span_8](end_span)
-    </div>
-    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-blue);">
-      <div class="sc-icon" style="width: 48px; height: 48px; background: #eff6ff; color: var(--lms-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-tasks"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Assignments</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${totalAsgn}</div></div>[span_9](start_span)[span_9](end_span)
-    </div>
-    <div class="sc" style="background: #fff; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; gap: 1rem; border-left: 4px solid var(--lms-red);">
-      <div class="sc-icon" style="width: 48px; height: 48px; background: #fef2f2; color: var(--lms-red); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;"><i class="fas fa-marker"></i></div>
-      <div class="sc-info"><label style="font-size: 0.8rem; color: var(--lms-muted); text-transform: uppercase;">Needs Grading</label><div style="font-size: 1.5rem; font-weight: 700; color: var(--text);">${pendingGrading}</div></div>[span_10](start_span)[span_10](end_span)
-    </div>
-  </div>
-
-  <!-- NEW UI: Teacher Quick Actions & Syllabus Progress -->
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-    
-    <!-- Syllabus Progress Card -->
-    <div class="panel" style="border-radius: 16px; padding: 1.5rem; background: #fff; border: 1px solid var(--lms-border); box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
-      <h3 style="margin: 0 0 1.2rem 0; font-size: 1.1rem; color: var(--primary); font-family: var(--font-lms-heading);"><i class="fas fa-stream"></i> Term 2 Syllabus Progress</h3>[span_11](start_span)[span_11](end_span)
-      <div style="margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.5rem; font-weight: 600;"><span>Overall Completion</span><span>65%</span></div>
-        <div style="height: 12px; background: #f1f5f9; border-radius: 99px; overflow: hidden;"><div style="width: 65%; height: 100%; background: var(--lms-green); border-radius: 99px;"></div></div>[span_12](start_span)[span_12](end_span)
-      </div>
-      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-         <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; color: var(--lms-green);"><i class="fas fa-check-circle"></i> Unit 1: Algebra Fundamentals</div>
-         <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; color: var(--lms-blue);"><i class="fas fa-spinner fa-spin"></i> Unit 2: Geometry & Shapes</div>
-         <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; color: var(--lms-muted);"><i class="far fa-circle"></i> Unit 3: Data & Probability</div>
-      </div>
-    </div>
-
-    <!-- AI Teacher Tools -->
-    <div style="background: #0a2540; padding: 1.5rem; border-radius: 16px; color: white; box-shadow: 0 8px 25px rgba(10, 37, 64, 0.2); position: relative; overflow: hidden;">
-      <i class="fas fa-robot" style="position: absolute; bottom: -10px; right: -10px; font-size: 5rem; opacity: 0.1;"></i>
-      <h3 style="margin: 0 0 1rem 0; font-family: var(--font-lms-heading); font-size: 1.1rem;"><i class="fas fa-magic" style="color: var(--accent);"></i> AI Co-Pilot</h3>[span_13](start_span)[span_13](end_span)
-      <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 1.5rem;">Use the power of Gemini to speed up your lesson preparation and student analysis.</p>[span_14](start_span)[span_14](end_span)
-      <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-        <button class="btn-lms-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.6rem; font-size: 0.85rem; text-align: left; width: 100%; border-radius: 8px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="toast('Opening AI Lesson Planner...')"><i class="fas fa-file-invoice"></i> Draft a Lesson Plan</button>[span_15](start_span)[span_15](end_span)
-        <button class="btn-lms-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 0.6rem; font-size: 0.85rem; text-align: left; width: 100%; border-radius: 8px; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'" onclick="toast('Opening Performance Analyzer...')"><i class="fas fa-chart-line"></i> Analyze Class Scores</button>[span_16](start_span)[span_16](end_span)
-      </div>
-    </div>
-
-  </div>
-  `;
-},
-
-
-/* --- TEACHER QUIZ PAGE --- */
+ /* --- TEACHER QUIZ PAGE --- */
 't-quiz': () => {
   const classQuizzes = QUIZZES.filter(q => q.class === currentUser.class);
   return `
