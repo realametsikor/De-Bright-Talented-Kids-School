@@ -1555,6 +1555,11 @@ window.deleteArticle = async function(id) {
 window.saveSiteSettings = async function() {
   if(!supabaseClient) return toast('Database connection missing', 'error');
 
+  const btn = document.querySelector('button[onclick="saveSiteSettings()"]');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading & Saving...';
+  btn.disabled = true;
+
   const popupListRaw = document.getElementById('set-popup-list').value;
   const popupListArray = popupListRaw ? popupListRaw.split('\n').map(item => item.trim()).filter(item => item.length > 0) : [];
 
@@ -1565,8 +1570,6 @@ window.saveSiteSettings = async function() {
     current_term: document.getElementById('set-term').value.trim(),
     academic_year: document.getElementById('set-year').value.trim(),
     homepage_announcement: document.getElementById('set-ann').value.trim(),
-    
-    // New Popup Fields
     popup_active: document.getElementById('set-popup-active').checked,
     popup_badge: document.getElementById('set-popup-badge').value.trim(),
     popup_title: document.getElementById('set-popup-title').value.trim(),
@@ -1575,15 +1578,46 @@ window.saveSiteSettings = async function() {
     popup_btn_text: document.getElementById('set-popup-btn-text').value.trim(),
     popup_btn_link: document.getElementById('set-popup-btn-link').value.trim()
   };
-  
-  const { error } = await supabaseClient.from('site_settings').update(payload).eq('id', 1);
-  if(error) return toast(error.message, 'error');
-  
-  SITE_SETTINGS = { ...SITE_SETTINGS, ...payload };
-  toast('Global Settings Updated!');
-  buildDashboard();
-};
 
+  // Helper to upload files to Supabase automatically
+  const uploadAsset = async (inputId, existingUrl) => {
+    const fileInput = document.getElementById(inputId);
+    if (fileInput && fileInput.files.length > 0) {
+      const file = fileInput.files[0];
+      const filePath = `assets/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '')}`;
+      const { error } = await supabaseClient.storage.from('lms-files').upload(filePath, file);
+      if (error) throw new Error(error.message);
+      const { data } = supabaseClient.storage.from('lms-files').getPublicUrl(filePath);
+      return data.publicUrl;
+    }
+    return existingUrl; 
+  };
+
+  try {
+    payload.logo_url = await uploadAsset('set-logo', SITE_SETTINGS.logo_url);
+    payload.hero_bg_url = await uploadAsset('set-hero-bg', SITE_SETTINGS.hero_bg_url);
+    payload.talent_1_url = await uploadAsset('set-t1', SITE_SETTINGS.talent_1_url);
+    payload.talent_2_url = await uploadAsset('set-t2', SITE_SETTINGS.talent_2_url);
+    payload.talent_3_url = await uploadAsset('set-t3', SITE_SETTINGS.talent_3_url);
+    payload.talent_4_url = await uploadAsset('set-t4', SITE_SETTINGS.talent_4_url);
+
+    const { error } = await supabaseClient.from('site_settings').update(payload).eq('id', 1);
+    if(error) throw new Error(error.message);
+
+    SITE_SETTINGS = { ...SITE_SETTINGS, ...payload };
+    toast('Settings & Assets Updated! 🎉');
+    
+    // Apply changes to admin view immediately
+    document.querySelectorAll('.dynamic-logo').forEach(img => img.src = payload.logo_url);
+    
+    buildDashboard();
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+
+  btn.innerHTML = originalText;
+  btn.disabled = false;
+};
 
 /* ====================== ASSIGNMENTS (WITH ATTACHMENTS & TYPED RESPONSES) ====================== */
 function injectAssignmentModal() {
