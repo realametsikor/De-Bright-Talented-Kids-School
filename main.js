@@ -132,14 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---- BECE COUNTDOWN ---- */
   const timerEl = document.querySelector('.timer');
   if (timerEl) {
-    // Target Date to May 4, 2026
-    const beceDate = new Date('May 4, 2026 08:00:00').getTime();
+    // Target Date updated to May 4, 2027
+    const beceDate = new Date('May 4, 2027 08:00:00').getTime();
     const pad = n => String(n).padStart(2, '0');
     const tick = () => {
       const dist = beceDate - Date.now();
       if (dist < 0) {
         const sec = document.getElementById('countdown-section');
-        if (sec) sec.innerHTML = '<h2>B.E.C.E In Progress!</h2>';
+        // Updated Fallback text
+        if (sec) sec.innerHTML = '<h2>BECE 2026 Complete! Preparing for 2027.</h2>';
         return;
       }
       const d = document.getElementById('days');
