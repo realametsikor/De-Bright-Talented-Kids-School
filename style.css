@@ -244,13 +244,23 @@ html, body {
   z-index: 1;
 }
 
-/* 100% Transparent from 0% to 50%. No gradient will touch the student. */
+/* ===================== HERO OVERLAY FIX ===================== */
+
+/* 1. Safety Override: Kills any leftover dark layers from old designs */
+.hero::before,
+.hero::after {
+  display: none !important;
+  background: none !important;
+}
+
+/* 2. The Clean Overlay: Hard transparency stop at 45% */
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, transparent 50%, rgba(10, 37, 64, 0.95) 70%, #0a2540 100%);
+  /* 0% to 45% is strictly RGBA 0 (100% invisible). No gradient bleeding! */
+  background: linear-gradient(90deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 45%, rgba(10, 37, 64, 0.95) 65%, rgba(10, 37, 64, 1) 100%);
   z-index: 2;
-  pointer-events: none; /* Ensures the overlay cannot block button clicks */
+  pointer-events: none;
 }
 
 .hero-container {
@@ -833,8 +843,10 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 /* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 900px) {
   .hero-overlay {
-    background: linear-gradient(180deg, transparent 0%, transparent 40%, rgba(10, 37, 64, 0.95) 65%, #0a2540 100%);
+    /* Top 40% is strictly invisible. Bottom darkens for text. */
+    background: linear-gradient(180deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 40%, rgba(10, 37, 64, 0.95) 65%, rgba(10, 37, 64, 1) 100%);
   }
+}
   .hero-content { 
     margin-top: -3rem; 
   }
