@@ -118,7 +118,6 @@ html, body {
   overflow: hidden;
 }
 
-/* Image Layer: Perfectly clear, untouched by gradients */
 .hero-bg-image {
   position: absolute;
   inset: 0;
@@ -129,7 +128,7 @@ html, body {
   z-index: 1;
 }
 
-/* 🚨 ABSOLUTE KILL SWITCH: Permanently destroys all weird gradients */
+/* 🚨 KILL SWITCH: Destroys all weird gradients */
 .hero::before,
 .hero::after,
 .hero-overlay {
@@ -137,6 +136,7 @@ html, body {
   display: none !important;
   background: none !important;
 }
+
 /* Layout Controller */
 .hero-container {
   position: relative;
@@ -145,40 +145,42 @@ html, body {
   max-width: 1300px; 
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; /* Pushes content to the right */
+  justify-content: flex-end; 
   padding: 0 5%;
 }
 
 /* ✨ The Constrained Glass Card ✨ */
 .hero-content {
-  background: rgba(10, 37, 64, 0.70); 
+  background: rgba(10, 37, 64, 0.75); 
   backdrop-filter: blur(16px); 
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15); 
   border-radius: 24px;
-  padding: 3rem 3.5rem; 
-  max-width: 600px; /* THE FIX: Strictly limits the width so it CANNOT touch the student */
+  padding: 3.5rem; 
+  max-width: 680px; /* WIDENED slightly so "Confidence" easily fits */
   width: 100%;
-  margin-left: auto; /* THE FIX: Hard-anchors the box to the far right */
+  margin-left: auto; /* Anchors firmly to the right */
   text-align: left;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
 }
 
-/* Typography inside the Glass Box */
-.hero h1 {
-  font-size: clamp(2.5rem, 3.5vw, 3.8rem); /* Slightly reduced so "Confidence" easily fits on one line inside the new 600px box */
-  font-weight: 800;
-  line-height: 1.15;
-  margin-bottom: 0.5rem;
-  font-family: 'Space Grotesk', 'Poppins', sans-serif;
-  color: #ffffff;
-  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+/* 🚨 RESTORED EYEBROW TEXT 🚨 */
+.hero-eyebrow {
+  display: block; 
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #e2e8f0; /* Bright, visible slate color */
+  margin-bottom: 1.2rem;
+  font-family: 'Poppins', sans-serif;
 }
 
 .hero h1 {
-  font-size: clamp(2.8rem, 4vw, 4.2rem); /* Dynamically sizes perfectly */
+  /* SCALED DOWN slightly so long words don't break */
+  font-size: clamp(2.2rem, 3.2vw, 3.2rem); 
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.2;
   margin-bottom: 0.5rem;
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
@@ -201,7 +203,6 @@ html, body {
   font-family: 'Open Sans', sans-serif;
 }
 
-/* Action Buttons */
 .hero-actions {
   display: flex;
   gap: 1.5rem;
@@ -265,91 +266,50 @@ html, body {
   }
   
   .hero-bg-image {
-    background-position: center 15%; 
+    background-position: 25% top; 
   }
 
   .hero-container { 
     justify-content: center;
-    padding: 0 1.5rem;
+    padding: 0 1rem;
   }
 
-  /* Adjusts the Glass box for mobile screens */
   .hero-content { 
-    padding: 2.5rem 1.5rem;
+    padding: 2rem 1.5rem;
     text-align: center;
-    background: rgba(10, 37, 64, 0.75); /* Slightly darker on mobile for perfect readability */
+    background: rgba(10, 37, 64, 0.85); 
+    margin-left: 0;
   }
   
   .hero h1 { 
-    font-size: 2.5rem; 
+    font-size: clamp(2rem, 8vw, 2.8rem); 
+    margin-bottom: 0.5rem;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.85rem; 
+    margin-bottom: 1rem;
   }
 
   .hero-separator {
-    margin: 1.5rem auto; 
+    margin: 1.2rem auto; 
+  }
+
+  .hero-desc {
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
   }
 
   .hero-actions { 
-    justify-content: center; 
-  }
-  
-  .cta-button { 
-    width: 100%; 
-    max-width: 350px; 
-  }
-}
-
-/* ===================== TICKER FIX ===================== */
-.ticker-wrap {
-  background: #facc15;
-  padding: 0.8rem 0;
-  color: #0f172a;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 0.95rem;
-  border-bottom: 4px solid #eab308;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-}
-
-/* ===================== MOBILE OPTIMIZATION ===================== */
-@media (max-width: 900px) {
-  .hero { 
-    min-height: 100vh; 
-    align-items: flex-end; 
-  }
-  
-  .hero-bg-image {
-    background-position: center 15%; 
-  }
-
-  .hero-overlay {
-    background: linear-gradient(180deg, transparent 0%, transparent 40%, rgba(10, 37, 64, 0.8) 65%, rgba(10, 37, 64, 1) 100%);
-  }
-
-  .hero-container { 
+    flex-direction: column; 
     justify-content: center;
-    padding-bottom: 4rem; 
-  }
-
-  .hero-content { 
-    text-align: center;
-    margin: 0;
-  }
-  
-  .hero h1 { 
-    font-size: 2.8rem; 
-  }
-
-  .hero-separator {
-    margin: 1.5rem auto; 
-  }
-
-  .hero-actions { 
-    justify-content: center; 
+    gap: 1rem; 
   }
   
   .cta-button { 
-    width: 100%; 
-    max-width: 320px; 
+    width: 100% !important; 
+    max-width: none; 
+    padding: 1.1rem 2rem;
   }
 }
 
