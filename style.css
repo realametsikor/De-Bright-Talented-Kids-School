@@ -107,16 +107,18 @@ html, body {
   color: var(--primary); font-size: .9rem; }
 @keyframes ticker { from{transform:translateX(0);}to{transform:translateX(-50%);} }
 
+
 /* ===================== HERO SECTION ===================== */
 .hero {
   position: relative;
-  min-height: 88vh; 
+  min-height: 90vh; 
   display: flex;
   align-items: center;
   background-color: #0a2540; 
   overflow: hidden;
 }
 
+/* Image Layer: Perfectly clear, untouched by gradients */
 .hero-bg-image {
   position: absolute;
   inset: 0;
@@ -127,90 +129,80 @@ html, body {
   z-index: 1;
 }
 
-/* 🚨 KILL SWITCH: Destroys any old, hidden gradients causing the blue tint */
+/* 🚨 ABSOLUTE KILL SWITCH: Permanently destroys all weird gradients */
 .hero::before,
-.hero::after {
+.hero::after,
+.hero-overlay {
   content: none !important;
   display: none !important;
   background: none !important;
 }
 
-/* 1. The Buttery-Smooth Cinematic Overlay */
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  /* 0-40% is completely clear. The rest is an ultra-smooth, gradual fade */
-  background: linear-gradient(90deg, 
-    rgba(10, 37, 64, 0) 0%, 
-    rgba(10, 37, 64, 0) 40%, 
-    rgba(10, 37, 64, 0.6) 65%, 
-    rgba(10, 37, 64, 0.95) 100%);
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* 2. Precision Layout Framing */
+/* Layout Controller */
 .hero-container {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1300px; /* Tighter master framing for a focused layout */
+  max-width: 1350px; 
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; /* Perfectly anchors content to the right */
-  align-items: center;
+  justify-content: flex-end; /* Locks the glass card to the right */
   padding: 0 5%;
 }
 
+/* ✨ THE MASTERPIECE: Modern Glassmorphism Card ✨ */
 .hero-content {
+  background: rgba(10, 37, 64, 0.60); /* Translucent navy */
+  backdrop-filter: blur(16px); /* Creates the frosted glass blur */
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle glass edge reflection */
+  border-radius: 24px;
+  padding: 4rem;
+  max-width: 650px; /* Perfectly sizes the box so text doesn't break */
   width: 100%;
-  max-width: 600px; /* Strictly keeps text on the right half of the screen */
   text-align: left;
-  margin: 0;
-  padding: 0; /* Removes awkward inward pushing */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Deep, premium drop shadow */
 }
 
-/* 3. Premium Typography & Spacing */
+/* Typography inside the Glass Box */
 .hero-eyebrow {
   display: inline-block;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  letter-spacing: 4px; /* Cinematic tracking */
+  letter-spacing: 3px;
   text-transform: uppercase;
   color: #cbd5e1;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
   font-family: 'Poppins', sans-serif;
 }
 
 .hero h1 {
-  font-size: clamp(3.2rem, 5vw, 4.8rem); /* Dynamically scales down on smaller screens */
+  font-size: clamp(3rem, 4.5vw, 4.2rem); /* Dynamically sizes the text perfectly */
   font-weight: 800;
-  line-height: 1.05; /* Tighter, more commanding line height */
+  line-height: 1.1;
   margin-bottom: 0.5rem;
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  letter-spacing: -1px;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .hero-separator {
-  width: 60px; /* Shorter, sharper, more elegant line */
+  width: 80px;
   height: 4px;
   background: #facc15;
-  margin: 2.5rem 0;
+  margin: 2rem 0;
   border-radius: 2px;
 }
 
 .hero-desc {
   font-size: 1.15rem;
-  margin-bottom: 3.5rem; /* Better breathing room before buttons */
-  color: #e2e8f0;
-  line-height: 1.7; /* Increased for optimal readability */
+  margin-bottom: 3.5rem;
+  color: #f8fafc;
+  line-height: 1.7;
   font-family: 'Open Sans', sans-serif;
-  max-width: 550px; /* Prevents text lines from getting too long */
 }
 
-/* 4. Action Buttons */
+/* Action Buttons */
 .hero-actions {
   display: flex;
   gap: 1.5rem;
@@ -222,7 +214,7 @@ html, body {
 .cta-button {
   background: #facc15;
   color: #0f172a;
-  padding: 1.1rem 3rem; /* Slightly wider padding for a premium feel */
+  padding: 1.2rem 3rem;
   border-radius: 99px;
   font-weight: 800;
   text-decoration: none;
@@ -230,13 +222,12 @@ html, body {
   transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  display: inline-block;
 }
 
 .cta-button:hover {
   transform: translateY(-3px);
   background: #eab308;
-  box-shadow: 0 10px 25px rgba(250, 204, 21, 0.3);
+  box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4);
 }
 
 .secondary-link {
@@ -252,6 +243,60 @@ html, body {
 .secondary-link:hover {
   color: #facc15;
   border-bottom: 2px solid #facc15;
+}
+
+/* ===================== TICKER FIX ===================== */
+.ticker-wrap {
+  background: #facc15;
+  padding: 0.8rem 0;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-bottom: 4px solid #eab308;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* ===================== MOBILE OPTIMIZATION ===================== */
+@media (max-width: 900px) {
+  .hero { 
+    min-height: 100vh; 
+    align-items: flex-end; 
+    padding-bottom: 2rem;
+  }
+  
+  .hero-bg-image {
+    background-position: center 15%; 
+  }
+
+  .hero-container { 
+    justify-content: center;
+    padding: 0 1.5rem;
+  }
+
+  /* Adjusts the Glass box for mobile screens */
+  .hero-content { 
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    background: rgba(10, 37, 64, 0.75); /* Slightly darker on mobile for perfect readability */
+  }
+  
+  .hero h1 { 
+    font-size: 2.5rem; 
+  }
+
+  .hero-separator {
+    margin: 1.5rem auto; 
+  }
+
+  .hero-actions { 
+    justify-content: center; 
+  }
+  
+  .cta-button { 
+    width: 100%; 
+    max-width: 350px; 
+  }
 }
 
 /* ===================== TICKER FIX ===================== */
