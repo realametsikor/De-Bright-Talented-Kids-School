@@ -260,17 +260,15 @@ html, body {
   max-width: 1400px; 
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; 
+  justify-content: flex-end; /* Pushes all content to the far right */
   padding: 0 5%;
 }
 
 .hero-content {
-  /* Increased max-width from 600px to 800px so the animated text fits on one line */
-  max-width: 800px; 
+  max-width: 720px; /* Tightened from 800px to pull the left edge away from the student */
   width: 100%;
   text-align: left;
-  /* Shifts the entire text block to the left, closer to the student */
-  margin-right: 8%; 
+  margin-right: 0; /* Removed the margin that was forcing the text to the left */
 }
 
 .hero-eyebrow {
