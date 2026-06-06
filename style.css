@@ -607,38 +607,61 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 .text-center { text-align: center; }
 .accent-bar { width: 60px; height: 5px; background: var(--accent); border-radius: 3px; margin: 1rem auto; }
 
-/* ===================== RESPONSIVE (INCLUDES OUR NEW GRID FIXES) ===================== */
+/* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 768px) {
-  /* THIS SPECIFICALLY PUSHES IT HIGHER ON MOBILE TO HIT YOUR RED LINE */
-  .hero-eyebrow { top: -140px; }
+  .hero { 
+    padding: 0 1.5rem; 
+    min-height: 100vh; /* Gives the content plenty of room to breathe vertically */
+  }
+  
+  .hero-content { 
+    margin-top: -3rem; 
+  }
+  
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    padding: 6px 18px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .hero h1 { 
+    font-size: 2.3rem; /* Perfectly scaled so "Leadership" doesn't break awkwardly */
+    margin-bottom: 1rem;
+  }
+  
+  .hero-desc { 
+    font-size: 1.05rem; 
+    margin-bottom: 2.5rem; 
+    padding: 0 0.5rem; /* Keeps text from touching the edge of the glass */
+  }
+  
+  .hero-actions { 
+    flex-direction: column; 
+    width: 100%; 
+    gap: 1rem; 
+  }
+  
+  .cta-button, .secondary-button { 
+    width: 100%; 
+    max-width: 320px; /* Prevents the buttons from looking absurdly wide */
+    margin: 0 auto; /* Keeps them perfectly centered */
+  }
+  
+  /* Flattens the wave so it looks smooth and proportional on narrow screens */
+  .hero-wave svg {
+    height: 45px; 
+  }
+}
 
-  .section-padding { padding: 3rem 5%; }
-  .contact-grid { gap: 1.2rem; }
-  .contact-hero { padding: 6rem 5% 8rem; }
-  .stat-row { grid-template-columns: 1fr 1fr; }
-  .grid-2 { grid-template-columns: 1fr; }
-  .article-header-section { padding: 6rem 5% 8rem; }
-  .article-card { padding: 2rem 1.25rem; margin-top: -4rem; width: 95%; }
-  .about-card { padding: 2rem 1.5rem; margin-top: -4rem; width: 95%; }
-  .page-card { padding: 2rem 1.5rem; margin-top: -4rem; width: 95%; }
-  .news-grid { grid-template-columns: 1fr; }
-  .gallery-grid { grid-template-columns: repeat(2, 1fr); }
-  .gallery-grid a { height: 150px; }
-  
-  .counter-section { padding: 3rem 5% 1rem; }
-  .stats-strip { padding: 1rem 5% 3rem; }
-  .counter-grid { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-  
-  .stat-box { padding: 1.5rem 0.5rem; min-height: 130px; }
-  .stat-box h3 { font-size: 0.85rem; margin: 0.8rem 0 0; line-height: 1.3; }
-  .stat-box p { display: none; } 
-  .icon-wrapper { font-size: 1.8rem; width: 45px; height: 45px; }
-  .stat-box:nth-child(1) .icon-wrapper { font-size: 1.3rem; }
-  
-  .trust-grid { gap: 3.5rem 1rem; margin-top: 4rem; }
-  .talent-grid { gap: 2rem; }
-
+/* Extra tweak for very small phones (like older iPhones) */
+@media (max-width: 480px) {
+  .hero h1 { 
+    font-size: 2rem; 
+  }
+  .hero-desc {
+    font-size: 0.95rem;
+  }
+}
   /* COUNTDOWN FIX FOR PERFECT 2x2 GRID ON MOBILE */
   #countdown-section .timer { 
     display: grid; 
