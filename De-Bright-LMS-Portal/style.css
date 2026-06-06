@@ -381,3 +381,23 @@ footer{background:var(--primary);color:rgba(255,255,255,.7);padding:2rem;font-si
   .welcome-banner{padding:1.2rem 1.4rem;}
   .wb-text h2{font-size:1.1rem;}
 }
+
+/* ====================================================
+   PORTAL LOGO SIZING FIX
+==================================================== */
+.dynamic-school-logo, 
+img[src*="logo"] {
+    display: block !important;
+    max-height: 65px !important;
+    width: auto;
+    object-fit: contain;
+    min-width: 50px;
+    min-height: 50px;
+    opacity: 1 !important;
+}
+
+.login-header img,
+.login-box img[src*="logo"] {
+    max-height: 80px !important;
+    margin: 0 auto;
+}
