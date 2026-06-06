@@ -224,6 +224,152 @@ html, body {
   fill: #0f172a; /* Matches the standard dark background of the next section if applicable */
 }
 
+/* ===================== HERO ===================== */
+.hero {
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5%;
+  overflow: hidden;
+  background-color: #111111; /* Neutral dark base instead of navy */
+}
+
+/* Cinematic Ken Burns Background */
+.hero-bg-image {
+  position: absolute;
+  inset: 0;
+  background-image: var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/111/fff?text=Upload+A+Photo'));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: kenBurns 20s infinite alternate ease-in-out;
+  z-index: 1;
+}
+
+/* Modern neutral gradient - lets the natural photo colors pop at the top */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0.9) 100%);
+  z-index: 2;
+}
+
+@keyframes kenBurns {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+  text-align: center;
+  max-width: 900px;
+  color: white;
+  margin-top: 5rem; /* Centers content perfectly */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 {
+  font-size: 4.8rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 3rem; /* Extra space since the paragraph is gone */
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Action Buttons & Links */
+.hero-actions {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 3.5rem;
+  flex-wrap: wrap;
+}
+
+.cta-button {
+  background: #facc15;
+  color: #111111;
+  padding: 1.1rem 2.8rem;
+  border-radius: 99px;
+  font-weight: 700;
+  text-decoration: none;
+  font-size: 1.05rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(250, 204, 21, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 25px rgba(250, 204, 21, 0.4);
+  background: #eab308;
+}
+
+.secondary-link {
+  color: #ffffff;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 2px;
+}
+
+.secondary-link:hover {
+  color: #facc15;
+  border-bottom: 2px solid #facc15;
+}
+
+/* Glassmorphism Tags */
+.hero-tags {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 18px;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #f8fafc;
+}
+
+.tag .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.dot.green { background: #4ade80; }
+.dot.yellow { background: #facc15; }
+.dot.blue { background: #60a5fa; }
+
 /* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 768px) {
   .hero { 
@@ -231,61 +377,39 @@ html, body {
     min-height: 100vh; 
   }
   
-  /* THE FIX: Swaps to a vertical gradient on mobile so the photo is fully visible */
   .hero::after {
-    background: linear-gradient(to bottom, rgba(10, 37, 64, 0.95) 0%, rgba(10, 37, 64, 0.65) 45%, rgba(10, 37, 64, 0.0) 100%);
+    /* Slightly darker on mobile to ensure readability */
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.9) 100%);
   }
 
-  /* Ensures the subjects of the photo remain perfectly centered on narrow screens */
-  .hero-bg-image {
-    background-position: center; 
-  }
-  
   .hero-content { 
-    margin-top: -3rem; 
+    margin-top: 2rem; 
   }
   
   .hero-eyebrow {
     font-size: 0.75rem;
-    padding: 6px 18px;
-    margin-bottom: 1.5rem;
-  }
-  
-  .hero h1 { 
-    font-size: 2.3rem; 
     margin-bottom: 1rem;
   }
   
-  .hero-desc { 
-    font-size: 1.05rem; 
-    margin-bottom: 2.5rem; 
-    padding: 0 0.5rem; 
+  .hero h1 { 
+    font-size: 2.8rem; 
+    margin-bottom: 2.5rem;
   }
   
   .hero-actions { 
     flex-direction: column; 
     width: 100%; 
-    gap: 1rem; 
+    gap: 1.5rem; 
+    margin-bottom: 2.5rem;
   }
   
-  .cta-button, .secondary-button { 
+  .cta-button { 
     width: 100%; 
     max-width: 320px; 
-    margin: 0 auto; 
   }
   
-  .hero-wave svg {
-    height: 45px; 
-  }
-}
-
-/* Extra tweak for very small phones (e.g., older iPhones) */
-@media (max-width: 480px) {
-  .hero h1 { 
-    font-size: 2rem; 
-  }
-  .hero-desc {
-    font-size: 0.95rem;
+  .hero-tags {
+    gap: 0.8rem;
   }
 }
 
