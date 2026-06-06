@@ -137,43 +137,42 @@ html, body {
   display: none !important;
   background: none !important;
 }
-
 /* Layout Controller */
 .hero-container {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1400px; /* Widened for breathing room */
+  max-width: 1300px; 
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; 
+  justify-content: flex-end; /* Pushes content to the right */
   padding: 0 5%;
 }
 
-/* ✨ THE MASTERPIECE: Modern Glassmorphism Card ✨ */
+/* ✨ The Constrained Glass Card ✨ */
 .hero-content {
-  background: rgba(10, 37, 64, 0.60); 
+  background: rgba(10, 37, 64, 0.70); 
   backdrop-filter: blur(16px); 
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15); 
   border-radius: 24px;
-  padding: 3.5rem 4rem; 
-  max-width: 850px; /* Widened so text doesn't crush into a column */
+  padding: 3rem 3.5rem; 
+  max-width: 600px; /* THE FIX: Strictly limits the width so it CANNOT touch the student */
   width: 100%;
+  margin-left: auto; /* THE FIX: Hard-anchors the box to the far right */
   text-align: left;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
 }
 
 /* Typography inside the Glass Box */
-.hero-eyebrow {
-  display: inline-block;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #cbd5e1;
-  margin-bottom: 1.5rem;
-  font-family: 'Poppins', sans-serif;
+.hero h1 {
+  font-size: clamp(2.5rem, 3.5vw, 3.8rem); /* Slightly reduced so "Confidence" easily fits on one line inside the new 600px box */
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 0.5rem;
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  color: #ffffff;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .hero h1 {
