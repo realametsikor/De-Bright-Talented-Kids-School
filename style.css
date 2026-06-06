@@ -126,10 +126,10 @@ html, body {
   position: absolute;
   inset: 0;
   background-image: var(--dynamic-hero-bg, none);
+  background-size: cover;
   background-position: center;
-  background-size: 400px; 
-  background-repeat: repeat;
-  opacity: 0.03; 
+  background-repeat: no-repeat;
+  opacity: 1;
   z-index: 1;
 }
 
@@ -253,33 +253,6 @@ html, body {
 
 .hero-content { max-width: 900px; z-index: 2; position: relative;
   text-shadow: 0 5px 15px rgba(0,0,0,.5); width: 100%; margin-bottom: 50px; }
-
-/* THE BIGGER, PLAYFUL, PERFECTLY POSITIONED TEXT */
-.hero-eyebrow { 
-  position: absolute; 
-  top: -160px; /* High up for desktop screens */
-  left: 0;
-  width: 100%; 
-  font-size: clamp(1.5rem, 6vw, 2.4rem); /* MUCH BIGGER SO IT POPS! */
-  text-transform: uppercase;
-  letter-spacing: 4px; 
-  color: var(--accent); 
-  font-weight: 800; 
-  text-shadow: 0 5px 20px rgba(0,0,0,0.7); /* Thicker shadow for readability */
-  
-  opacity: 0; 
-  transform-origin: center center; 
-  animation: playfulBounce 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-  animation-delay: 0.2s; 
-}
-
-@keyframes playfulBounce {
-  0% { transform: translateY(-100px) scale(0.2) rotate(-20deg); opacity: 0; }
-  40% { transform: translateY(20px) scale(1.2) rotate(10deg); opacity: 1; }
-  60% { transform: translateY(-15px) scale(0.9) rotate(-5deg); }
-  80% { transform: translateY(5px) scale(1.05) rotate(2deg); }
-  100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
-}
 
 .hero h1 { font-size: clamp(1.8rem,6vw,4.5rem); margin-bottom: 1.5rem;
   font-weight: 800; line-height: 1.3; font-family:'Poppins',sans-serif; }
