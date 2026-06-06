@@ -227,12 +227,11 @@ html, body {
 /* ===================== HERO ===================== */
 .hero {
   position: relative;
-  min-height: 90vh;
+  min-height: 92vh;
   display: flex;
   align-items: center;
-  /* Pushes all content to the right side */
-  justify-content: flex-end; 
-  padding: 6rem 5%;
+  justify-content: flex-end; /* Locks content to the right */
+  padding: 6rem 5% 4rem; /* Ensures space for the bottom wave */
   overflow: hidden;
   background-color: #0a2540; 
 }
@@ -242,28 +241,28 @@ html, body {
   inset: 0;
   background-image: var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+A+Photo'));
   background-size: cover;
-  /* Anchors the image to the left so the subject stays in frame */
-  background-position: left center; 
+  background-position: left center; /* Focuses on the student on the left */
   background-repeat: no-repeat;
   z-index: 1;
 }
 
-/* Lateral Gradient: Transparent on the left (image visible), dark on the right (text readable) */
+/* Horizontal Gradient: 100% clear on the left (image visible), dark navy on the right (text readable) */
 .hero::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to right, rgba(10, 37, 64, 0.05) 0%, rgba(10, 37, 64, 0.85) 50%, rgba(10, 37, 64, 0.98) 100%);
+  background: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(10, 37, 64, 0.85) 60%, rgba(10, 37, 64, 1) 100%);
   z-index: 2;
 }
 
 .hero-content {
   position: relative;
   z-index: 3;
-  text-align: left; /* Left-aligns the text within its right-side container */
+  text-align: left;
   max-width: 650px;
   width: 100%;
   color: white;
+  padding-right: 2rem;
 }
 
 .hero-eyebrow {
@@ -273,16 +272,32 @@ html, body {
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #94a3b8;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
+/* Restored Original Font Styling */
 .hero h1 {
   font-size: 4.2rem;
   font-weight: 800;
   line-height: 1.15;
-  margin-bottom: 2.5rem;
-  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  margin-bottom: 1rem;
+  font-family: 'Poppins', sans-serif;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hero-separator {
+  width: 60px;
+  height: 4px;
+  background: #facc15;
+  margin: 1.5rem 0;
+  border-radius: 4px;
+}
+
+.hero-desc {
+  font-size: 1.15rem;
+  margin-bottom: 2.5rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
 }
 
 .hero-actions {
@@ -327,34 +342,66 @@ html, body {
   border-bottom: 2px solid #facc15;
 }
 
-/* Glassmorphism Tags fixed to avoid cutting off */
-.hero-tags {
-  display: flex;
-  gap: 1rem;
-  justify-content: flex-start;
-  flex-wrap: wrap;
-  margin-top: 3.5rem; 
+/* Creative Wave Divider */
+.hero-wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  line-height: 0;
+  z-index: 4; 
 }
 
-.tag {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 8px 18px;
-  border-radius: 99px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #f8fafc;
+.hero-wave svg {
+  display: block;
+  width: calc(100% + 1.3px);
+  height: 80px;
 }
 
-.tag .dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot.green { background: #4ade80; }
-.dot.yellow { background: #facc15; }
-.dot.blue { background: #60a5fa; }
+/* ===================== MOBILE OPTIMIZATION ===================== */
+@media (max-width: 900px) {
+  .hero { 
+    justify-content: center; 
+    align-items: flex-end; 
+    padding: 0 1.5rem 8rem 1.5rem; /* Leaves room for wave at the bottom */
+    min-height: 100vh; 
+  }
+  
+  .hero-bg-image {
+    background-position: center top; /* Keeps student in view on tall screens */
+  }
+
+  /* Vertical Gradient for mobile: Clear on top, dark on bottom */
+  .hero::after {
+    background: linear-gradient(180deg, transparent 0%, transparent 20%, rgba(10, 37, 64, 0.8) 50%, rgba(10, 37, 64, 1) 100%);
+  }
+
+  .hero-content { 
+    text-align: center;
+    padding-right: 0;
+  }
+  
+  .hero-separator {
+    margin: 1.5rem auto; /* Centers the yellow line */
+  }
+
+  .hero-actions { 
+    justify-content: center; 
+  }
+
+  .hero h1 { 
+    font-size: 2.8rem; 
+  }
+  
+  .cta-button { 
+    width: 100%; 
+    max-width: 320px; 
+  }
+  
+  .hero-wave svg {
+    height: 40px; /* Smoothes out the wave for narrow screens */
+  }
+}
 
 /* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 900px) {
