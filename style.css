@@ -683,143 +683,59 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 
 /* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 900px) {
-  .hero-overlay {
-    /* Smooth vertical fade for phones */
-    background: linear-gradient(180deg, 
-      rgba(10, 37, 64, 0) 0%, 
-      rgba(10, 37, 64, 0) 40%, 
-      rgba(10, 37, 64, 0.6) 65%, 
-      rgba(10, 37, 64, 1) 100%);
-  }
-}
-  .hero-content { 
-    margin-top: -3rem; 
+  .hero { 
+    min-height: 100vh; 
+    align-items: flex-end; /* Anchors the glass card cleanly to the bottom */
+    padding-bottom: 2rem;
   }
   
+  /* THE IMAGE FIX: Shifts focus to the left so the student is fully visible on the top half */
+  .hero-bg-image {
+    background-position: 25% top; 
+  }
+
+  .hero-container { 
+    justify-content: center;
+    padding: 0 1rem;
+  }
+
+  /* Adjusts the Glass box to fit phone screens without squishing the text */
+  .hero-content { 
+    padding: 2rem 1.5rem;
+    text-align: center;
+    background: rgba(10, 37, 64, 0.85); /* Slightly darker for optimal readability */
+  }
+  
+  /* THE TEXT FIX: Uses clamp() to dynamically scale the font so words never break */
+  .hero h1 { 
+    font-size: clamp(2rem, 8vw, 2.8rem); 
+    margin-bottom: 0.5rem;
+  }
+
   .hero-eyebrow {
     font-size: 0.75rem;
-    padding: 6px 18px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
-  
-  .hero h1 { 
-    font-size: 2.8rem; 
-    white-space: normal; /* Allows wrapping on small phone screens */
-  }
-  
-  .hero-desc { 
-    font-size: 1.05rem; 
-    margin-bottom: 2.5rem; 
-    padding: 0 0.5rem; /* Keeps text from touching the edge of the glass */
-  }
-  
-  .hero-actions { 
-    flex-direction: column; 
-    width: 100%; 
-    gap: 1rem; 
-  }
-  
-  .cta-button, .secondary-button { 
-    width: 100%; 
-    max-width: 320px; /* Prevents the buttons from looking absurdly wide */
-    margin: 0 auto; /* Keeps them perfectly centered */
-  }
-  
-  /* Flattens the wave so it looks smooth and proportional on narrow screens */
-  .hero-wave svg {
-    height: 45px; 
-  }
-}
 
-/* Extra tweak for very small phones (like older iPhones) */
-@media (max-width: 480px) {
-  .hero h1 { 
-    font-size: 2rem; 
+  .hero-separator {
+    margin: 1.2rem auto; 
   }
+
   .hero-desc {
-    font-size: 0.95rem;
+    font-size: 1.05rem;
+    margin-bottom: 2rem;
   }
-}
-  /* COUNTDOWN FIX FOR PERFECT 2x2 GRID ON MOBILE */
-  #countdown-section .timer { 
-    display: grid; 
-    grid-template-columns: repeat(2, 1fr); 
+
+  .hero-actions { 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     gap: 1rem; 
-    max-width: 350px; 
-    margin: 0 auto; 
   }
-  #countdown-section .time-box {
-    min-width: auto;
-    padding: 1.5rem 1rem;
+  
+  .cta-button { 
+    width: 100% !important; 
+    max-width: none; /* Allows the button to perfectly fill the mobile container */
+    padding: 1.1rem 2rem;
   }
-  #countdown-section .time-box span { font-size: 2.2rem; }
-}
-
-/* Hero CTA group */
-.hero-cta-group {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-
-.cta-button-ghost {
-  display: inline-block;
-  color: rgba(255,255,255,0.75);
-  font-size: 1rem;
-  font-weight: 600;
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,0.3);
-  padding-bottom: 2px;
-  transition: color .2s, border-color .2s;
-}
-.cta-button-ghost:hover {
-  color: #facc15;
-  border-color: #facc15;
-}
-
-/* Trust pills below the CTA */
-.hero-pills {
-  display: flex;
-  gap: 0.8rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 0.5rem;
-}
-.hero-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255,255,255,0.07);
-  border: 0.5px solid rgba(255,255,255,0.15);
-  color: rgba(255,255,255,0.7);
-  font-size: 0.82rem;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 99px;
-  backdrop-filter: blur(4px);
-}
-.pill-dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.pill-green { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
-.pill-gold  { background: #facc15; box-shadow: 0 0 5px #facc15; }
-.pill-blue  { background: #60a5fa; box-shadow: 0 0 5px #60a5fa; }
-
-/* Fix eyebrow — remove the absolute positioning hack */
-.hero-eyebrow {
-  position: static !important;
-  transform: none !important;
-  animation: none !important;
-  display: inline-block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.5);
-  margin-bottom: 1.2rem;
 }
