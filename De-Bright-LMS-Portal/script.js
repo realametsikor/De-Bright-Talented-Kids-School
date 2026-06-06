@@ -1,4 +1,48 @@
 /* ====================================================
+   ULTIMATE LOGO AUTO-SYNC
+   Actively hunts for the admin-uploaded logo and injects it
+==================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+    let savedLogo = null;
+
+    // 1. Check standard keys first
+    const standardKeys = ['schoolLogo', 'uploaded_school_logo', 'site_logo', 'school_logo_data'];
+    for (let key of standardKeys) {
+        if (localStorage.getItem(key)) {
+            savedLogo = localStorage.getItem(key);
+            break;
+        }
+    }
+
+    // 2. If not found, aggressively hunt localStorage for any uploaded base64 logo
+    if (!savedLogo) {
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.toLowerCase().includes('logo')) {
+                let value = localStorage.getItem(key);
+                // Checks if it's an actual uploaded image file
+                if (value && (value.startsWith('data:image/') || value.startsWith('http'))) {
+                    savedLogo = value;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 3. Inject the logo into ALL portal logo areas
+    if (savedLogo) {
+        // Targets the dynamic class, plus any standard logo containers in the portal
+        const logoImages = document.querySelectorAll('.dynamic-school-logo, img[src*="logo"], .sidebar-header img, .login-header img');
+        
+        logoImages.forEach(img => {
+            img.src = savedLogo;
+            img.style.opacity = '1';
+            img.style.display = 'block';
+        });
+    }
+});
+
+/* ====================================================
    DYNAMIC LOGO SYNC
    Automatically applies the uploaded logo to all portal screens
 ==================================================== */
