@@ -224,60 +224,69 @@ html, body {
   fill: #0f172a; /* Matches the standard dark background of the next section if applicable */
 }
 
+/* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 768px) {
-  .hero h1 { 
-    font-size: 2.5rem; 
+  .hero { 
+    padding: 0 1.5rem; 
+    min-height: 100vh; 
   }
-  .hero-bg-texture { 
-    background-size: 250px; 
-  }
-}
-.portal-section { 
-  min-height: 85vh; 
-  background: linear-gradient(rgba(10,37,64,.85),rgba(10,37,64,.9)), var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/cover; 
-  display: flex; align-items: center; justify-content: center; padding: 2rem; 
-}
-
-.page-hero { 
-  background: linear-gradient(rgba(10,37,64,.6), rgba(10,37,64,.7)), var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+Image+in+Admin')) center/cover; 
-  padding: 7rem 5% 9rem; text-align: center; color: white; position: relative; 
-}
-.hero::after {
-  content: "";
-  position: absolute; bottom: -1px; left: 0; width: 100%;
-  height: clamp(60px, 10vw, 150px);
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%230a2540' fill-opacity='1' d='M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,170.7C960,160,1056,192,1152,208C1248,224,1344,224,1392,224L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E");
-  background-size: cover; background-position: bottom; background-repeat: no-repeat;
-  z-index: 1; pointer-events: none;
-}
-
-.hero-content { max-width: 900px; z-index: 2; position: relative;
-  text-shadow: 0 5px 15px rgba(0,0,0,.5); width: 100%; margin-bottom: 50px; }
-
-.hero h1 { font-size: clamp(1.8rem,6vw,4.5rem); margin-bottom: 1.5rem;
-  font-weight: 800; line-height: 1.3; font-family:'Poppins',sans-serif; }
-
-.hero-separator { width: 60px; height: 4px; background: var(--accent);
-  margin: 0 auto 1.5rem; border-radius: 2px; }
   
-.hero p { font-size: 1.15rem; margin-bottom: 2.5rem; opacity: .9;
-  max-width: 600px; margin-left: auto; margin-right: auto; line-height: 1.6; }
-.typewriter-text { color: var(--accent); border-right: 3px solid var(--accent);
-  padding-right: 5px; animation: blinkCursor .7s steps(1) infinite; display: inline-block; }
-@keyframes blinkCursor { 50%{border-color:transparent;} }
+  /* THE FIX: Swaps to a vertical gradient on mobile so the photo is fully visible */
+  .hero::after {
+    background: linear-gradient(to bottom, rgba(10, 37, 64, 0.95) 0%, rgba(10, 37, 64, 0.65) 45%, rgba(10, 37, 64, 0.0) 100%);
+  }
 
-.cta-button {
-  display: inline-block; background: var(--accent); color: var(--primary);
-  padding: 1rem 2.5rem; font-size: 1rem; border-radius: 50px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1px; transition: all .3s;
-  box-shadow: 0 5px 20px rgba(251,192,45,.4); text-decoration: none;
-  animation: pulseBtn 2s infinite;
+  /* Ensures the subjects of the photo remain perfectly centered on narrow screens */
+  .hero-bg-image {
+    background-position: center; 
+  }
+  
+  .hero-content { 
+    margin-top: -3rem; 
+  }
+  
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    padding: 6px 18px;
+    margin-bottom: 1.5rem;
+  }
+  
+  .hero h1 { 
+    font-size: 2.3rem; 
+    margin-bottom: 1rem;
+  }
+  
+  .hero-desc { 
+    font-size: 1.05rem; 
+    margin-bottom: 2.5rem; 
+    padding: 0 0.5rem; 
+  }
+  
+  .hero-actions { 
+    flex-direction: column; 
+    width: 100%; 
+    gap: 1rem; 
+  }
+  
+  .cta-button, .secondary-button { 
+    width: 100%; 
+    max-width: 320px; 
+    margin: 0 auto; 
+  }
+  
+  .hero-wave svg {
+    height: 45px; 
+  }
 }
-.cta-button:hover { transform: translateY(-5px); background: white; animation: none; }
-@keyframes pulseBtn {
-  0%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,192,45,.7);}
-  70%{transform:scale(1.05);box-shadow:0 0 0 10px rgba(251,192,45,0);}
-  100%{transform:scale(1);box-shadow:0 0 0 0 rgba(251,192,45,0);}
+
+/* Extra tweak for very small phones (e.g., older iPhones) */
+@media (max-width: 480px) {
+  .hero h1 { 
+    font-size: 2rem; 
+  }
+  .hero-desc {
+    font-size: 0.95rem;
+  }
 }
 
 /* ===================== VACANCY MODAL ===================== */
