@@ -11,8 +11,10 @@
   <meta property="og:image" content="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg">
   <meta property="og:url" content="https://debrighttalentedkidsschool.online">
   <meta property="og:type" content="website">
-  <link rel="icon" href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" type="image/jpeg">
-  <link rel="apple-touch-icon" href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg">
+  
+  <link rel="icon" id="dynamic-favicon" href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" id="dynamic-apple-icon" href="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg">
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&family=Poppins:wght@500;700;800&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
@@ -26,7 +28,7 @@
 <div id="preloader">
   <div class="loader-content">
     <div class="spinner"></div>
-    <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="De-Bright Talented Kids School" class="loader-logo">
+    <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg" alt="De-Bright Talented Kids School" class="loader-logo dynamic-logo">
   </div>
 </div>
 
@@ -256,7 +258,7 @@
     <div class="talent-grid">
       <div class="talent-card theme-ict">
         <div class="talent-img-wrapper">
-          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" alt="ICT and Coding" loading="lazy">
+          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2785.jpeg" alt="ICT and Coding" loading="lazy" id="talent-img-1">
           <div class="talent-badge"><i class="fas fa-laptop-code"></i></div>
         </div>
         <div class="talent-info">
@@ -265,7 +267,7 @@
       </div>
       <div class="talent-card theme-sports">
         <div class="talent-img-wrapper">
-          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" alt="Sports" loading="lazy">
+          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2786.jpeg" alt="Sports" loading="lazy" id="talent-img-2">
           <div class="talent-badge"><i class="fas fa-futbol"></i></div>
         </div>
         <div class="talent-info">
@@ -274,7 +276,7 @@
       </div>
       <div class="talent-card theme-arts">
         <div class="talent-img-wrapper">
-          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" alt="Creative Arts" loading="lazy">
+          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2789-1.webp" alt="Creative Arts" loading="lazy" id="talent-img-3">
           <div class="talent-badge"><i class="fas fa-paint-brush"></i></div>
         </div>
         <div class="talent-info">
@@ -283,7 +285,7 @@
       </div>
       <div class="talent-card theme-culture">
         <div class="talent-img-wrapper">
-          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" alt="Culture and Clubs" loading="lazy">
+          <img src="https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/a29e7532-21c8-40bd-8b3b-44bbc41c2c8b.jpeg" alt="Culture and Clubs" loading="lazy" id="talent-img-4">
           <div class="talent-badge"><i class="fas fa-drum"></i></div>
         </div>
         <div class="talent-info">
@@ -308,16 +310,13 @@
 <section class="events-section section-padding" aria-label="Upcoming events">
   <div class="container" style="max-width:900px;">
     <h2 class="section-title text-center" style="margin-bottom:2.5rem;">Upcoming Events</h2>
-    
     <div id="dynamic-events-container" style="display:flex; flex-direction:column; gap:1rem;">
       <div style="text-align:center; padding: 2rem; color: #888;">
         <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading events...
       </div>
     </div>
-    
   </div>
 </section>
-
 
 <section class="testimonials-section section-padding" aria-label="Parent testimonials">
   <div class="container">
@@ -349,13 +348,11 @@
 <section class="recent-moments-section section-padding" aria-label="Recent school moments">
   <div class="container">
     <h2 class="section-title text-center" style="margin-bottom: 2.5rem; color: var(--primary);">Recent Moments</h2>
-    
     <div class="moments-grid" id="dynamic-recent-moments">
       <div style="text-align:center; grid-column: 1 / -1; padding: 2rem; color: #888;">
         <i class="fas fa-spinner fa-spin fa-2x"></i><br><br>Loading moments...
       </div>
     </div>
-
     <div class="text-center" style="margin-top: 3.5rem;">
       <a href="gallery.html" class="btn-gallery">VIEW FULL GALLERY</a>
     </div>
@@ -444,57 +441,58 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // 1. FETCH POPUP SETTINGS
+    // 1. FETCH SITE SETTINGS (Dynamic Assets & Popup)
     try {
       const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-      const modal = document.getElementById('vacancy-modal');
       
-      if (modal && data) {
-        if (data.popup_active) {
-          if(data.popup_badge) modal.querySelector('.badge').textContent = data.popup_badge;
-          if(data.popup_title) modal.querySelector('#vacancy-title').textContent = data.popup_title;
-          if(data.popup_desc) modal.querySelector('.vacancy-body p').textContent = data.popup_desc;
-          
-          const ul = modal.querySelector('.vacancy-list');
-          if (ul) {
-            let items = [];
-            if (typeof data.popup_list === 'string') {
-              try { 
-                items = JSON.parse(data.popup_list); 
-                if(!Array.isArray(items)) items = [data.popup_list];
-              } 
-              catch(e) { items = [data.popup_list]; }
-            } else if (Array.isArray(data.popup_list)) {
-              items = data.popup_list;
+      if (data) {
+        // --- DYNAMIC ASSET INJECTION ---
+        if (data.logo_url) {
+          document.querySelectorAll('.dynamic-logo').forEach(img => img.src = data.logo_url);
+          const fav = document.getElementById('dynamic-favicon'); if(fav) fav.href = data.logo_url;
+          const appIcon = document.getElementById('dynamic-apple-icon'); if(appIcon) appIcon.href = data.logo_url;
+        }
+        if (data.hero_bg_url) {
+          document.documentElement.style.setProperty('--dynamic-hero-bg', `url(${data.hero_bg_url})`);
+        }
+        if (data.talent_1_url) { const img = document.getElementById('talent-img-1'); if(img) img.src = data.talent_1_url; }
+        if (data.talent_2_url) { const img = document.getElementById('talent-img-2'); if(img) img.src = data.talent_2_url; }
+        if (data.talent_3_url) { const img = document.getElementById('talent-img-3'); if(img) img.src = data.talent_3_url; }
+        if (data.talent_4_url) { const img = document.getElementById('talent-img-4'); if(img) img.src = data.talent_4_url; }
+
+
+        // --- HOMEPAGE POPUP LOGIC ---
+        const modal = document.getElementById('vacancy-modal');
+        if (modal) {
+          if (data.popup_active) {
+            if(data.popup_badge) modal.querySelector('.badge').textContent = data.popup_badge;
+            if(data.popup_title) modal.querySelector('#vacancy-title').textContent = data.popup_title;
+            if(data.popup_desc) modal.querySelector('.vacancy-body p').textContent = data.popup_desc;
+            
+            const ul = modal.querySelector('.vacancy-list');
+            if (ul && data.popup_list) {
+              let items = Array.isArray(data.popup_list) ? data.popup_list : [];
+              if (items.length > 0) {
+                ul.innerHTML = items.map(item => `<li><i class="fas fa-check-circle"></i> ${item}</li>`).join('');
+              }
             }
             
-            if (Array.isArray(items)) {
-              items = items.flatMap(item => String(item).split(/\\n|\n/));
-              items = items.map(item => item.trim()).filter(item => item.length > 0);
+            const btn = modal.querySelector('.apply-btn-modal');
+            if(btn) {
+              if(data.popup_btn_text) btn.textContent = data.popup_btn_text;
+              if(data.popup_btn_link) btn.href = data.popup_btn_link;
             }
-            
-            if (items && items.length > 0) {
-              ul.innerHTML = items.map(item => '<li><i class="fas fa-check-circle"></i> ' + item + '</li>').join('');
-            } else {
-              ul.innerHTML = '';
-            }
+          } else {
+            // Destroy modal so main.js doesn't show it if disabled
+            modal.remove(); 
           }
-          
-          const btn = modal.querySelector('.apply-btn-modal');
-          if(btn) {
-            if(data.popup_btn_text) btn.textContent = data.popup_btn_text;
-            if(data.popup_btn_link) btn.href = data.popup_btn_link;
-          }
-        } else {
-          modal.style.setProperty('display', 'none', 'important');
-          modal.remove(); 
         }
       }
     } catch(err) {
-      console.error("Failed to load popup settings:", err);
+      console.error("Failed to load settings:", err);
     }
 
-    // 2. FETCH RECENT MOMENTS (Latest 5 Images)
+    // 2. FETCH RECENT MOMENTS
     try {
       const { data: galleryData, error: galleryError } = await supabase
         .from('gallery_images')
@@ -503,7 +501,6 @@
         .limit(5);
         
       const momentsGrid = document.getElementById('dynamic-recent-moments');
-      
       if (momentsGrid && galleryData && galleryData.length > 0) {
         momentsGrid.innerHTML = galleryData.map((img, index) => `
           <div class="moment-item ${index === 0 ? 'featured' : ''}">
@@ -526,13 +523,11 @@
         .limit(3); 
         
       const eventsContainer = document.getElementById('dynamic-events-container');
-      
       if (eventsContainer && eventsData && eventsData.length > 0) {
         eventsContainer.innerHTML = eventsData.map(ev => {
           const d = new Date(ev.event_date);
           const month = d.toLocaleString('default', { month: 'short' }).toUpperCase();
           const day = d.getDate().toString().padStart(2, '0');
-          
           return `
             <div class="event-card">
               <div class="event-date"><span>${day}</span><small>${month}</small></div>
