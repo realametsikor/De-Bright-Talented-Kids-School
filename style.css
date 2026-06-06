@@ -143,25 +143,25 @@ html, body {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1350px; 
+  max-width: 1400px; /* Widened for breathing room */
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; /* Locks the glass card to the right */
+  justify-content: flex-end; 
   padding: 0 5%;
 }
 
 /* ✨ THE MASTERPIECE: Modern Glassmorphism Card ✨ */
 .hero-content {
-  background: rgba(10, 37, 64, 0.60); /* Translucent navy */
-  backdrop-filter: blur(16px); /* Creates the frosted glass blur */
+  background: rgba(10, 37, 64, 0.60); 
+  backdrop-filter: blur(16px); 
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.15); /* Subtle glass edge reflection */
+  border: 1px solid rgba(255, 255, 255, 0.15); 
   border-radius: 24px;
-  padding: 4rem;
-  max-width: 650px; /* Perfectly sizes the box so text doesn't break */
+  padding: 3.5rem 4rem; 
+  max-width: 850px; /* Widened so text doesn't crush into a column */
   width: 100%;
   text-align: left;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); /* Deep, premium drop shadow */
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
 }
 
 /* Typography inside the Glass Box */
@@ -177,9 +177,9 @@ html, body {
 }
 
 .hero h1 {
-  font-size: clamp(3rem, 4.5vw, 4.2rem); /* Dynamically sizes the text perfectly */
+  font-size: clamp(2.8rem, 4vw, 4.2rem); /* Dynamically sizes perfectly */
   font-weight: 800;
-  line-height: 1.1;
+  line-height: 1.15;
   margin-bottom: 0.5rem;
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
