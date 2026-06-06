@@ -144,86 +144,98 @@ html, body {
   pointer-events: none;
 }
 
+/* 1. Master Layout Split */
 .hero-container {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1350px; 
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   justify-content: flex-end; 
+  align-items: center;
   padding: 0 5%;
 }
 
 .hero-content {
-  max-width: 750px; 
-  width: 100%;
+  width: 55%; /* Takes up exactly the right side of the screen */
+  max-width: 800px;
   text-align: left;
-  margin: 0; 
+  padding-left: 2rem; /* Pushes text slightly right to give the student breathing room */
+  margin: 0;
 }
 
+/* 2. Premium Typography */
 .hero-eyebrow {
   display: inline-block;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 3px;
+  letter-spacing: 4px; /* Wider, more cinematic tracking */
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #cbd5e1;
   margin-bottom: 1.5rem;
   font-family: 'Poppins', sans-serif;
 }
 
 .hero h1 {
-  font-size: 4.5rem;
+  /* Uses clamp to scale massively on large desktops (up to 5.5rem) */
+  font-size: clamp(3rem, 5vw, 5.5rem); 
   font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 1rem;
+  line-height: 1.05;
+  margin-bottom: 0.5rem;
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  white-space: normal; 
+  letter-spacing: -1px; /* Tighter letter spacing for a modern, sharp look */
+  white-space: normal;
 }
 
 .hero-separator {
-  width: 70px;
-  height: 4px;
+  width: 80px;
+  height: 5px;
   background: #facc15;
-  margin: 1.5rem 0;
-  border-radius: 2px;
+  margin: 2rem 0;
+  border-radius: 3px;
 }
 
 .hero-desc {
-  font-size: 1.15rem;
-  margin-bottom: 3rem;
-  color: #e2e8f0;
+  font-size: 1.25rem; /* Larger, more legible description */
+  margin-bottom: 3.5rem;
+  color: #f8fafc;
   line-height: 1.6;
   font-family: 'Open Sans', sans-serif;
+  max-width: 90%; 
 }
 
+/* 3. Action Buttons */
 .hero-actions {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   align-items: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
 .cta-button {
   background: #facc15;
   color: #0f172a;
-  padding: 1.1rem 2.8rem;
+  padding: 1.2rem 3.5rem; /* Thicker, premium padding */
   border-radius: 99px;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   transition: all 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  width: auto !important; /* THE FIX: Stops the button from stretching */
+  display: inline-block;
+  text-align: center;
 }
 
 .cta-button:hover {
   transform: translateY(-3px);
   background: #eab308;
-  box-shadow: 0 10px 20px rgba(250, 204, 21, 0.3);
+  box-shadow: 0 10px 25px rgba(250, 204, 21, 0.4);
 }
 
 .secondary-link {
