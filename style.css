@@ -227,7 +227,7 @@ html, body {
 /* ===================== HERO ===================== */
 .hero {
   position: relative;
-  min-height: 88vh; /* Perfectly sized to show the ticker at the bottom */
+  min-height: 88vh; 
   display: flex;
   align-items: center;
   background-color: #0a2540; 
@@ -239,34 +239,38 @@ html, body {
   inset: 0;
   background-image: var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+A+Photo'));
   background-size: cover;
-  background-position: left center; /* Keeps the student perfectly in frame */
+  background-position: left center;
   background-repeat: no-repeat;
   z-index: 1;
 }
 
-/* THE FIX: 0% to 45% is COMPLETELY transparent. The student will be crystal clear. */
+/* 100% Transparent from 0% to 50%. No gradient will touch the student. */
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 45%, rgba(10, 37, 64, 0.9) 65%, rgba(10, 37, 64, 1) 100%);
+  background: linear-gradient(90deg, transparent 0%, transparent 50%, rgba(10, 37, 64, 0.95) 70%, #0a2540 100%);
   z-index: 2;
+  pointer-events: none; /* Ensures the overlay cannot block button clicks */
 }
 
 .hero-container {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1300px;
+  max-width: 1400px; 
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; /* Locks text to the right */
+  justify-content: flex-end; 
   padding: 0 5%;
 }
 
 .hero-content {
-  max-width: 600px;
+  /* Increased max-width from 600px to 800px so the animated text fits on one line */
+  max-width: 800px; 
   width: 100%;
   text-align: left;
+  /* Shifts the entire text block to the left, closer to the student */
+  margin-right: 8%; 
 }
 
 .hero-eyebrow {
@@ -280,7 +284,6 @@ html, body {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Restored Original Professional Font */
 .hero h1 {
   font-size: 4.5rem;
   font-weight: 800;
@@ -289,6 +292,8 @@ html, body {
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  /* Prevents long words from aggressively wrapping */
+  white-space: nowrap; 
 }
 
 .hero-separator {
@@ -305,6 +310,8 @@ html, body {
   color: #e2e8f0;
   line-height: 1.6;
   font-family: 'Open Sans', sans-serif;
+  /* Allows description to wrap normally even though h1 is nowrap */
+  white-space: normal; 
 }
 
 .hero-actions {
@@ -314,39 +321,7 @@ html, body {
   flex-wrap: wrap;
 }
 
-.cta-button {
-  background: #facc15;
-  color: #0f172a;
-  padding: 1.1rem 2.8rem;
-  border-radius: 99px;
-  font-weight: 700;
-  text-decoration: none;
-  font-size: 1.05rem;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.cta-button:hover {
-  transform: translateY(-3px);
-  background: #eab308;
-  box-shadow: 0 10px 20px rgba(250, 204, 21, 0.3);
-}
-
-.secondary-link {
-  color: #ffffff;
-  font-weight: 600;
-  text-decoration: none;
-  font-size: 1.1rem;
-  transition: all 0.2s ease;
-  border-bottom: 2px solid transparent;
-  padding-bottom: 2px;
-}
-
-.secondary-link:hover {
-  color: #facc15;
-  border-bottom: 2px solid #facc15;
-}
+/* ... keep your existing .cta-button, .secondary-link, and mobile @media queries ... */
 
 /* ===================== TICKER FIX (BELOW HERO) ===================== */
 /* This makes the bar below the hero look highly corporate and sharp */
@@ -858,12 +833,10 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 .accent-bar { width: 60px; height: 5px; background: var(--accent); border-radius: 3px; margin: 1rem auto; }
 
 /* ===================== MOBILE OPTIMIZATION ===================== */
-@media (max-width: 768px) {
-  .hero { 
-    padding: 0 1.5rem; 
-    min-height: 100vh; /* Gives the content plenty of room to breathe vertically */
+@media (max-width: 900px) {
+  .hero-overlay {
+    background: linear-gradient(180deg, transparent 0%, transparent 40%, rgba(10, 37, 64, 0.95) 65%, #0a2540 100%);
   }
-  
   .hero-content { 
     margin-top: -3rem; 
   }
@@ -875,8 +848,8 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
   }
   
   .hero h1 { 
-    font-size: 2.3rem; /* Perfectly scaled so "Leadership" doesn't break awkwardly */
-    margin-bottom: 1rem;
+    font-size: 2.8rem; 
+    white-space: normal; /* Allows wrapping on small phone screens */
   }
   
   .hero-desc { 
