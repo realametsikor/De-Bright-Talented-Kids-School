@@ -3410,3 +3410,43 @@ document.addEventListener('DOMContentLoaded', async () => {
     buildDashboard();
   }
 });
+
+/* ====================================================
+   ULTIMATE LOGO AUTO-SYNC
+==================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+    let savedLogo = null;
+    const standardKeys = ['schoolLogo', 'uploaded_school_logo', 'site_logo', 'school_logo_data'];
+    
+    // 1. Check standard keys first
+    for (let key of standardKeys) {
+        if (localStorage.getItem(key)) {
+            savedLogo = localStorage.getItem(key);
+            break;
+        }
+    }
+
+    // 2. Aggressively hunt localStorage if standard keys fail
+    if (!savedLogo) {
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.toLowerCase().includes('logo')) {
+                let value = localStorage.getItem(key);
+                if (value && (value.startsWith('data:image/') || value.startsWith('http'))) {
+                    savedLogo = value;
+                    break;
+                }
+            }
+        }
+    }
+
+    // 3. Inject the logo safely
+    if (savedLogo) {
+        const logoImages = document.querySelectorAll('.dynamic-school-logo, img[src*="logo"], .sidebar-header img, .login-header img');
+        logoImages.forEach(img => {
+            img.src = savedLogo;
+            img.style.opacity = '1';
+            img.style.display = 'block';
+        });
+    }
+});
