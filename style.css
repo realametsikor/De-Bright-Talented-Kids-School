@@ -230,48 +230,40 @@ html, body {
   min-height: 90vh;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 5%;
+  /* Pushes all content to the right side */
+  justify-content: flex-end; 
+  padding: 6rem 5%;
   overflow: hidden;
-  background-color: #111111; /* Neutral dark base instead of navy */
+  background-color: #0a2540; 
 }
 
-/* Cinematic Ken Burns Background */
 .hero-bg-image {
   position: absolute;
   inset: 0;
-  background-image: var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/111/fff?text=Upload+A+Photo'));
+  background-image: var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+A+Photo'));
   background-size: cover;
-  background-position: center;
+  /* Anchors the image to the left so the subject stays in frame */
+  background-position: left center; 
   background-repeat: no-repeat;
-  animation: kenBurns 20s infinite alternate ease-in-out;
   z-index: 1;
 }
 
-/* Modern neutral gradient - lets the natural photo colors pop at the top */
+/* Lateral Gradient: Transparent on the left (image visible), dark on the right (text readable) */
 .hero::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 0%, rgba(0, 0, 0, 0.5) 60%, rgba(0, 0, 0, 0.9) 100%);
+  background: linear-gradient(to right, rgba(10, 37, 64, 0.05) 0%, rgba(10, 37, 64, 0.85) 50%, rgba(10, 37, 64, 0.98) 100%);
   z-index: 2;
-}
-
-@keyframes kenBurns {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
 }
 
 .hero-content {
   position: relative;
   z-index: 3;
-  text-align: center;
-  max-width: 900px;
+  text-align: left; /* Left-aligns the text within its right-side container */
+  max-width: 650px;
+  width: 100%;
   color: white;
-  margin-top: 5rem; /* Centers content perfectly */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 .hero-eyebrow {
@@ -280,32 +272,30 @@ html, body {
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.7);
+  color: #94a3b8;
   margin-bottom: 1.5rem;
 }
 
 .hero h1 {
-  font-size: 4.8rem;
+  font-size: 4.2rem;
   font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 3rem; /* Extra space since the paragraph is gone */
+  line-height: 1.15;
+  margin-bottom: 2.5rem;
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Action Buttons & Links */
 .hero-actions {
   display: flex;
   gap: 2rem;
-  justify-content: center;
   align-items: center;
-  margin-bottom: 3.5rem;
+  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
 .cta-button {
   background: #facc15;
-  color: #111111;
+  color: #0f172a;
   padding: 1.1rem 2.8rem;
   border-radius: 99px;
   font-weight: 700;
@@ -319,7 +309,6 @@ html, body {
 
 .cta-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 25px rgba(250, 204, 21, 0.4);
   background: #eab308;
 }
 
@@ -338,16 +327,17 @@ html, body {
   border-bottom: 2px solid #facc15;
 }
 
-/* Glassmorphism Tags */
+/* Glassmorphism Tags fixed to avoid cutting off */
 .hero-tags {
   display: flex;
   gap: 1rem;
-  justify-content: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
+  margin-top: 3.5rem; 
 }
 
 .tag {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -361,14 +351,48 @@ html, body {
   color: #f8fafc;
 }
 
-.tag .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
+.tag .dot { width: 8px; height: 8px; border-radius: 50%; }
 .dot.green { background: #4ade80; }
 .dot.yellow { background: #facc15; }
 .dot.blue { background: #60a5fa; }
+
+/* ===================== MOBILE OPTIMIZATION ===================== */
+@media (max-width: 900px) {
+  .hero { 
+    justify-content: center; /* Re-centers content on mobile */
+    align-items: flex-end; /* Pushes text to the bottom */
+    padding: 0 1.5rem 4rem 1.5rem; /* Extra padding at bottom so tags aren't cut off */
+    min-height: 100vh; 
+  }
+  
+  .hero-bg-image {
+    background-position: center top; /* Keeps subject in view when stacked */
+  }
+
+  /* Vertical Gradient: Clear on top (image visible), dark on bottom (text readable) */
+  .hero::after {
+    background: linear-gradient(to bottom, rgba(10, 37, 64, 0.0) 0%, rgba(10, 37, 64, 0.7) 40%, rgba(10, 37, 64, 0.98) 100%);
+  }
+
+  .hero-content { 
+    text-align: center;
+    margin-top: 12rem; /* Forces content down to let the image breathe above */
+  }
+  
+  .hero-actions, .hero-tags { 
+    justify-content: center; 
+  }
+
+  .hero h1 { 
+    font-size: 2.8rem; 
+    margin-bottom: 2rem;
+  }
+  
+  .cta-button { 
+    width: 100%; 
+    max-width: 320px; 
+  }
+}
 
 /* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 768px) {
