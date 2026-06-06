@@ -1,4 +1,24 @@
 /* ====================================================
+   PORTAL LOGO SIZING FIX
+==================================================== */
+.dynamic-school-logo, 
+img[src*="logo"] {
+    display: block;
+    max-height: 65px; /* Ensures it fits nicely in headers */
+    width: auto;
+    object-fit: contain; /* Prevents stretching */
+    min-width: 50px; /* Guarantees it never collapses to 0 */
+    min-height: 50px;
+}
+
+/* Specific sizing for the Login Box to make it prominent */
+.login-header img,
+.login-box img[src*="logo"] {
+    max-height: 80px;
+    margin: 0 auto;
+}
+
+/* ====================================================
    ULTIMATE LOGO AUTO-SYNC
    Actively hunts for the admin-uploaded logo and injects it
 ==================================================== */
