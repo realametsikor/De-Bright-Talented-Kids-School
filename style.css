@@ -227,13 +227,11 @@ html, body {
 /* ===================== HERO ===================== */
 .hero {
   position: relative;
-  min-height: 92vh;
+  min-height: 88vh; /* Perfectly sized to show the ticker at the bottom */
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* Locks content to the right */
-  padding: 6rem 5% 4rem; /* Ensures space for the bottom wave */
-  overflow: hidden;
   background-color: #0a2540; 
+  overflow: hidden;
 }
 
 .hero-bg-image {
@@ -241,28 +239,34 @@ html, body {
   inset: 0;
   background-image: var(--dynamic-hero-bg, url('https://placehold.co/1920x1080/0a2540/ffffff?text=Upload+A+Photo'));
   background-size: cover;
-  background-position: left center; /* Focuses on the student on the left */
+  background-position: left center; /* Keeps the student perfectly in frame */
   background-repeat: no-repeat;
   z-index: 1;
 }
 
-/* Horizontal Gradient: 100% clear on the left (image visible), dark navy on the right (text readable) */
-.hero::after {
-  content: '';
+/* THE FIX: 0% to 45% is COMPLETELY transparent. The student will be crystal clear. */
+.hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, transparent 30%, rgba(10, 37, 64, 0.85) 60%, rgba(10, 37, 64, 1) 100%);
+  background: linear-gradient(90deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 45%, rgba(10, 37, 64, 0.9) 65%, rgba(10, 37, 64, 1) 100%);
   z-index: 2;
 }
 
-.hero-content {
+.hero-container {
   position: relative;
   z-index: 3;
-  text-align: left;
-  max-width: 650px;
   width: 100%;
-  color: white;
-  padding-right: 2rem;
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end; /* Locks text to the right */
+  padding: 0 5%;
+}
+
+.hero-content {
+  max-width: 600px;
+  width: 100%;
+  text-align: left;
 }
 
 .hero-eyebrow {
@@ -272,39 +276,41 @@ html, body {
   letter-spacing: 3px;
   text-transform: uppercase;
   color: #94a3b8;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Restored Original Font Styling */
+/* Restored Original Professional Font */
 .hero h1 {
-  font-size: 4.2rem;
+  font-size: 4.5rem;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.1;
   margin-bottom: 1rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .hero-separator {
-  width: 60px;
+  width: 70px;
   height: 4px;
   background: #facc15;
   margin: 1.5rem 0;
-  border-radius: 4px;
+  border-radius: 2px;
 }
 
 .hero-desc {
   font-size: 1.15rem;
-  margin-bottom: 2.5rem;
-  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 3rem;
+  color: #e2e8f0;
   line-height: 1.6;
+  font-family: 'Open Sans', sans-serif;
 }
 
 .hero-actions {
   display: flex;
   gap: 2rem;
   align-items: center;
-  justify-content: flex-start;
   flex-wrap: wrap;
 }
 
@@ -317,7 +323,6 @@ html, body {
   text-decoration: none;
   font-size: 1.05rem;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 20px rgba(250, 204, 21, 0.2);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -325,6 +330,7 @@ html, body {
 .cta-button:hover {
   transform: translateY(-3px);
   background: #eab308;
+  box-shadow: 0 10px 20px rgba(250, 204, 21, 0.3);
 }
 
 .secondary-link {
@@ -342,20 +348,60 @@ html, body {
   border-bottom: 2px solid #facc15;
 }
 
-/* Creative Wave Divider */
-.hero-wave {
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  line-height: 0;
-  z-index: 4; 
+/* ===================== TICKER FIX (BELOW HERO) ===================== */
+/* This makes the bar below the hero look highly corporate and sharp */
+.ticker-wrap {
+  background: #facc15;
+  padding: 0.8rem 0;
+  color: #0f172a;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border-bottom: 4px solid #eab308;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-.hero-wave svg {
-  display: block;
-  width: calc(100% + 1.3px);
-  height: 80px;
+/* ===================== MOBILE OPTIMIZATION ===================== */
+@media (max-width: 900px) {
+  .hero { 
+    min-height: 100vh; 
+    align-items: flex-end; /* Pushes text to the bottom on phones */
+  }
+  
+  .hero-bg-image {
+    background-position: center 15%; /* Keeps the student's face visible */
+  }
+
+  /* Vertical Gradient: Top 40% is completely clear for the photo */
+  .hero-overlay {
+    background: linear-gradient(180deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 40%, rgba(10, 37, 64, 0.9) 65%, rgba(10, 37, 64, 1) 100%);
+  }
+
+  .hero-container { 
+    justify-content: center;
+    padding-bottom: 4rem; /* Spacing before the yellow ticker */
+  }
+
+  .hero-content { 
+    text-align: center;
+  }
+  
+  .hero-separator {
+    margin: 1.5rem auto; 
+  }
+
+  .hero-actions { 
+    justify-content: center; 
+  }
+
+  .hero h1 { 
+    font-size: 2.8rem; 
+  }
+  
+  .cta-button { 
+    width: 100%; 
+    max-width: 320px; 
+  }
 }
 
 /* ===================== MOBILE OPTIMIZATION ===================== */
