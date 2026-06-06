@@ -680,3 +680,72 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
   }
   #countdown-section .time-box span { font-size: 2.2rem; }
 }
+
+/* Hero CTA group */
+.hero-cta-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.cta-button-ghost {
+  display: inline-block;
+  color: rgba(255,255,255,0.75);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  padding-bottom: 2px;
+  transition: color .2s, border-color .2s;
+}
+.cta-button-ghost:hover {
+  color: #facc15;
+  border-color: #facc15;
+}
+
+/* Trust pills below the CTA */
+.hero-pills {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.07);
+  border: 0.5px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7);
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 99px;
+  backdrop-filter: blur(4px);
+}
+.pill-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.pill-green { background: #22c55e; box-shadow: 0 0 5px #22c55e; }
+.pill-gold  { background: #facc15; box-shadow: 0 0 5px #facc15; }
+.pill-blue  { background: #60a5fa; box-shadow: 0 0 5px #60a5fa; }
+
+/* Fix eyebrow — remove the absolute positioning hack */
+.hero-eyebrow {
+  position: static !important;
+  transform: none !important;
+  animation: none !important;
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 1.2rem;
+}
