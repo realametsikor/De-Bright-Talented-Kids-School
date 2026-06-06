@@ -109,32 +109,47 @@ html, body {
 
 /* ===================== HERO ===================== */
 .hero {
-  height: 92vh; position: relative; 
-  background-color: #0a2540; 
+  height: 92vh; 
+  position: relative; 
+  background-color: #020c1b; 
   display: flex; justify-content: center; align-items: center;
   text-align: center; color: white; padding: 0 1rem; overflow: hidden;
 }
 
 .hero::before {
-  content: ""; position: absolute; inset: 0;
-  /* Use the exact original gradient shading and scaling logic */
+  content: ""; 
+  position: absolute; 
+  inset: 0;
+  /* Deep, sophisticated dark gradient overlay */
   background-image: 
-    linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
+    linear-gradient(to bottom, rgba(10, 37, 64, 0.75), rgba(2, 12, 27, 0.98)), 
     var(--dynamic-hero-bg, url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'));
   background-position: center;
-  background-size: 115% auto;
+  /* Forces the image to fill the entire screen seamlessly */
+  background-size: cover;
   background-repeat: no-repeat;
-  opacity: 1; pointer-events: none; animation: logoBreathe 6s ease-in-out infinite alternate;
+  opacity: 1; 
+  pointer-events: none; 
+  /* Subtle, professional slow-pan animation */
+  animation: heroZoom 20s linear infinite alternate;
+  z-index: 1;
+}
+
+/* Ensures the text sits above the dark overlay */
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes heroZoom {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
 }
 
 @media (min-width: 768px) {
   .hero::before { 
-    background-image: 
-      linear-gradient(rgba(10, 37, 64, 0.65), rgba(10, 37, 64, 0.65)), 
-      var(--dynamic-hero-bg, url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg'));
-    background-position: center;
-    background-size: 45% auto; 
-    background-repeat: no-repeat;
+    /* Ensures desktop also uses the full-bleed cover styling */
+    background-size: cover; 
   }
 }
 
