@@ -107,124 +107,7 @@ html, body {
   color: var(--primary); font-size: .9rem; }
 @keyframes ticker { from{transform:translateX(0);}to{transform:translateX(-50%);} }
 
-/* ===================== HERO ===================== */
-.hero {
-  height: 90vh;
-  position: relative;
-  background-color: #050f1e;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  color: white;
-  padding: 0 1rem;
-  overflow: hidden;
-}
-
-/* Transforms the uploaded image into a subtle repeating watermark */
-.hero-bg-texture {
-  position: absolute;
-  inset: 0;
-  background-image: var(--dynamic-hero-bg, none);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 1;
-  z-index: 1;
-}
-
-/* Adds a deep vignette effect to frame the text */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(5, 15, 30, 0.4) 0%, #050f1e 85%);
-  z-index: 2;
-  pointer-events: none;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 3;
-  max-width: 800px;
-}
-
-.hero-eyebrow {
-  display: inline-block;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #94a3b8;
-  margin-bottom: 1.5rem;
-  border-bottom: 1px solid #334155;
-  padding-bottom: 0.5rem;
-}
-
-.hero h1 {
-  font-size: 3.5rem;
-  line-height: 1.2;
-  font-family: 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;
-  margin: 0;
-  letter-spacing: -1px;
-}
-
-.hero-separator {
-  margin: 1.5rem auto;
-  background: #facc15;
-  width: 60px;
-  height: 4px;
-}
-
-.hero-desc {
-  font-size: 1.15rem;
-  color: #cbd5e1;
-  margin-bottom: 2.5rem;
-  line-height: 1.6;
-}
-
-/* Sharp, structured button design */
-.cta-button {
-  display: inline-block;
-  background: #facc15;
-  color: #0f172a;
-  padding: 1rem 2.5rem;
-  border-radius: 2px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  font-size: 0.9rem;
-}
-
-.cta-button:hover {
-  background: #eab308;
-  transform: translateY(-2px);
-}
-
-/* Sharp diagonal structural cut */
-.hero-wave {
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 100%;
-  overflow: hidden;
-  line-height: 0;
-  z-index: 3;
-}
-
-.hero-wave svg {
-  display: block;
-  width: calc(100% + 1.3px);
-  height: 60px;
-}
-
-.hero-wave .shape-fill {
-  fill: #0f172a; /* Matches the standard dark background of the next section if applicable */
-}
-
-/* ===================== HERO ===================== */
+/* ===================== HERO SECTION ===================== */
 .hero {
   position: relative;
   min-height: 88vh; 
@@ -244,11 +127,19 @@ html, body {
   z-index: 1;
 }
 
-/* Smooth, Cinematic Overlay */
+/* 🚨 KILL SWITCH: Destroys any old, hidden gradients causing the blue tint */
+.hero::before,
+.hero::after {
+  content: none !important;
+  display: none !important;
+  background: none !important;
+}
+
+/* THE CLEAN OVERLAY: 0% to 40% is strictly transparent. */
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 35%, rgba(10, 37, 64, 0.4) 55%, rgba(10, 37, 64, 0.95) 80%, rgba(10, 37, 64, 1) 100%);
+  background: linear-gradient(90deg, transparent 0%, transparent 40%, rgba(10, 37, 64, 0.85) 65%, rgba(10, 37, 64, 1) 100%);
   z-index: 2;
   pointer-events: none;
 }
@@ -257,7 +148,7 @@ html, body {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1300px; 
+  max-width: 1350px; 
   margin: 0 auto;
   display: flex;
   justify-content: flex-end; 
@@ -282,7 +173,6 @@ html, body {
   font-family: 'Poppins', sans-serif;
 }
 
-/* Massive, bold text restored for desktop */
 .hero h1 {
   font-size: 4.5rem;
   font-weight: 800;
@@ -290,7 +180,7 @@ html, body {
   margin-bottom: 1rem;
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
-  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   white-space: normal; 
 }
 
@@ -375,7 +265,7 @@ html, body {
   }
 
   .hero-overlay {
-    background: linear-gradient(180deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 40%, rgba(10, 37, 64, 0.6) 65%, rgba(10, 37, 64, 1) 100%);
+    background: linear-gradient(180deg, transparent 0%, transparent 40%, rgba(10, 37, 64, 0.8) 65%, rgba(10, 37, 64, 1) 100%);
   }
 
   .hero-container { 
@@ -403,132 +293,6 @@ html, body {
   .cta-button { 
     width: 100%; 
     max-width: 320px; 
-  }
-}
-
-/* ===================== MOBILE OPTIMIZATION ===================== */
-@media (max-width: 900px) {
-  .hero { 
-    justify-content: center; 
-    align-items: flex-end; 
-    padding: 0 1.5rem 8rem 1.5rem; /* Leaves room for wave at the bottom */
-    min-height: 100vh; 
-  }
-  
-  .hero-bg-image {
-    background-position: center top; /* Keeps student in view on tall screens */
-  }
-
-  /* Vertical Gradient for mobile: Clear on top, dark on bottom */
-  .hero::after {
-    background: linear-gradient(180deg, transparent 0%, transparent 20%, rgba(10, 37, 64, 0.8) 50%, rgba(10, 37, 64, 1) 100%);
-  }
-
-  .hero-content { 
-    text-align: center;
-    padding-right: 0;
-  }
-  
-  .hero-separator {
-    margin: 1.5rem auto; /* Centers the yellow line */
-  }
-
-  .hero-actions { 
-    justify-content: center; 
-  }
-
-  .hero h1 { 
-    font-size: 2.8rem; 
-  }
-  
-  .cta-button { 
-    width: 100%; 
-    max-width: 320px; 
-  }
-  
-  .hero-wave svg {
-    height: 40px; /* Smoothes out the wave for narrow screens */
-  }
-}
-
-/* ===================== MOBILE OPTIMIZATION ===================== */
-@media (max-width: 900px) {
-  .hero { 
-    justify-content: center; /* Re-centers content on mobile */
-    align-items: flex-end; /* Pushes text to the bottom */
-    padding: 0 1.5rem 4rem 1.5rem; /* Extra padding at bottom so tags aren't cut off */
-    min-height: 100vh; 
-  }
-  
-  .hero-bg-image {
-    background-position: center top; /* Keeps subject in view when stacked */
-  }
-
-  /* Vertical Gradient: Clear on top (image visible), dark on bottom (text readable) */
-  .hero::after {
-    background: linear-gradient(to bottom, rgba(10, 37, 64, 0.0) 0%, rgba(10, 37, 64, 0.7) 40%, rgba(10, 37, 64, 0.98) 100%);
-  }
-
-  .hero-content { 
-    text-align: center;
-    margin-top: 12rem; /* Forces content down to let the image breathe above */
-  }
-  
-  .hero-actions, .hero-tags { 
-    justify-content: center; 
-  }
-
-  .hero h1 { 
-    font-size: 2.8rem; 
-    margin-bottom: 2rem;
-  }
-  
-  .cta-button { 
-    width: 100%; 
-    max-width: 320px; 
-  }
-}
-
-/* ===================== MOBILE OPTIMIZATION ===================== */
-@media (max-width: 768px) {
-  .hero { 
-    padding: 0 1.5rem; 
-    min-height: 100vh; 
-  }
-  
-  .hero::after {
-    /* Slightly darker on mobile to ensure readability */
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.9) 100%);
-  }
-
-  .hero-content { 
-    margin-top: 2rem; 
-  }
-  
-  .hero-eyebrow {
-    font-size: 0.75rem;
-    margin-bottom: 1rem;
-  }
-  
-  .hero h1 { 
-    font-size: 2.8rem; 
-    margin-bottom: 2.5rem;
-  }
-  
-  .hero-actions { 
-    flex-direction: column; 
-    width: 100%; 
-    gap: 1.5rem; 
-    margin-bottom: 2.5rem;
-  }
-  
-  .cta-button { 
-    width: 100%; 
-    max-width: 320px; 
-  }
-  
-  .hero-tags {
-    gap: 0.8rem;
   }
 }
 
