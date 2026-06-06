@@ -2,6 +2,22 @@
    DE-BRIGHT TALENTED KIDS SCHOOL — main.js
    ============================================ */
 
+/* ====================================================
+   DYNAMIC LOGO SYNC
+   Automatically applies the uploaded logo to all portal screens
+==================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+    // Checks local storage for your uploaded logo
+    // Note: Ensure your admin upload function saves the image under one of these keys
+    const savedLogo = localStorage.getItem('schoolLogo') || localStorage.getItem('uploaded_school_logo'); 
+    
+    if (savedLogo) {
+        const logoImages = document.querySelectorAll('.dynamic-school-logo');
+        logoImages.forEach(img => {
+            img.src = savedLogo; // Replaces the fallback with your real uploaded logo
+        });
+    }
+});
 document.addEventListener('DOMContentLoaded', () => {
 
   /* ---- PRELOADER ---- */
