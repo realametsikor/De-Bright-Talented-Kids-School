@@ -253,45 +253,41 @@ html, body {
   background: none !important;
 }
 
-/* 2. The Clean Overlay: Hard transparency stop at 45% */
+/* 1. The Smooth, Cinematic Overlay */
 .hero-overlay {
   position: absolute;
   inset: 0;
-  /* 0% to 45% is strictly RGBA 0 (100% invisible). No gradient bleeding! */
-  background: linear-gradient(90deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 45%, rgba(10, 37, 64, 0.95) 65%, rgba(10, 37, 64, 1) 100%);
+  /* 0-35% is crystal clear. 35-80% is a very smooth, gradual fade to dark navy */
+  background: linear-gradient(90deg, 
+    rgba(10, 37, 64, 0) 0%, 
+    rgba(10, 37, 64, 0) 35%, 
+    rgba(10, 37, 64, 0.4) 55%, 
+    rgba(10, 37, 64, 0.95) 80%, 
+    rgba(10, 37, 64, 1) 100%);
   z-index: 2;
   pointer-events: none;
 }
 
+/* 2. The Text Layout Containers */
 .hero-container {
   position: relative;
   z-index: 3;
   width: 100%;
-  max-width: 1400px; 
+  max-width: 1300px; /* Perfectly balances the text on the right side */
   margin: 0 auto;
   display: flex;
-  justify-content: flex-end; /* Pushes all content to the far right */
+  justify-content: flex-end; 
   padding: 0 5%;
 }
 
 .hero-content {
-  max-width: 720px; /* Tightened from 800px to pull the left edge away from the student */
+  max-width: 750px; /* Widened so "Inspiring Excellence" fits perfectly on one line */
   width: 100%;
   text-align: left;
-  margin-right: 0; /* Removed the margin that was forcing the text to the left */
+  margin: 0; /* Cleared any restrictive margins */
 }
 
-.hero-eyebrow {
-  display: inline-block;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  color: #94a3b8;
-  margin-bottom: 1.5rem;
-  font-family: 'Poppins', sans-serif;
-}
-
+/* 3. Restored Original Text Behavior */
 .hero h1 {
   font-size: 4.5rem;
   font-weight: 800;
@@ -300,10 +296,8 @@ html, body {
   font-family: 'Space Grotesk', 'Poppins', sans-serif;
   color: #ffffff;
   text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  /* Prevents long words from aggressively wrapping */
-  white-space: nowrap; 
+  white-space: normal; /* Fixed: Allows text to wrap beautifully without cutting off words */
 }
-
 .hero-separator {
   width: 70px;
   height: 4px;
@@ -843,8 +837,12 @@ footer { background: var(--primary); color: white; padding: 4rem 5% 2rem; }
 /* ===================== MOBILE OPTIMIZATION ===================== */
 @media (max-width: 900px) {
   .hero-overlay {
-    /* Top 40% is strictly invisible. Bottom darkens for text. */
-    background: linear-gradient(180deg, rgba(10, 37, 64, 0) 0%, rgba(10, 37, 64, 0) 40%, rgba(10, 37, 64, 0.95) 65%, rgba(10, 37, 64, 1) 100%);
+    /* Smooth vertical fade for phones */
+    background: linear-gradient(180deg, 
+      rgba(10, 37, 64, 0) 0%, 
+      rgba(10, 37, 64, 0) 40%, 
+      rgba(10, 37, 64, 0.6) 65%, 
+      rgba(10, 37, 64, 1) 100%);
   }
 }
   .hero-content { 
