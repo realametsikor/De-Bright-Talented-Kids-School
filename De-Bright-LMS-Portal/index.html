@@ -54,7 +54,16 @@
   <div class="lms-login-section">
     <div class="lms-login-card">
       <div class="login-logo-row">
-        <img src="../assets/logo.png" class="dynamic-school-logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';" alt="De-Bright Logo">
+       <img src="../assets/logo.png" id="login-page-logo" class="dynamic-logo dynamic-school-logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';" alt="De-Bright Logo" style="max-height: 85px; width: auto; margin: 0 auto 1.5rem auto; display: block; object-fit: contain;">
+<script>
+    // Failsafe: Forces the login page to grab the logo from local storage before you even log in!
+    document.addEventListener("DOMContentLoaded", () => {
+        let savedLogo = localStorage.getItem('schoolLogo') || localStorage.getItem('uploaded_school_logo') || localStorage.getItem('site_logo');
+        if (savedLogo) {
+            document.getElementById('login-page-logo').src = savedLogo;
+        }
+    });
+</script>
         <div>
           <h2>De-Bright LMS Portal</h2>
           <span>Learning Management System · 2025/26</span>
