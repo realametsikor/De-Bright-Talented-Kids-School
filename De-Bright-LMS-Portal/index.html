@@ -304,8 +304,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
-    const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... (keep your full key here)';
     
     // Create a global instance
     window.globalSupabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -478,8 +476,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Logo sync safely bypassed an error:", error);
     }
 });
-</script>
+<script defer src="script.js"></script>
 </body>
 </html>
-<script defer src="/main.js"></script>
-<script defer src="/De-Bright-LMS-Portal/script.js?v=10.0"></script>
+
