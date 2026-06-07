@@ -112,7 +112,14 @@
 
   <aside class="lms-sidebar" id="lms-sidebar">
     <div class="sb-brand">
-<img src="../assets/logo.png" class="dynamic-logo dynamic-school-logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';" alt="De-Bright Logo">
+<img id="sidebar-logo" class="dynamic-logo dynamic-school-logo" alt="De-Bright Logo" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--accent);">
+<script>
+    (function() {
+        const sbLogo = document.getElementById('sidebar-logo');
+        const savedLogo = localStorage.getItem('schoolLogo') || localStorage.getItem('uploaded_school_logo') || localStorage.getItem('site_logo');
+        sbLogo.src = savedLogo ? savedLogo : 'https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';
+    })();
+</script>
       <div class="sb-brand-txt"><strong>De-Bright LMS</strong><em id="sb-role-label">Student Portal</em></div>
     </div>
     <div class="sb-user">
