@@ -436,11 +436,6 @@
       console.error("Failed to load events:", eErr);
     }
   });
-</script>
-  <!-- ==========================================
-     ISOLATED LOGO SYNC SCRIPT
-     Safely separated from main auth logic
-=========================================== -->
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     try {
@@ -480,6 +475,8 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Logo sync safely bypassed an error:", error);
     }
 });
+</script>
+
 <script defer src="/De-Bright-LMS-Portal/script.js"></script>
 </body>
 </html>
