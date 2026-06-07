@@ -450,3 +450,55 @@ document.addEventListener("DOMContentLoaded", () => {
 </html>
 <script defer src="/main.js"></script>
 <script defer src="/De-Bright-LMS-Portal/script.js?v=10.0"></script>
+
+<!-- ==========================================
+     BULLETPROOF LOGO SYNC & FALLBACK
+     (Isolated here to keep script.js safe!)
+=========================================== -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 1. Target every logo image on the page (Login & Sidebar)
+    const logos = document.querySelectorAll('img[src*="logo"], .sidebar-header img, .brand-logo img, .dynamic-school-logo');
+    
+    // 2. Instantly fix any broken images with a clean UI Avatar fallback
+    const fallbackImage = 'https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';
+    logos.forEach(img => {
+        // If it fails to load, swap it
+        img.addEventListener('error', function() {
+            this.src = fallbackImage;
+        });
+        // If it already failed before this script ran, swap it
+        if (img.complete && img.naturalHeight === 0) {
+            img.src = fallbackImage;
+        }
+        
+        // Ensure it doesn't collapse to 0 pixels
+        img.style.minWidth = '40px';
+        img.style.minHeight = '40px';
+        img.style.objectFit = 'contain';
+    });
+
+    // 3. Hunt LocalStorage for the real uploaded logo from your Admin panel
+    let savedLogo = localStorage.getItem('schoolLogo') || localStorage.getItem('uploaded_school_logo') || localStorage.getItem('site_logo');
+    
+    if (!savedLogo) {
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key && key.toLowerCase().includes('logo')) {
+                let val = localStorage.getItem(key);
+                if (val && (val.startsWith('data:image/') || val.startsWith('http'))) { 
+                    savedLogo = val; 
+                    break; 
+                }
+            }
+        }
+    }
+
+    // 4. If an uploaded logo is found, override the fallback and display it!
+    if (savedLogo) {
+        logos.forEach(img => {
+            img.src = savedLogo;
+        });
+    }
+});
+</script>
