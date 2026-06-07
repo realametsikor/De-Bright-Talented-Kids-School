@@ -402,6 +402,50 @@
     }
   });
 </script>
+  <!-- ==========================================
+     ISOLATED LOGO SYNC SCRIPT
+     Safely separated from main auth logic
+=========================================== -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    try {
+        let savedLogo = null;
+        
+        // 1. Scan standard keys
+        const standardKeys = ['schoolLogo', 'uploaded_school_logo', 'site_logo'];
+        for (let key of standardKeys) {
+            if (localStorage.getItem(key)) {
+                savedLogo = localStorage.getItem(key);
+                break;
+            }
+        }
+
+        // 2. Aggressive fallback scan
+        if (!savedLogo) {
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                if (key && key.toLowerCase().includes('logo')) {
+                    let val = localStorage.getItem(key);
+                    if (val && (val.startsWith('data:image/') || val.startsWith('http'))) { 
+                        savedLogo = val; 
+                        break; 
+                    }
+                }
+            }
+        }
+
+        // 3. Inject logo safely
+        if (savedLogo) {
+            const logos = document.querySelectorAll('img.dynamic-school-logo, .sidebar-header img, .login-header img');
+            logos.forEach(img => {
+                img.src = savedLogo;
+            });
+        }
+    } catch (error) {
+        console.error("Logo sync safely bypassed an error:", error);
+    }
+});
+</script>
 </body>
 </html>
 <script defer src="/main.js"></script>
