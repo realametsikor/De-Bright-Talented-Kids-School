@@ -1,12 +1,9 @@
 /* ====================== SUPABASE SETUP ====================== */
-let supabaseClient = null;
+// Grab the global instance we already created in index.html to prevent duplicate warnings
+let supabaseClient = window.globalSupabaseClient;
 
-if (window.supabase) {
-  const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlseHp6bXNxdHp2anZra2RxaGJlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY2MDgwMjYsImV4cCI6MjA5MjE4NDAyNn0.l4zkNBGopLdE8Wt3KMHnfxySHwFHyEoto8txBgh4wMY';
-  supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-} else {
-  console.error("CRITICAL: Supabase library failed to load from the CDN.");
+if (!supabaseClient) {
+  console.error("CRITICAL: Supabase library failed to load from index.html");
 }
 
 /* ====================== STATIC DATA ====================== */
