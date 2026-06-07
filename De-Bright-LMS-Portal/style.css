@@ -401,3 +401,14 @@ img[src*="logo"] {
     max-height: 80px !important;
     margin: 0 auto;
 }
+
+/* Portal Logo Sizing Fix */
+.dynamic-school-logo, 
+img[src*="logo"] {
+    display: block !important;
+    max-height: 65px !important;
+    width: auto;
+    object-fit: contain;
+    min-width: 50px;
+    opacity: 1 !important;
+}
