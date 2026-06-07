@@ -1,12 +1,9 @@
 /* ====================== SUPABASE SETUP ====================== */
-const supabaseUrl = 'https://ilxzzmsqtzvjvkkdqhbe.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Paste your actual full long key here!
-
-// Initialize Supabase directly inside the portal's brain
-const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+// Borrow the global connection we already opened in index.html
+const supabaseClient = window.supabaseClient;
 
 if (!supabaseClient) {
-  console.error("CRITICAL: Supabase failed to initialize.");
+  console.error("CRITICAL: Supabase failed to initialize from index.html.");
 }
 
 /* ====================== STATIC DATA ====================== */
