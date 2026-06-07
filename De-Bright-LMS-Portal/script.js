@@ -393,7 +393,7 @@ window.viewPrintableTimetable = function() {
         #tt-print-area::before {
           content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
           width: 700px; height: 700px;
-          background: url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center;
+         background: url('${SITE_SETTINGS.logo_url || ''}')
           background-size: contain; opacity: 0.3 !important; z-index: -1; pointer-events: none;
         }
       }
@@ -404,7 +404,7 @@ window.viewPrintableTimetable = function() {
         <button onclick="closeModal('view-timetable-modal')"><i class="fas fa-times"></i></button>
       </div>
       <div class="modal-body" id="tt-print-area" style="background:#fff; color:#000; position:relative; z-index:1; padding:2rem;">
-        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; height:600px; background:url('https://debrighttalentedkidsschool.online/wp-content/uploads/2026/01/IMG_2312.jpeg') no-repeat center center; background-size:contain; opacity:0.15; z-index:-1; pointer-events:none;"></div>
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:600px; height:600px; background: url('${SITE_SETTINGS.logo_url || ''}')no-repeat center center; background-size:contain; opacity:0.15; z-index:-1; pointer-events:none;"></div>
         <div style="text-align:center; border-bottom: 3px solid var(--accent); padding-bottom: 1.5rem; margin-bottom: 2rem; position:relative; z-index:2;">
           <h2 style="color:var(--primary); font-family:'Poppins', sans-serif; font-size:1.8rem; margin-bottom:0.5rem;">${SITE_SETTINGS.school_name || 'DE-BRIGHT TALENTED KIDS SCHOOL'}</h2>
           <p style="font-size:1rem; color:#444; font-weight:600;">Sonitra Road, Amasaman, Accra</p>
