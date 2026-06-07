@@ -17,10 +17,17 @@
 <div id="preloader">
   <div class="loader-content">
     <div class="spinner"></div>
-    <img src="../assets/logo.png" class="dynamic-logo dynamic-school-logo" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';" alt="De-Bright Logo">
+    <img id="preloader-logo" class="dynamic-logo dynamic-school-logo" alt="De-Bright Logo">
   </div>
 </div>
 <script>
+  // Instantly decides which logo to show on the loading screen before drawing it
+  (function() {
+    const preLogo = document.getElementById('preloader-logo');
+    const savedLogo = localStorage.getItem('schoolLogo') || localStorage.getItem('uploaded_school_logo') || localStorage.getItem('site_logo');
+    preLogo.src = savedLogo ? savedLogo : 'https://ui-avatars.com/api/?name=DB&background=facc15&color=0f172a&bold=true';
+  })();
+
   window.addEventListener('load', function() {
     const pre = document.getElementById('preloader');
     if (pre) { pre.classList.add('loaded'); setTimeout(() => pre.remove(), 600); }
